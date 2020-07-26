@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00"><NFe xmlns="http://www.portalfiscal.inf.br/nfe"><infNFe versao="4.00" Id="NFe41200605819907000109550020000459101508942129"><ide><cUF>41</cUF><cNF>50894212</cNF><natOp>5.656 - VENDA COMB/LUBRI CONS. USUARIO FINAL - PR</natOp><mod>55</mod><serie>2</serie><nNF>45910</nNF><dhEmi>2020-06-13T11:30:00-03:00</dhEmi><dhSaiEnt>2020-06-13T11:30:48-03:00</dhSaiEnt><tpNF>1</tpNF><idDest>1</idDest><cMunFG>4114807</cMunFG><tpImp>1</tpImp><tpEmis>1</tpEmis><cDV>9</cDV><tpAmb>1</tpAmb><finNFe>1</finNFe><indFinal>0</indFinal><indPres>0</indPres><procEmi>0</procEmi><verProc>GESCOR</verProc></ide><emit><CNPJ>05819907000109</CNPJ><xNome>UNIPETRO PARANA DISTRIBUIDORA DE PETROLEO LTDA</xNome><xFant>UNIPETRO - PA</xFant><enderEmit><xLgr>RUA JOSE BERTAO</xLgr><nro>135</nro><xBairro>GLEBA RIB SARAN</xBairro><cMun>4114807</cMun><xMun>MARIALVA</xMun><UF>PR</UF><CEP>86990000</CEP><fone>32636531</fone></enderEmit><IE>9034541059</IE><CRT>3</CRT></emit><dest><CNPJ>08543628000145</CNPJ><xNome>MICHEL BUENO DE MELLO E CIA LTDA</xNome><enderDest><xLgr>R PAULO ROGERIO CHAMMA</xLgr><nro>443</nro><xBairro>ARY FANCHIN</xBairro><cMun>4112009</cMun><xMun>JAGUARIAIVA</xMun><UF>PR</UF><CEP>84200000</CEP><fone>4335353078</fone></enderDest><indIEDest>1</indIEDest><IE>9041143751</IE></dest><det nItem="1"><prod><cProd>D0002</cProd><cEAN>SEM GTIN</cEAN><xProd>OLEO DIESEL B S10 - COMUM</xProd><NCM>27101921</NCM><CEST>0600605</CEST><CFOP>5656</CFOP><uCom>LT</uCom><qCom>2000.0000</qCom><vUnCom>2.59000000</vUnCom><vProd>5180.00</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>LT</uTrib><qTrib>2000.0000</qTrib><vUnTrib>2.59000000</vUnTrib><indTot>1</indTot><comb><cProdANP>820101034</cProdANP><descANP>OLEO DIESEL B S10 - COMUM</descANP><UFCons>PR</UFCons></comb></prod><imposto><vTotTrib>1318.31</vTotTrib><ICMS><ICMSST><orig>0</orig><CST>60</CST><vBCSTRet>6162.10</vBCSTRet><pST>12.00</pST><vICMSSubstituto>0.00</vICMSSubstituto><vICMSSTRet>739.45</vICMSSTRet><vBCSTDest>6162.10</vBCSTDest><vICMSSTDest>739.45</vICMSSTDest><pRedBCEfet>0.00</pRedBCEfet><vBCEfet>0.00</vBCEfet><pICMSEfet>0.00</pICMSEfet><vICMSEfet>0.00</vICMSEfet></ICMSST></ICMS><IPI><cEnq>004</cEnq><IPINT><CST>54</CST></IPINT></IPI><PIS><PISNT><CST>04</CST></PISNT></PIS><COFINS><COFINSNT><CST>04</CST></COFINSNT></COFINS></imposto><infAdProd>ONU 1202-OLEO DIESEL B S10 - CLASSE 3, GRUPO DE EMBALAGEM III</infAdProd></det><total><ICMSTot><vBC>0.00</vBC><vICMS>0.00</vICMS><vICMSDeson>0.00</vICMSDeson><vFCP>0.00</vFCP><vBCST>0.00</vBCST><vST>0.00</vST><vFCPST>0.00</vFCPST><vFCPSTRet>0.00</vFCPSTRet><vProd>5180.00</vProd><vFrete>0.00</vFrete><vSeg>0.00</vSeg><vDesc>0.00</vDesc><vII>0.00</vII><vIPI>0.00</vIPI><vIPIDevol>0.00</vIPIDevol><vPIS>0.00</vPIS><vCOFINS>0.00</vCOFINS><vOutro>0.00</vOutro><vNF>5180.00</vNF><vTotTrib>1318.31</vTotTrib></ICMSTot></total><transp><modFrete>0</modFrete><transporta><CNPJ>05819907000109</CNPJ><xNome>UNIPETRO PARANA DISTR. DE PETROLEO LTDA</xNome><IE>9034541059</IE><xEnder>RUA JOSE BERTAO 135 A</xEnder><xMun>MARIALVA</xMun><UF>PR</UF></transporta><veicTransp><placa>BYI4872</placa><UF>SP</UF></veicTransp><vol><qVol>2000</qVol><marca>,</marca><pesoL>1660.000</pesoL><pesoB>1660.000</pesoB></vol></transp><cobr><fat><nFat>00045910</nFat><vOrig>5180.00</vOrig><vDesc>0.00</vDesc><vLiq>5180.00</vLiq></fat><dup><nDup>001</nDup><dVenc>2020-06-22</dVenc><vDup>2590.00</vDup></dup><dup><nDup>002</nDup><dVenc>2020-06-25</dVenc><vDup>2590.00</vDup></dup></cobr><pag><detPag><tPag>15</tPag><vPag>5180.00</vPag></detPag></pag><infAdic><infCpl>BASE DE ICMS DE SUBSTITUICAO: R$ 6.162,10 UNITARIO: R$ 3,08 - VALOR DE ICMS DE SUBSTITUICAO.: R$ 739,45 UNITARIO: R$ 0,37 MOTORISTA: 043.983.989-02 - JONAS CORDEIRO DE ANDRADE ICMS REC.SUBST.TRIB.NA PRIMEIRA PER.CONF.ART 455 INCISO 1A DO DECRETO 514101. DECLARO QUE OS PRODUTOS PERIGOSOS ESTAO ADEQUADAMENTE CLASSIFICADOS, EMBALADOS, IDENTIFICADOS, E ESTIVADOS PARA SUPORTAR OS RISCOS DAS OPERACOES DE TRANSPORTE E QUE ATENDEM AS EXIGENCIAS DA REGULAMENTACAO. DATA: 13/06/20 VALOR APROX.TRIBUTOS R$ 1318,31 25,45% FONTE: IBPT</infCpl></infAdic><infRespTec><CNPJ>08073945000145</CNPJ><xContato>LUCIANO ADAIR SORNBERGER</xContato><email>contato@sewsistemas.com.br</email><fone>5432814523</fone><idCSRT>01</idCSRT><hashCSRT>MwM/+KEzHoscoWRh6rzjcP5MvpQ=</hashCSRT></infRespTec></infNFe><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><Reference URI="#NFe41200605819907000109550020000459101508942129"><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/><Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><DigestValue>vsH70VDVz45P6yDQ41QaC3YQPvM=</DigestValue></Reference></SignedInfo><SignatureValue>Xolbp3T5E+Gqawwc2dn7dDqRkXLbKb+ej8NhXgxPlMn752pUH6OlodqgEXh4KJJFpO43BQDOS9WRI+VxquiFpoOY9iktBBjk19ayJb96Kmk19r43dsvAq6UWDuSH00indt8BGYPeyBv+Pg0FIcxqBZR+PoERIfRYH0TVGc2FiRZT7QvmY/p7lXlU1SasdCGqcXzkjfq6GHHsESIpO3KcBmrwY7A2+/7iHHzivJ5H/lQIS1happM7ZgD+G8qLenBFpQs98fkU5/pTDkAVMMch7dgURImasD0voGzKfWhPOBXjERZ23vopqsGfXHZ9RdwlqNEQTP0aH+vjkDwBMgx5wA==</SignatureValue><KeyInfo><X509Data><X509Certificate>MIIH0zCCBbugAwIBAgIIec/OOm8E1KQwDQYJKoZIhvcNAQELBQAwTDELMAkGA1UE
+BhMCQlIxEzARBgNVBAoMCklDUC1CcmFzaWwxKDAmBgNVBAMMH1NFUkFTQSBDZXJ0
+aWZpY2Fkb3JhIERpZ2l0YWwgdjUwHhcNMTkwNzE1MTIxMDAwWhcNMjAwNzE0MTIx
+MDAwWjCCARAxCzAJBgNVBAYTAkJSMRMwEQYDVQQKDApJQ1AtQnJhc2lsMRQwEgYD
+VQQLDAsoRU0gQlJBTkNPKTEYMBYGA1UECwwPMDAwMDAxMDA5MTQ2MTI5MRQwEgYD
+VQQLDAsoRU0gQlJBTkNPKTEUMBIGA1UECwwLKEVNIEJSQU5DTykxKDAmBgNVBAsM
+H1NFUkFTQSBDZXJ0aWZpY2Fkb3JhIERpZ2l0YWwgdjUxFzAVBgNVBAsMDjYyMTcz
+NjIwMDAwMTgwMRQwEgYDVQQLDAsoRU0gQlJBTkNPKTE3MDUGA1UEAwwuVU5JUEVU
+Uk8gUEFSQU5BIERJU1RSSUJVSURPUkEgREUgUEVUUk9MRU8gTFREQTCCASIwDQYJ
+KoZIhvcNAQEBBQADggEPADCCAQoCggEBAI3papzjWeLkpTl9quWyCKkkc10TWrYe
+7/0yZ0dC0YoYjmMX3HhsQuvVpI+DZPKZgTq05j+lMaCtm4jhnbvMvyGxPeC5TwOY
+sfDtaswYts1lMV91nPpA6NUjLhSzCgzw5yXDLFu5jOYE4cxKwmj5mMDVY8+pfHtP
+fi0UxBVBOFjzlW9U2LzEJzoBbNLib0XaPVJjam9qIl/YD1pLoYvllrXwc7FUzZhp
+ML0T/am+QWQ9DN9jsOgZ8uRnEPYL1n+ALp41XL2C5svqY0+YKSPVwhOUydqu9TSv
++cu2pLca9ILp9yAVlUQZHz8zMfpp2gFXbRWqYZhSTmSX53PjJVrZVJECAwEAAaOC
+AvEwggLtMB8GA1UdIwQYMBaAFFZ1r0pzstgIxH37bCgcEdX3wajMMIGXBggrBgEF
+BQcBAQSBijCBhzBHBggrBgEFBQcwAoY7aHR0cDovL3d3dy5jZXJ0aWZpY2Fkb2Rp
+Z2l0YWwuY29tLmJyL2NhZGVpYXMvc2VyYXNhY2R2NS5wN2IwPAYIKwYBBQUHMAGG
+MGh0dHA6Ly9vY3NwLmNlcnRpZmljYWRvZGlnaXRhbC5jb20uYnIvc2VyYXNhY2R2
+NTCB0AYDVR0RBIHIMIHFgSJNQVJDVVMuRFBTQFVOSVBFVFJPUkVHSU9OQUwuQ09N
+LkJSoD4GBWBMAQMEoDUTMzE3MDIxOTU3Nzk5MzI2OTA4MzAwMDAwMDAwMDAwMDAw
+MDAwMDAwODY0NDk0MFNTUCBTUKArBgVgTAEDAqAiEyBBTlRPTklPIEZFUlJFSVJB
+IERFIFNPVVpBIEdBU1BBUqAZBgVgTAEDA6AQEw4wNTgxOTkwNzAwMDEwOaAXBgVg
+TAEDB6AOEwwwMDAwMDAwMDAwMDAwcQYDVR0gBGowaDBmBgZgTAECAQYwXDBaBggr
+BgEFBQcCARZOaHR0cDovL3B1YmxpY2FjYW8uY2VydGlmaWNhZG9kaWdpdGFsLmNv
+bS5ici9yZXBvc2l0b3Jpby9kcGMvZGVjbGFyYWNhby1zY2QucGRmMB0GA1UdJQQW
+MBQGCCsGAQUFBwMCBggrBgEFBQcDBDCBmwYDVR0fBIGTMIGQMEmgR6BFhkNodHRw
+Oi8vd3d3LmNlcnRpZmljYWRvZGlnaXRhbC5jb20uYnIvcmVwb3NpdG9yaW8vbGNy
+L3NlcmFzYWNkdjUuY3JsMEOgQaA/hj1odHRwOi8vbGNyLmNlcnRpZmljYWRvcy5j
+b20uYnIvcmVwb3NpdG9yaW8vbGNyL3NlcmFzYWNkdjUuY3JsMB0GA1UdDgQWBBTa
+NPaS3pRatcxmX+v1xfH7DVlBLzAOBgNVHQ8BAf8EBAMCBeAwDQYJKoZIhvcNAQEL
+BQADggIBAExtmXKZcsDDktt6jUm9w/h9SPau9Z3RQeZA9Cn7rzFOZyrAF/6JeVJ9
+0oDc+SHtI17sSLP2hbdIVs+JmleNvlNUPoPp8OUxl114wA8PCwfk/pu5rdQR7dGQ
+nJii39RU5KEthTMJqsSa28/C7bePIiXdbb8m1sCeMII6R5QXGHcrexzS3WPhvHyB
+u/7II30kRNe0zMsREcuv0VUCQj7GSHaUBy5BPwGJ4jC84tDVupab6sZTR94vXIpc
+3/fJJv7fex4dt4ugJWuA/mgrUzOjk2naE0WArwQClnOvgV9y1GHFd0xfRvDi5/ms
+Gmq5S7qn/3cHP01T3hougslXOzngDbpz800Ntix+Soxs+k7X8JkV8o2C4wDZxU63
+JYi/Pe5tycvY21HTZuNPjHacvb9LnWjEbISpvjz+jzIbS6k83rdUQL0vvcKsES8t
+kXZx5xf3EBvddsqYOGSJEjOc1wEdpIfIpMwB4EjWhy7B8du8+fM+xDzzhe2q0ELi
+CYVJEIAXH1uEXIKjCx0xNgXo82Z4jCHk5iRjvpnkbTVBwZ6Dz4vf9Nxz8o0UWkM/
+zK/esYEMi4m5mFW/maqR9IzLkiIovlvDSCNMR22srHW9K/KYw57z4qsNI/q8oETP
+zPJRTnDG8HEkPreimK6hhHBu+J8YzgqoxOVfM+pG2WEYvlxR/rmY</X509Certificate></X509Data></KeyInfo></Signature></NFe><protNFe versao="4.00"><infProt Id="ID141200105190192"><tpAmb>1</tpAmb><verAplic>PR-v4_6_3</verAplic><chNFe>41200605819907000109550020000459101508942129</chNFe><dhRecbto>2020-06-13T11:32:14-03:00</dhRecbto><nProt>141200105190192</nProt><digVal>vsH70VDVz45P6yDQ41QaC3YQPvM=</digVal><cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo></infProt></protNFe></nfeProc>

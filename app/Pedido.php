@@ -7,12 +7,16 @@ use App\PedidoDelete;
 class Pedido extends Model
 {
 	protected $fillable = [
-		'comanda', 'status', 'desativado', 'observacao', 'rua', 'numero', 'bairro_id', 'referencia', 'telefone', 'nome',
-		'mesa_id'
+		'comanda', 'status', 'desativado', 'observacao', 'rua', 'numero', 'bairro_id',
+		 'referencia', 'telefone', 'nome', 'mesa_id', 'referencia_cliete', 'mesa_ativa', 'fechar_mesa'
 	];
 
 	public function itens(){
 		return $this->hasMany('App\ItemPedido', 'pedido_id', 'id');
+	}
+
+	public function QrCode(){
+		return $this->hasMany('App\PedidoQrCodeCliente', 'pedido_id', 'id');
 	}
 
 	public function bairro(){
@@ -78,6 +82,11 @@ class Pedido extends Model
 		->first();
 
 		return $item != null;
+	}
+
+	public function randomColor(){
+		$colors = ['red', 'green', 'blue', 'brown', 'yellow', 'cyan', 'purple'];
+		return $colors[rand(0,6)];
 	}
 	
 }

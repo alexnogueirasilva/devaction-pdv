@@ -116,7 +116,7 @@
 						</th>
 
 						<th>
-							<a target="_blank" title="CUPOM NAO FISCAL" href="/nfce/imprimirNaoFiscalCredito/{{$v->id}}">
+							<a target="_blank" title="CUPOM NAO FISCAL" href="/nfce/imprimirNaoFiscalCredito/{{$v->venda_id}}">
 								<i class="material-icons blue-text">print</i>
 							</a>
 

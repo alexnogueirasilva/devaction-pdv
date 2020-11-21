@@ -28,6 +28,13 @@ class CreateDeliveryConfigsTable extends Migration
             $table->string('latitude', 10);
             $table->string('longitude', 10);
             $table->string('politica_privacidade', 400);
+            $table->decimal('valor_km', 10, 2);
+            $table->integer('entrega_gratis_ate');
+            $table->integer('maximo_km_entrega');
+            $table->boolean('usar_bairros');
+
+            $table->integer('maximo_adicionais');
+            $table->integer('maximo_adicionais_pizza');
             $table->timestamps();
         });
     }

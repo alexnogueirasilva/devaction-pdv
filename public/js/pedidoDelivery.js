@@ -15,13 +15,47 @@ $('#btn-enviar-push').click(() => {
 	$.post(path+'pedidosDelivery/sendPush', js)
 	.done((success) => {
 		console.log(success)
-		alert('Push Enviado')
+		// alert('Push Enviado')
+		swal("Sucesso", 'Push Enviado', "success")
+
 		$('#modal-push').modal('close')
 
 	})
 	.fail((err) => {
 		console.log(err)
-		alert('Erro ao enviar Push')
+		// alert('Erro ao enviar Push')
+		swal("Erro", 'Erro ao enviar Push', "warning")
+
+	})
+})
+
+$('#btn-enviar-push-web').click(() => {
+
+	let titulo = $('#titulo-push-web').val();
+	let texto = $('#texto-push-web').val();
+	let imagem = $('#imagem-push-web').val();
+
+	let js = {
+		titulo: titulo,
+		texto: texto,
+		imagem: imagem,
+		cliente: $('#cliente').val(),
+		_token: $('#token').val()
+	}
+	console.log(js)
+	$.post(path+'pedidosDelivery/sendPushWeb', js)
+	.done((success) => {
+		console.log(success)
+		// alert('Push Enviado')
+		swal("Sucesso", 'Push Enviado', "success")
+
+		$('#modal-push-web').modal('close')
+
+	})
+	.fail((err) => {
+		console.log(err)
+		swal("Erro", 'Erro ao enviar Push', "warning")
+		// alert('Erro ao enviar Push')
 	})
 })
 
@@ -47,13 +81,17 @@ $('#btn-enviar-sms').click(() => {
 	$.post(path+'pedidosDelivery/sendSms', js)
 	.done((success) => {
 		console.log(success)
-		alert('SMS Enviado')
+		// alert('SMS Enviado')
+		swal("Sucesso", 'SMS Enviado', "success")
+
 		$('#modal-sms').modal('close')
 
 	})
 	.fail((err) => {
 		console.log(err)
-		alert('Erro ao enviar SMS')
+		// alert('Erro ao enviar SMS')
+		swal("Erro", 'Erro ao enviar SMS', "warning")
+
 	})
 })
 
@@ -86,6 +124,8 @@ function consultar(codigo){
 		$('#preloader').css('display', 'none')
 		
 		console.log(err)
-		alert("Ocorreu um erro ao consultar o código: " + codigo)
+		// alert("Ocorreu um erro ao consultar o código: " + codigo)
+		swal("Erro", "Ocorreu um erro ao consultar o código: " + codigo, "warning")
+		
 	})
 }

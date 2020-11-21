@@ -15,8 +15,6 @@
 
 namespace Test\Linear;
 
-use PHPUnit\Framework\TestCase;
-
 /**
  * Barcode class test
  *
@@ -28,7 +26,7 @@ use PHPUnit\Framework\TestCase;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-barcode
  */
-class CodabarTest extends TestCase
+class CodabarTest extends \PHPUnit_Framework_TestCase
 {
     protected $obj = null;
 
@@ -47,11 +45,9 @@ class CodabarTest extends TestCase
         $this->assertEquals($expected, $grid);
     }
 
-    /**
-     * @expectedException \Com\Tecnick\Barcode\Exception
-     */
     public function testInvalidInput()
     {
+        $this->setExpectedException('\Com\Tecnick\Barcode\Exception');
         $this->obj->getBarcodeObj('CODABAR', chr(218));
     }
 }

@@ -18,7 +18,7 @@
 					<h5 class="grey-text">DADOS INICIAIS</h5>
 					<div class="row">
 						<div class="col s4">
-							<h6>Ultima NF: <strong>{{$lastNF}}</strong></h6>
+							<h6>Ultima NF-e: <strong>{{$lastNF}}</strong></h6>
 
 						</div>
 						<div class="col s4">
@@ -48,6 +48,24 @@
 								Natureza de Operação
 							</label>
 						</div>
+
+						@if(isset($listaPreco))
+
+						<div class="input-field col s4">
+							<i class="material-icons prefix">attach_money</i>
+							<select id="lista_id">
+								<option value="0">Padrão</option>
+								@foreach($listaPreco as $l)
+								<option value="{{$l->id}}">{{$l->nome}} - {{$l->percentual_alteracao}}%</option>
+								@endforeach
+							</select>
+							<label>
+								Lista de Preço
+							</label>
+						</div>
+
+
+						@endif
 					</div>
 				</div>
 				
@@ -317,7 +335,7 @@
 
 								<div class="col s2 input-field">
 									<input id="numeracaoVol" type="text">
-									<label>Nuneração de Volumes</label>
+									<label>Numeração de Volumes</label>
 								</div>
 								<div class="col s2 input-field">
 									<input id="qtdVol" type="text">

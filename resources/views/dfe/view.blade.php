@@ -106,18 +106,19 @@
 							style="display: block" @else style="display: none"
 							@endif>
 
-							<a onclick="cadProd('{{$i['codigo']}}','{{$i['xProd']}}','{{$i['codBarras']}}','{{$i['NCM']}}','{{$i['CFOP']}}','{{$i['uCom']}}','{{$i['vUnCom']}}','{{$i['qCom']}}', '{{$i['vUnCom']}}')" class="btn" href="#">
+							<button onclick="cadProd('{{$i['codigo']}}','{{$i['xProd']}}','{{$i['codBarras']}}','{{$i['NCM']}}','{{$i['CFOP']}}','{{$i['uCom']}}','{{$i['vUnCom']}}','{{$i['qCom']}}', '{{$i['vUnCom']}}', '{{$infos['nNf']}}')" class="btn">
 								<i class="material-icons">add</i>
-							</a>
+							</button>
 
 
-						</th>
+						</th>	
+
 
 						<th id="th_acao2_{{$i['codigo']}}" @if($i['produtoNovo'])
-						style="display: none" @else style="display: block"
+						style="display: none" @else style="display: block" 
 						@endif>
-						<a disabled onclick="editProd('{{$i['codigo']}}')" class="btn yellow" href="#tbody">
-							<i class="material-icons">check</i>
+						<a id="th_estoque_{{$i['produtoId']}}" title="Adicionar estoque" onclick="salvarEstoque('{{$i['produtoId']}}', '{{$i['qCom']}}', '{{$i['vUnCom']}}')" class="btn yellow @if($i['produtoSetadoEstoque']) disabled @endif" href="#tbody">
+							<i class="material-icons">add_shopping_cart</i>
 						</a>
 
 
@@ -175,6 +176,13 @@
 	<div class="row">
 		<div class="col s6">
 			<h4>Total: <strong id="valorDaNF" class="blue-text">{{$infos['vProd']}}</strong></h4>
+		</div>
+
+		<div class="col s2 offset-s4">
+			<a target="_blank" class="btn red" href="/dfe/downloadXml/{{$infos['chave']}}">
+				<i class="material-icons left">assignment_returned</i>
+				Baixar XML
+			</a>
 		</div>
 
 		<!-- <div class="col s6 right-align">
@@ -240,8 +248,8 @@
 
 		<div class="row">
 			<div class="input-field col s6">
-				<input disabled type="text" class="validate" id="valor">
-				<label>Valor</label>
+				<input disabled type="text" class="validate" id="valor_compra">
+				<label>Valor de Compra</label>
 			</div>
 
 			<div class="input-field col s6">

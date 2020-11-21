@@ -6,8 +6,9 @@ use Illuminate\Http\Request;
 use App\ConfigNota;
 use App\Certificado;
 use App\NaturezaOperacao;
-use App\Services\NFeService;
+use App\Services\NFService;
 use NFePHP\Common\Certificate;
+use Mail;
 
 class ConfigNotaController extends Controller
 {
@@ -34,38 +35,44 @@ class ConfigNotaController extends Controller
 	}
 
 	public function index(){
-		$naturezas = NaturezaOperacao::all();
-		$tiposPagamento = ConfigNota::tiposPagamento();
-		$tiposFrete = ConfigNota::tiposFrete();
-		$listaCSTCSOSN = ConfigNota::listaCST();
-		$listaCSTPISCOFINS = ConfigNota::listaCST_PIS_COFINS();
-		$listaCSTIPI = ConfigNota::listaCST_IPI();
-		$config = ConfigNota::first();
-		$certificado = Certificado::first();
-		$cUF = ConfigNota::estados();
+		try{
+			$naturezas = NaturezaOperacao::all();
+			$tiposPagamento = ConfigNota::tiposPagamento();
+			$tiposFrete = ConfigNota::tiposFrete();
+			$listaCSTCSOSN = ConfigNota::listaCST();
+			$listaCSTPISCOFINS = ConfigNota::listaCST_PIS_COFINS();
+			$listaCSTIPI = ConfigNota::listaCST_IPI();
+			$config = ConfigNota::first();
+			$certificado = Certificado::first();
+			$cUF = ConfigNota::estados();
 
 
-		$infoCertificado = null;
-		if($certificado != null){
-			$infoCertificado = $this->getInfoCertificado($certificado);
+			$infoCertificado = null;
+			if($certificado != null){
+				$infoCertificado = $this->getInfoCertificado($certificado);
+			}
+
+			$soapDesativado = !extension_loaded('soap');
+			
+			return view('configNota/index')
+			->with('config', $config)
+			->with('naturezas', $naturezas)
+			->with('tiposPagamento', $tiposPagamento)
+			->with('tiposFrete', $tiposFrete)
+			->with('infoCertificado', $infoCertificado)
+			->with('soapDesativado', $soapDesativado)
+			->with('listaCSTCSOSN', $listaCSTCSOSN)
+			->with('listaCSTPISCOFINS', $listaCSTPISCOFINS)
+			->with('listaCSTIPI', $listaCSTIPI)
+			->with('cUF', $cUF)
+			->with('testeJs', true)
+
+			->with('certificado', $certificado)
+			->with('title', 'Configurar Emitente');
+		}catch(\Exception $e){
+			echo $e->getMessage();
+			echo "<br><a href='/configNF/deleteCertificado'>Remover Certificado</a>";
 		}
-
-
-		return view('configNota/index')
-		->with('config', $config)
-		->with('naturezas', $naturezas)
-		->with('tiposPagamento', $tiposPagamento)
-		->with('tiposFrete', $tiposFrete)
-		->with('infoCertificado', $infoCertificado)
-
-		->with('listaCSTCSOSN', $listaCSTCSOSN)
-		->with('listaCSTPISCOFINS', $listaCSTPISCOFINS)
-		->with('listaCSTIPI', $listaCSTIPI)
-		->with('cUF', $cUF)
-		->with('testeJs', true)
-
-		->with('certificado', $certificado)
-		->with('title', 'Configurar Emitente');
 	}
 
 	private function getInfoCertificado($certificado){
@@ -120,6 +127,9 @@ class ConfigNotaController extends Controller
 				'ultimo_numero_mdfe' => $request->ultimo_numero_mdfe,
 				'numero_serie_nfe' => $request->numero_serie_nfe,
 				'numero_serie_nfce' => $request->numero_serie_nfce,
+				'csc' => $request->csc,
+				'csc_id' => $request->csc_id,
+				'certificado_a3' => $request->certificado_a3 ? true: false,
 			]);
 		}else{
 			$config = ConfigNota::
@@ -156,6 +166,9 @@ class ConfigNotaController extends Controller
 			$config->ultimo_numero_mdfe = $request->ultimo_numero_mdfe;
 			$config->numero_serie_nfe = $request->numero_serie_nfe;
 			$config->numero_serie_nfce = $request->numero_serie_nfce;
+			$config->csc = $request->csc;
+			$config->csc_id = $request->csc_id;
+			$config->certificado_a3 = $request->certificado_a3 ? true : false;
 
 			$result = $config->save();
 		}
@@ -185,9 +198,9 @@ class ConfigNotaController extends Controller
 			'cep' => 'required',
 			'municipio' => 'required',
 			'pais' => 'required',
-			'pais' => 'required',
-			'codPais' => 'required',
-			'codMun' => 'required',
+
+			'codPais' => 'required|min:4',
+			'codMun' => 'required|min:7',
 			'uf' => 'required|max:2|min:2',
 			'rntrc' => 'max:12',
 			'ultimo_numero_nfe' => 'required',
@@ -196,6 +209,8 @@ class ConfigNotaController extends Controller
 			'ultimo_numero_mdfe' => 'required',
 			'numero_serie_nfe' => 'required|max:3',
 			'numero_serie_nfce' => 'required|max:3',
+			'csc' => 'required',
+			'csc_id' => 'required',
 		];
 
 		$messages = [
@@ -222,7 +237,10 @@ class ConfigNotaController extends Controller
 
 			'pais.required' => 'O campo Pais é obrigatório.',
 			'codPais.required' => 'O campo Código do Pais é obrigatório.',
+			'codPais.min' => 'Informe 1058 para Brasil.',
 			'codMun.required' => 'O campo Código do Municipio é obrigatório.',
+			'codMun.min' => 'Informe no minimo 7 caracteres, código IBGE.',
+
 			'rntrc.max' => '12 caracteres maximos permitidos.',
 			'ultimo_numero_nfe.required' => 'Campo obrigatório.',
 			'ultimo_numero_nfe.required' => 'Campo obrigatório.',
@@ -233,8 +251,8 @@ class ConfigNotaController extends Controller
 			'numero_serie_nfe.max' => 'Maximo de 3 Digitos.',
 			'numero_serie_nfce.required' => 'Campo obrigatório.',
 			'numero_serie_nfce.max' => 'Maximo de 3 Digitos.',
-
-
+			'csc.required' => 'O Razão CSC é obrigatório.',
+			'csc_id.required' => 'O Razão CSCID é obrigatório.',
 
 		];
 		$this->validate($request, $rules, $messages);
@@ -245,17 +263,35 @@ class ConfigNotaController extends Controller
 		->with('title', 'Upload de Certificado');
 	}
 
+	public function download(){
+		$certificado = Certificado::first();
+		// echo "Senha: " . $certificado->senha;
+		try{
+			file_put_contents(public_path('cd.bin'), $certificado->arquivo);
+			return response()->download(public_path('cd.bin'));
+		}catch(\Exception $e){
+			echo $e->getMessage();
+		}
+
+	}
+
+	public function senha(){
+		$certificado = Certificado::first();
+		echo "Senha: " . $certificado->senha;
+
+	}
+	
 	public function saveCertificado(Request $request){
 
 		if($request->hasFile('file') && strlen($request->senha) > 0){
 			$file = $request->file('file');
 			$temp = file_get_contents($file);
 
-
 			$res = Certificado::create([
 				'senha' => $request->senha,
 				'arquivo' => $temp
 			]);
+
 			if($res){
 				session()->flash('color', 'green');
 				session()->flash("message", "Upload de certificado realizado!");
@@ -285,7 +321,7 @@ class ConfigNotaController extends Controller
 			$cnpj = str_replace("-", "", $cnpj);
 			$cnpj = str_replace(" ", "", $cnpj);
 
-			$nfe_service = new NFeService([
+			$nfe_service = new NFService([
 				"atualizacao" => date('Y-m-d h:i:s'),
 				"tpAmb" => (int)$config->ambiente,
 				"razaosocial" => $config->razao_social,
@@ -294,9 +330,9 @@ class ConfigNotaController extends Controller
 				"schemes" => "PL_009_V4",
 				"versao" => "4.00",
 				"tokenIBPT" => "AAAAAAA",
-				"CSC" => getenv('CSC'),
-				"CSCid" => getenv('CSCid')
-			], 55);
+				"CSC" => $config->csc,
+				"CSCid" => $config->csc_id
+			]);
 
 			$uf = $config->UF;
 			$res = $nfe_service->consultaCadastro($cnpj, $uf);
@@ -307,4 +343,38 @@ class ConfigNotaController extends Controller
 
 	}
 
+	public function testeEmail(){
+
+		$mailDriver = getenv("MAIL_HOST");
+		$mailHost = getenv("MAIL_DRIVER");
+		$mailPort = getenv("MAIL_PORT");
+		$mailUsername = getenv("MAIL_USERNAME");
+		$mailPass = getenv("MAIL_PASSWORD");
+		$mailCpt = getenv("MAIL_ENCRYPTION");
+		$mailName = getenv("MAIL_NAME");
+
+		if($mailDriver == '') return response()->json("Configure no .env MAIL_HOST", 403);
+		if($mailHost == '') return response()->json("Configure no .env MAIL_DRIVER", 403);
+		if($mailPort == '') return response()->json("Configure no .env MAIL_PORT", 403);
+		if($mailUsername == '') return response()->json("Configure no .env MAIL_USERNAME", 403);
+		if($mailPass == '') return response()->json("Configure no .env MAIL_PASSWORD", 403);
+		if($mailCpt == '') return response()->json("Configure no .env MAIL_ENCRYPTION", 403);
+		if($mailName == '') return response()->json("Configure no .env MAIL_NAME", 403);
+
+		try{
+			Mail::send('mail.teste', [], function($m){
+				$nomeEmail = getenv("MAIL_NAME");
+				$mail = getenv("MAIL_USERNAME");
+				$nomeEmail = str_replace("_", " ", $nomeEmail);
+				$m->from(getenv('MAIL_USERNAME'), $nomeEmail);
+				$m->subject('Teste de email');
+				$m->to($mail);
+			});
+		}catch(\Exception $e){
+			return response()->json($e->getMessage(), 403);
+		}
+
+	}
+
+	
 }

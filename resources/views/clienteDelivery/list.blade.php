@@ -5,7 +5,7 @@
 	<div class="col s12">
 		<nav class="black">
 			<div class="nav-wrapper">
-				<form method="get" action="/clientes/pesquisa">
+				<form method="get" action="/clientesDelivery/pesquisa">
 					<div class="input-field">
 						<input placeholder="Pesquisa de Cliente" id="search" name="pesquisa" 
 						type="search" required>

@@ -6,7 +6,7 @@
  * @category    Library
  * @package     Barcode
  * @author      Nicola Asuni <info@tecnick.com>
- * @copyright   2015-2020 Nicola Asuni - Tecnick.com LTD
+ * @copyright   2015-2016 Nicola Asuni - Tecnick.com LTD
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-barcode
  *
@@ -125,10 +125,21 @@ class Encode extends \Com\Tecnick\Barcode\Type\Square\Datamatrix\EncodeTxt
             $this->last_enc = $enc;
         }
         // encodes four data characters in three codewords
-        $cdw[] = (($temp_cw[0] & 0x3F) << 2) + (($temp_cw[1] & 0x30) >> 4);
-        $cdw[] = (($temp_cw[1] & 0x0F) << 4) + (($temp_cw[2] & 0x3C) >> 2);
-        $cdw[] = (($temp_cw[2] & 0x03) << 6) + ($temp_cw[3] & 0x3F);
-        $cdw_num += 3;
+        $tcw = (($temp_cw[0] & 0x3F) << 2) + (($temp_cw[1] & 0x30) >> 4);
+        if ($tcw > 0) {
+            $cdw[] = $tcw;
+            $cdw_num++;
+        }
+        $tcw = (($temp_cw[1] & 0x0F) << 4) + (($temp_cw[2] & 0x3C) >> 2);
+        if ($tcw > 0) {
+            $cdw[] = $tcw;
+            $cdw_num++;
+        }
+        $tcw = (($temp_cw[2] & 0x03) << 6) + ($temp_cw[3] & 0x3F);
+        if ($tcw > 0) {
+            $cdw[] = $tcw;
+            $cdw_num++;
+        }
         $temp_cw = array();
         $pos = $epos;
         $field_length = 0;
@@ -216,9 +227,8 @@ class Encode extends \Com\Tecnick\Barcode\Type\Square\Datamatrix\EncodeTxt
         }
         if (!empty($temp_cw)) {
             // add B256 field
-            foreach ($temp_cw as $cht) {
-                $cdw[] = $this->get255StateCodeword($cht, ($cdw_num + 1));
-                ++$cdw_num;
+            foreach ($temp_cw as $chp => $cht) {
+                $cdw[] = $this->get255StateCodeword($cht, ($cdw_num + $chp + 1));
             }
         }
     }

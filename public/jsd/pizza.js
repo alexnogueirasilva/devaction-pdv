@@ -15,7 +15,7 @@ function select_pizza(produto, galeria, sabor){
 
 		if(res == 'true'){
 			location.href='#!';
-			alert('Este sabor ja esta adicionado!')
+			swal("Atenção", "Este sabor ja esta adicionado!", "warning")
 		}
 	})
 
@@ -49,7 +49,7 @@ function somaTotal(){
 
 		valorProduto += parseFloat(v.valor);
 	})
-	alert(valorProduto)
+
 	$('#valor_total').html(convertMoney(valorProduto))
 }
 
@@ -75,7 +75,7 @@ function adicionar(){
 	.done(function(data) {
 
 		if(data == 'false'){
-			alert("Você está com um pedido pendente, aguarde o processamento");
+			swal("", "Você está com um pedido pendente, aguarde o processamento", "warning")
 		}else{
 			sucesso();
 		}

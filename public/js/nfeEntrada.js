@@ -1,7 +1,8 @@
 
 function enviar(id){
-	var r = confirm("Deseja gerar entrada fiscal desta Compra?");
-	if (r == true) {
+	// var r = confirm("Deseja gerar entrada fiscal desta Compra?");
+	swal("Confirmação", "Deseja gerar entrada fiscal desta Compra?", "warning")
+	.then(() => {
 		
 		$('#preloader').css('display', 'block')
 		let token = $('#_token').val();
@@ -26,6 +27,7 @@ function enviar(id){
 				window.open(path+"compras/imprimir/"+id, "_blank");
 
 			}, error: function(e){
+				console.log(e)
 				$('#preloader').css('display', 'none')
 
 				let js = e.responseJSON;
@@ -40,9 +42,7 @@ function enviar(id){
 
 			}
 		});
-	}else{
-
-	}
+	})
 
 }
 
@@ -67,10 +67,13 @@ function cancelar(){
 			console.log(e)
 			let js = JSON.parse(e);
 			console.log(js)
-			alert(js.retEvento.infEvento.xMotivo)
-
 			$('#preloader5').css('display', 'none');
-			location.reload();
+
+			// alert(js.retEvento.infEvento.xMotivo)
+			swal("Sucesso", js.retEvento.infEvento.xMotivo, "success")
+			.then((value) => {
+				location.reload();
+			});
 		}, error: function(e){
 			console.log(e)
 			Materialize.toast('Erro de comunicação contate o desenvolvedor', 5000)

@@ -167,24 +167,30 @@
 
 		<div class="row">
 			
-			<div class="col s2">
+			<div class="col s3">
 				<a id="btn-imprimir" onclick="imprimir()" style="width: 100%" class="btn-large grey" href="#!">Imprimir</a>
 			</div>
 
-			<div class="col s2">
-				<a id="btn-danfe" target="_black" style="width: 100%" class="btn-large blue waves-light">Simular Danfe</a>
+
+			<div class="col s3">
+				<a id="btn-danfe" target="_black" style="width: 100%" class="btn-large blue waves-light">Renderizar Danfe</a>
 			</div>
 
-			<div class="col s2">
+			<div class="col s3">
 				<a id="btn-xml" onclick="setaEmail()" style="width: 100%" class="btn-large purple waves-light modal-trigger" href="#modal5">Enviar Email</a>
 			</div>
 
-			<div class="col s2">
+			<div class="col s3">
 				<a onclick="modalWhatsApp()" style="width: 100%" class="btn-large green waves-light modal-trigger" href="#!">WhatsApp</a>
 			</div>
 
-			
 		</div>
+
+		<!-- <div class="row">
+			<div class="col s4">
+				<a id="btn-imprimir" onclick="imprimirCompleto()" style="width: 100%" class="btn-large green" href="#!">Imprimir Com Derivados</a>
+			</div>
+		</div> -->
 	</div>
 </div>
 

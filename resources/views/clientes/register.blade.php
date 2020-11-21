@@ -38,15 +38,17 @@
 				<div class="row">
 					<div class="col s2">
 						<p>
-							<input class="with-gap"  name="group1" type="radio" id="pessoaFisica" 
-							@if(isset($cliente)) @if(strlen($cliente->cpf_cnpj) < 15) checked @endif @endif/>
+							<input class="with-gap" value="f" name="group1" type="radio" id="pessoaFisica" 
+							@if(isset($cliente)) @if(strlen($cliente->cpf_cnpj) < 15) checked @endif @else 
+							@if(old('group1') == 'f') checked @endif @endif/>
 							<label for="pessoaFisica">Pessoa Fisica</label>
 						</p>
 					</div>
 					<div class="col s2">
 						<p>
-							<input class="with-gap"  name="group1" type="radio" id="pessoaJuridica"
-							@if(isset($cliente)) @if(strlen($cliente->cpf_cnpj) > 15) checked @endif @endif />
+							<input class="with-gap" value="j" name="group1" type="radio" id="pessoaJuridica"
+							@if(isset($cliente)) @if(strlen($cliente->cpf_cnpj) > 15) checked @endif @else 
+							@if(old('group1') == 'j') checked @endif @endif />
 							<label for="pessoaJuridica">Pessoa Juridica</label>
 						</p>
 					</div>

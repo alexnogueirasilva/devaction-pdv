@@ -39,7 +39,9 @@ function enviar(){
 				$('#evento-erro').html("[" + m.protCTe.infProt.cStat + "] : " + m.protCTe.infProt.xMotivo)
 			}
 			else if(e == 'Apro'){
-				alert("Esta CT-e já esta aprovada, não é possível enviar novamente!");
+				// alert("Esta CT-e já esta aprovada, não é possível enviar novamente!");
+				swal("Cuidado!", "Esta CT-e já esta aprovada, não é possível enviar novamente!", "warning")
+
 			}
 			else{
 				$('#modal-alert').modal('open');
@@ -461,12 +463,16 @@ function enviarEmailXMl(){
 	.done(function(data){
 		console.log(data)
 		$('#preloader6').css('display', 'none');
-		alert('Email enviado com sucesso!');
+		// alert('Email enviado com sucesso!');
+		swal("Sucesso", "Email enviado com sucesso!", "success")
+
 	})
 	.fail(function(err){
 		console.log(err)
 		$('#preloader6').css('display', 'none');
-		alert('Erro ao enviar email!')
+		// alert('Erro ao enviar email!')
+		swal("Erro", "Erro ao enviar email!", "warning")
+
 	})
 }
 

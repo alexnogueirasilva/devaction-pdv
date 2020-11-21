@@ -372,16 +372,6 @@ class NFeEntradaService {
 		// }
 
 
-
-		$stdResp = new \stdClass();
-		$stdResp->CNPJ = '08543628000145'; 
-		$stdResp->xContato= 'Slym';
-		$stdResp->email = 'marcos05111993@gmail.com'; 
-		$stdResp->fone = '43996347016'; 
-
-		$nfe->taginfRespTec($stdResp);
-
-
 	//Fatura
 
 		$stdFat = new \stdClass();
@@ -425,8 +415,6 @@ class NFeEntradaService {
 
 		$stdDetPag->tPag = $tipoPagamento;
 		$stdDetPag->vPag = $this->format($stdProd->vProd); 
-
-		
 		$stdDetPag->indPag = '0'; 
 
 		$detPag = $nfe->tagdetPag($stdDetPag);

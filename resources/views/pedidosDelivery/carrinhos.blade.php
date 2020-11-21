@@ -14,6 +14,7 @@
 						<h4>Itens do Pedido: {{count($p->itens)}}</h4>
 						<h4>Soma parcial: {{number_format($p->somaItens(), 2)}}</h4>
 						<a href="/pedidosDelivery/verCarrinho/{{$p->id}}" style="width: 100%;" class="btn orange">Visualizar</a>
+						<a href="/pedidosDelivery/removerCarrinho/{{$p->id}}" style="width: 100%;" class="btn red">Excluir</a>
 					</div>	
 				</div>
 			</div>

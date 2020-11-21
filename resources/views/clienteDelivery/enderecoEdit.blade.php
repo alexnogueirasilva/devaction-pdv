@@ -31,8 +31,26 @@
 					</div>
 				</div>
 
+				@if($config->usar_bairros == 1)
 				<div class="row">
-					<div class="input-field col s6">
+					<div class="input-field col s4">
+						<select name="bairro_id">
+							@foreach($bairros as $b)
+							<option value="{{$b->id}}" @if($b->id == $endereco->bairro_id) selected @endif>{{$b->nome}} R$ {{number_format($b->valor_entrega, 2)}}</option>
+							@endforeach
+						</select>
+						<label for="bairro">Bairro </label>
+
+						@if($errors->has('bairro'))
+						<div class="center-align red lighten-2">
+							<span class="white-text">{{ $errors->first('bairro') }}</span>
+						</div>
+						@endif
+					</div>
+				</div>
+				@else
+				<div class="row">
+					<div class="input-field col s4">
 						<input value="{{$endereco->bairro}}" id="bairro" name="bairro" type="text" class="validate">
 						<label for="bairro">Bairro</label>
 
@@ -43,6 +61,7 @@
 						@endif
 					</div>
 				</div>
+				@endif
 
 				<div class="row">
 					<div class="input-field col s6">

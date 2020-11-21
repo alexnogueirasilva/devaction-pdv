@@ -5,17 +5,20 @@
 @media only screen and (max-width: 400px) {
 	.img-home{
 		width: 100%; height: 250px;
+		border-radius: 5px;
 	}
 }
 @media only screen and (min-width: 401px) and (max-width: 1699px){
 	.img-home{
-		width: 100%; height: 400px;
+		width: 99%; height: 400px;
+		border-radius: 5px;
 	}
 }
 
 @media only screen and (min-width: 1700px){
 	.img-home{
-		width: 100%; height: 500px;
+		width: 99%; height: 500px;
+		border-radius: 5px;
 	}
 }
 </style>
@@ -57,8 +60,11 @@
 						@else
 
 						@foreach($d->pizza as $tp)
-						<h4>{{$tp->tamanho->nome}}: 
+						@if($tp->valor > 0)
+						<h4>{{$tp->tamanho->nome()}}: 
 							<span style="color: orange">{{number_format($tp->valor, 2)}}</span></h4> 
+							@endif
+							
 							@endforeach
 
 							@endif
@@ -82,7 +88,7 @@
 					<ul class="banner_slide_bg">
 						@foreach($d->galeria as $key => $g)
 						<li>
-							<img class="img-home" 
+							<img class="img-home" loading="lazy"
 							src="/imagens_produtos/{{$g->path}}">
 						</li>
 						@endforeach
@@ -123,10 +129,10 @@
 				<!-- blog grid -->
 				@foreach($categorias as $c)
 				<div class="col-lg-4 col-md-6">
-					<div class="card border-0 med-blog">
+					<div class="card border med-blog">
 						<div class="card-header p-0">
 							<a href="/cardapio/{{$c->id}}">
-								<img style="height: 200px; width: 100%;" class="card-img-bottom" src="imagens_categorias/{{$c->path}}" alt="Card image cap">
+								<img loading="lazy" style="height: 200px; width: 100%;" class="card-img-bottom" src="imagens_categorias/{{$c->path}}" alt="Card image cap">
 							</a>
 						</div>
 						<div class="card-body border border-top-0">

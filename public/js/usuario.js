@@ -16,6 +16,8 @@ function marcarTodos(){
 	$('#acesso_estoque').attr('checked', true);
 	$('#acesso_compra').attr('checked', true);
 	$('#acesso_fiscal').attr('checked', true);
+	$('#venda_nao_fiscal').attr('checked', true);
+
 }
 
 function desmarcarTodos(){
@@ -27,6 +29,8 @@ function desmarcarTodos(){
 	$('#acesso_estoque').removeAttr('checked');
 	$('#acesso_compra').removeAttr('checked');
 	$('#acesso_fiscal').removeAttr('checked');
+	$('#venda_nao_fiscal').removeAttr('checked');
 }
+
 
 

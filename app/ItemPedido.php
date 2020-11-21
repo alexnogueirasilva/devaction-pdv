@@ -51,12 +51,12 @@ class ItemPedido extends Model
             foreach($this->sabores as $s){
                 $nome .= $cont."/".count($this->sabores) . " " . $s->produto->produto->nome;
             }
-            $nome .= " | Tamanho: " . $this->tamanho->nome;
+            $nome .= " | Tamanho: " . $this->tamanho->nome();
 
             if(sizeof($this->itensAdicionais) > 0){
                 $nome .= " | Adicional: ";
                 foreach($this->itensAdicionais as $a){
-                    $nome .= $a->adicional->nome;
+                    $nome .= $a->adicional->nome();
                 }
             }
 

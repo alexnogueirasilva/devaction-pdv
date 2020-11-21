@@ -41,7 +41,7 @@
 								<a class="cart-inline-figure" href="#">
 
 									@if(sizeof($i->produto->galeria) > 0)
-									<img src="/imagens_produtos/{{$i->produto->galeria[0]->path}}" style="width: 108px; height: 100px;"/>
+									<img loading="lazy" src="/imagens_produtos/{{$i->produto->galeria[0]->path}}" style="width: 108px; height: 100px;"/>
 									@else
 									<img src="/imgs/no_image.png" style="width: 108px; height: 100px;"/>
 									@endif

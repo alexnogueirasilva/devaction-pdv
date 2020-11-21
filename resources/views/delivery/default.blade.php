@@ -6,7 +6,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 -->
 
 <!DOCTYPE html>
-<html lang="zxx">
+<html>
 
 <head>
 	<title>{{$title}}</title>
@@ -63,15 +63,49 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 	}
 </style>
 
+<!-- Colar OneSignal -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
 <script>
-  window.OneSignal = window.OneSignal || [];
-  OneSignal.push(function() {
-    OneSignal.init({
-      appId: "<?php echo getenv("ONE_SIGNAL_APP_ID") ?>",
-    });
-  });
+	window.OneSignal = window.OneSignal || [];
+	OneSignal.push(function() {
+		OneSignal.init({
+			appId: "<?php echo getenv('ONE_SIGNAL_APP_ID'); ?>",
+		});
+
+	});
 </script>
+
+<!-- Fim Colar OneSignal -->
+
+
+<!-- Manter aqui -->
+<script type="text/javascript">
+	
+	window.OneSignal = window.OneSignal || [];
+	OneSignal.push(function() {
+		let path = window.location.protocol + '//' + window.location.host
+		let user = $('#user').val() ? $('#user').val() : 0;
+
+		OneSignal.getUserId().then(function(userId) {
+			let js = {
+				user: user,
+				token: userId
+			}
+			console.log(js)
+			console.log("OneSignal User ID:", userId);
+			$.get(path + '/autenticar/saveTokenWeb', js)
+			.done((res) => {
+				console.log(res)
+			})	
+			.fail((err) => {
+				console.log(err)
+			})		
+		});
+	});
+</script>
+
+<!-- Fim manter aqui -->
 
 <!-- //Web-Fonts -->
 </head>
@@ -104,6 +138,11 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 						<div class="row middle-flex">
 							<div class="col-lg-5 col-4 top-w3layouts p-md-0 text-right">
 								<!-- login -->
+
+								@if(session('cliente_log')['id'])
+								<input type="hidden" value="{{session('cliente_log')['id']}}" id="user">
+								@endif
+
 
 								@if(!session('cliente_log')['id'])
 								<a href="/autenticar" class="btn login-button-2 text-uppercase text-wh">
@@ -188,6 +227,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 									<li><a href="/carrinho">CARRINHO</a></li>
 									<li><a href="/carrinho/historico">MEUS PEDIDOS</a></li>
 									<li><a href="/carrinho/cupons">CUPONS DE DESCONTO</a></li>
+									<li><a href="/info">MINHAS INFORMAÇÕES</a></li>
 
 								</ul>
 							</nav>
@@ -392,6 +432,10 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 			<script src="/jsd/login_ative.js" type="text/javascript"></script>
 			@endif
 
+			@if(isset($pass))
+			<script src="/jsd/pass.js" type="text/javascript"></script>
+			@endif
+
 
 
 			@if(isset($mapaJs))
@@ -409,6 +453,8 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 			<script src="/jsd/token.js" type="text/javascript"></script> -->
 
 			@endif
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA==" crossorigin="anonymous"></script>
 		</body>
 
 		</html>

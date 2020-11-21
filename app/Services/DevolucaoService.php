@@ -57,7 +57,7 @@ class DevolucaoService{
 		// $stdIde->indPag = 1; //NÃO EXISTE MAIS NA VERSÃO 4.00 // forma de pagamento
 
 		$stdIde->mod = 55;
-		$stdIde->serie = 1;
+		$stdIde->serie = $config->numero_serie_nfe;
 		$stdIde->nNF = (int)$lastNumero+1;
 		$stdIde->dhEmi = date("Y-m-d\TH:i:sP");
 		$stdIde->dhSaiEnt = date("Y-m-d\TH:i:sP");
@@ -312,7 +312,7 @@ class DevolucaoService{
 
 		if($devolucao->vFrete){
 			$stdICMSTot->vNF = 
-			$this->format(($somaProdutos+$devolucao->vFrete));
+			$this->format(($somaProdutos));
 		} 
 		else $stdICMSTot->vNF = $this->format($somaProdutos-$devolucao->vDesc);
 
@@ -510,8 +510,7 @@ class DevolucaoService{
 			sleep(1);
 				// return $arr;
 			$xJust = $justificativa;
-
-
+			
 			$nProt = $arr['protNFe']['infProt']['nProt'];
 
 			$response = $this->tools->sefazCancela($chave, $xJust, $nProt);

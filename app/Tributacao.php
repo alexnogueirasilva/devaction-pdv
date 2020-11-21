@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Tributacao extends Model
 {
 	protected $fillable = [
-		'icms', 'pis', 'cofins', 'regime', 'ipi'
+		'icms', 'pis', 'cofins', 'regime', 'ipi', 'ncm_padrao'
 	];
 
 	public static function regimes(){

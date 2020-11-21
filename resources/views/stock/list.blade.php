@@ -7,6 +7,17 @@
 		<h4>Estoque</h4>
 
 		<div class="row">
+			<a href="/estoque/apontamentoManual" class="btn red">
+				<i class="material-icons left">inbox</i>	
+				Apontamento Manual		
+			</a>
+			<a target="_blank" href="/estoque/listApontamentos" class="btn blue">
+				<i class="material-icons left">inbox</i>	
+				Listar Alterações		
+			</a>
+		</div>
+
+		<div class="row">
 			<br>
 			<!-- <div class="row">
 				<i class="material-icons red-text">
@@ -51,7 +62,7 @@
 						<td>{{ number_format($e->valorCompraUnitário(), 2, ',', '.') }}</td>
 
 						<?php 
-						$subtotal += $e->quantidade * $e->valor_compra;
+						$subtotal += $e->valorCompraUnitário();
 						?>
 
 					</tr>
@@ -70,12 +81,8 @@
 		</ul>
 		@endif
 
-		<div class="row">
-			<a href="/estoque/apontamentoManual" class="btn red">
-				<i class="material-icons left">inbox</i>	
-				Apontamento Manual		
-			</a>
-		</div>
+		
+
 
 	</div>
 </div>

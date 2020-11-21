@@ -7,6 +7,8 @@ $('#valor_parcela').mask('000000000000000,00', {reverse: true});
 $('#vale_valor').mask('000000,00', {reverse: true});
 $('#taxa_entrega').mask('000000.00', {reverse: true});
 $('#troco_para').mask('000000.00', {reverse: true});
+$('#percentual_alteracao').mask('00.00', {reverse: true});
+$('#novo_valor').mask('0000000.00', {reverse: true});
 
 $('#valor_frete').mask('000000000000000,00', {reverse: true});
 $('#valor_sangria').mask('000000000000000,00', {reverse: true});
@@ -16,13 +18,16 @@ $('#desconto').mask('000000000000000,00', {reverse: true});
 $('#valor_recebido').mask('000000000000000,00', {reverse: true});
 $('#valor_componente').mask('000000000000000,00', {reverse: true});
 $('#valor_venda').mask('000000000,00', {reverse: true});
+$('#valor_compra').mask('000000000,00', {reverse: true});
 $('#valor_item').mask('000000.00', {reverse: true});
 $('.money').mask('000000.00', {reverse: true});
 $('#valor_transporte').mask('000000,00', {reverse: true});
 $('#valor_receber').mask('000000,00', {reverse: true});
 $('#ncm').mask('0000.00.00', {reverse: true});
+$('#ncm_padrao').mask('0000.00.00', {reverse: true});
 $('#cest').mask('00.000.00', {reverse: true});
 $('#CFOP_saida_estadual').mask('0000', {reverse: true});
+$('.cfop').mask('0000', {reverse: true});
 $('#CFOP_entrada_estadual').mask('0000', {reverse: true});
 $('#CFOP_saida_inter_estadual').mask('0000', {reverse: true});
 $('#CFOP_entrada_inter_estadual').mask('0000', {reverse: true});
@@ -41,7 +46,7 @@ $('#alterta_vencimento').mask('000', {reverse: true});
 $('.date-input').mask('00/00/0000', {reverse: true});
 
 
-$('#quantidade').mask('0000000000,000', {reverse: true});
+$('#quantidade').mask('0000000000.000', {reverse: true});
 $('#quantidade_carga').mask('0000000000,0000', {reverse: true});
 // $('#comanda').mask('000', {reverse: true});
 $('#limite_diario').mask('000', {reverse: true});
@@ -87,6 +92,11 @@ $('#nDoc').mask('000000', {reverse: true});
 $('.imposto').mask('00.00', {reverse: true});
 $('#vDocFisc').mask('000000.00', {reverse: true});
 $('#cListServ').mask('00.00', {reverse: true});
+$('#valor_km').mask('00.00', {reverse: true});
+$('#entrega_gratis_ate').mask('00', {reverse: true});
+$('#maximo_adicionais').mask('0', {reverse: true});
+$('#maximo_adicionais_pizza').mask('0', {reverse: true});
+
 
 
 

@@ -207,7 +207,7 @@
 					@if(count($i->itensAdicionais) > 0)
 					<td>
 						@foreach($i->itensAdicionais as $key => $a)
-						{{$a->adicional->nome}}
+						{{$a->adicional->nome()}}
 						<?php $somaAdicionais += $a->adicional->valor * $i->quantidade?>
 						@if($key < count($i->itensAdicionais)-1)
 						| 
@@ -248,7 +248,8 @@
 						</a>
 					</td>
 					<td>
-						<a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/pedidos/deleteItem/{{$i->id}}">
+						<a onclick='swal("Atenção!", "Deseja excluir este registro?", "warning").then((sim) => {if(sim){ location.href="/pedidos/deleteItem/{{$i->id}}" }else{return false} })' href="#!">
+
 							<i class="material-icons left red-text">delete</i>					
 						</a>
 						@if(!$i->status)

@@ -9,11 +9,29 @@
 </div>
 
 
+
+
 <section class="portfolio py-5">
 	<div class="container py-xl-5 py-lg-3">
 		<div class="title-section text-center mb-md-5 mb-4">
 			<h3 class="w3ls-title mb-3"><span>Pizzas</span></h3>
-			<p class="titile-para-text mx-auto">Selecionado {{session('tamanho_pizza')['tamanho']}} - 
+			<p class="titile-para-text mx-auto">Selecionado 
+
+				<?php
+				$t = '';
+				$temp = explode("_", session('tamanho_pizza')['tamanho']);
+				if(sizeof($temp) > 1){
+					$t = "";
+					foreach($temp as $tp){
+						$t .= $tp . " ";
+					}
+				}else{
+					$t = session('tamanho_pizza')['tamanho'];
+				}
+				?>
+				{{$t}}
+
+				- 
 				{{session('tamanho_pizza')['sabores']}} {{session('tamanho_pizza')['sabores'] == 1 ? 
 			'sabor' : 'sabores'}}</p>
 
@@ -23,9 +41,23 @@
 				<div class="col-lg-12 form-group">
 					<input type="text" class="form-control" name="pesquisa" placeholder="Pesquisar sabor" required="">
 				</div>
+				<input type="hidden" name="link" value="{{$_SERVER['REQUEST_URI']}}">
 			</div>
 			<button type="submit" class="btn submit-contact-main"><span class="fa fa-search mr-2"></span> Buscar</button>
 		</form>
+		<br>
+
+		<a href="/pizza/adicionais" type="button" id="finalizar-venda" class="btn btn-success btn-lg btn-block @if(count($saboresIncluidos) < session('tamanho_pizza')['sabores']) disabled @endif">
+			<span class="fa fa-check mr-2"></span> ADICIONAR <strong id="total">R$ {{number_format($valorPizza, 2)}}</strong>
+		</a>
+		<a href="#sabores" class="btn btn-warning btn-lg btn-block @if(count($saboresIncluidos) == 0) disabled @endif">
+			<span class="fa fa-cutlery mr-2"></span> VER SABORES ADICIONADOS 
+		</a>
+
+		@if(session()->has('message_sucesso'))
+		<br>
+		<div class="p-3 mb-2 bg-success text-white">{{ session()->get('message_sucesso') }}</div>
+		@endif
 
 		<?php $ativo = false; ?>
 		<br><br>
@@ -40,11 +72,13 @@
 			</div>
 		</div>
 
+
+
 		<div class="row mt-4">
 
 			@foreach($pizzas as $p)
 			@if(isset($pesquisa) || $p->produto->categoria->id == $categoria)
-			@if($p->produto->status)
+			@if($p->produto->status && $p->valor > 0)
 			<div class="col-md-4" 
 			onclick="select_pizza({{$p->produto}}, {{$p->produto->galeria}}, {{$p->produto->produto}})">
 			@if(session('tamanho_pizza')['sabores'] > count($saboresIncluidos))
@@ -56,7 +90,7 @@
 					@endif
 					<div @if(session('tamanho_pizza')['sabores'] == count($saboresIncluidos))style="opacity: 0.3" @endif class="gallery-demo" id="pizza_{{$p->produto->id}}">
 						@if(count($p->produto->galeria) > 0)
-						<img src="/imagens_produtos/{{$p->produto->galeria[0]->path}}" 
+						<img loading="lazy" src="/imagens_produtos/{{$p->produto->galeria[0]->path}}" 
 						alt="" style="height: 200px; width: 100%" class="img-fluid" />
 						@else
 						<img style="height: 200px; width: 100%" src="/imagens/sem-imagem.png" class="img-fluid" >
@@ -74,6 +108,8 @@
 			<?php $ativo = true; ?>
 			@endif
 			@endif
+
+
 			@endforeach
 
 
@@ -117,15 +153,15 @@
 @else
 
 
-<section class="blog_w3ls py-5" id="blog">
+<section class="blog_w3ls py-5" id="sabores">
 
-	<div class="container py-xl-5 py-lg-3">
+	<div class="container py-xl-5 py-lg-3 card">
 
 		<div class="title-section text-center mb-md-5 mb-4">
 			<h3 class="w3ls-title mb-3">Sabores Adicionados</h3>
 			<p class="titile-para-text mx-auto">Este são os sabores adicionados,
 
-				<span style="color: red">Fatando: {{session('tamanho_pizza')['sabores'] - count($saboresIncluidos)}}</span> para adicionar esta pizza ao carrinho
+				<span style="color: red">Faltando: {{session('tamanho_pizza')['sabores'] - count($saboresIncluidos)}}</span> para adicionar esta pizza ao carrinho
 			</p>
 
 		</div>
@@ -211,6 +247,7 @@ disabled
 									<p id="ingredientes"></p>
 
 									<input type="hidden" id="pizza_id" name="pizza_id" value="">
+									<input type="hidden" id="link" name="link" value="{{isset($link) ? $link : ''}}">
 									<button type="submit" class="btn btn-danger btn-block mb-4">Adicionar
 									</button>
 								</div>

@@ -24,6 +24,10 @@ class CreateManifestaDvesTable extends Migration
             $table->string('data_emissao', 25);
             $table->integer('sequencia_evento');
             $table->boolean('fatura_salva');
+            $table->integer('tipo');
+            $table->integer('nsu');
+            //1 => ciencia, 2 => confirmação, 3 => desconhecimento, 4 => operação não realizada
+
             $table->timestamps();
         });
     }

@@ -15,9 +15,11 @@ use App\ConfigNota;
 use App\BairroDelivery;
 use App\PedidoDelete;
 use App\Mesa;
+use App\Usuario;
 use Comtele\Services\TextMessageService;
 use NFePHP\DA\NFe\CupomPedido;
 use NFePHP\DA\NFe\Itens;
+use App\Certificado;
 
 class PedidoController extends Controller{
 
@@ -32,47 +34,68 @@ class PedidoController extends Controller{
   }
 
   public function index(){
-   $pedidos = Pedido::
-   where('desativado', false)
-   ->get();
+    $pedidos = Pedido::
+    where('desativado', false)
+    ->get();
 
-   $mesas = Mesa::all();
+    $mesas = Mesa::all();
+    $mesasParaAtivar = $this->mesasParaAtivar();
 
-   return view('pedido/list')
-   ->with('pedidos', $pedidos)
-   ->with('mesas', $mesas)
-   ->with('title', 'Lista de Pedidos');
- }
+    $mesasFechadas = $this->mesasFechadas();
 
-
- public function abrir(Request $request){
-  $comanda = Pedido::
-  where('comanda', $request->comanda)
-  ->where('desativado', false)
-  ->first();
-  if(empty($comanda)){
-   $res = Pedido::create([
-    'comanda' => $request->comanda,
-    'observacao' => $request->observacao ?? '',
-    'status' => false,
-    'nome' => '',
-    'rua' => '',
-    'numero' => '',
-    'bairro_id' => null,
-    'referencia' => '',
-    'telefone' => '',
-    'desativado' => false,
-    'mesa_id' => $request->mesa_id != 'null' ? $request->mesa_id : null
-  ]);
-   if($res) {
-    session()->flash('color', 'green');
-    session()->flash('message', 'Comanda aberta com sucesso!');
+    return view('pedido/list')
+    ->with('pedidos', $pedidos)
+    ->with('mesas', $mesas)
+    ->with('atribuirComandaJs', true)
+    ->with('mesasParaAtivar', $mesasParaAtivar)
+    ->with('mesasFechadas', $mesasFechadas)
+    ->with('title', 'Lista de Pedidos');
   }
-}else{
-  session()->flash('color', 'red');
-  session()->flash('message', 'Esta comanda encontra-se ativa!');
-}
-return redirect('/pedidos');
+
+  private function mesasParaAtivar(){
+    $mesas = Pedido::where('mesa_ativa', false)
+    ->where('mesa_id', '!=', null)
+    ->get();
+    return $mesas;
+  }
+
+  private function mesasFechadas(){
+    $mesas = Pedido::where('fechar_mesa', true)
+    ->where('mesa_id', '!=', null)
+    ->where('desativado', false)
+    ->get();
+    return $mesas;
+  }
+
+
+  public function abrir(Request $request){
+    $comanda = Pedido::
+    where('comanda', $request->comanda)
+    ->where('desativado', false)
+    ->first();
+    if(empty($comanda)){
+     $res = Pedido::create([
+      'comanda' => $request->comanda,
+      'observacao' => $request->observacao ?? '',
+      'status' => false,
+      'nome' => '',
+      'rua' => '',
+      'numero' => '',
+      'bairro_id' => null,
+      'referencia' => '',
+      'telefone' => '',
+      'desativado' => false,
+      'mesa_id' => $request->mesa_id != 'null' ? $request->mesa_id : null
+    ]);
+     if($res) {
+      session()->flash('color', 'green');
+      session()->flash('message', 'Comanda aberta com sucesso!');
+    }
+  }else{
+    session()->flash('color', 'red');
+    session()->flash('message', 'Esta comanda encontra-se ativa!');
+  }
+  return redirect('/pedidos');
 }
 
 
@@ -81,7 +104,7 @@ public function ver($id){
  where('id', $id)
  ->first();
 
- $bairros = BairroDelivery::all();
+ $bairros = BairroDelivery::orderBy('nome')->get();
 
  return view('pedido/ver')
  ->with('pedido', $pedido)
@@ -283,15 +306,21 @@ public function finalizar($id){
 
   $atributes = $this->addAtributes($pedido->itens);
 
-
+  $usuario = Usuario::find(get_id_user());
   $tiposPagamento = VendaCaixa::tiposPagamento();
   $config = ConfigNota::first();
+  $certificado = Certificado::first();
+  $tiposPagamentoMulti = VendaCaixa::tiposPagamentoMulti();
+  
   return view('frontBox/main')
   ->with('itens', $atributes)
   ->with('cod_comanda', $pedido->comanda)
   ->with('frenteCaixa', true)
   ->with('tiposPagamento', $tiposPagamento)
+  ->with('tiposPagamentoMulti', $tiposPagamentoMulti)
   ->with('config', $config)
+  ->with('usuario', $usuario)
+  ->with('certificado', $certificado)
   ->with('bairro', $pedido->bairro)
   ->with('title', 'Finalizar Comanda '.$id);
 }
@@ -386,8 +415,8 @@ public function imprimirPedido($id){
   // file_put_contents($public.'pdf/CUPOM_PEDIDO.pdf',$pdf);
   // return redirect($public.'pdf/CUPOM_PEDIDO.pdf');
 
-  header('Content-Type: application/pdf');
-  echo $pdf;
+  return response($pdf)
+  ->header('Content-Type', 'application/pdf');
 }
 
 public function itensParaFrenteCaixa(Request $request){
@@ -448,14 +477,15 @@ public function imprimirItens(Request $request){
     $cupom = new Itens($itens, $pathLogo);
 
     $pdf = $cupom->render();
-    file_put_contents($public.'pdf/CUPOM_PEDIDO.pdf',$pdf);
-    return redirect($public.'pdf/CUPOM_PEDIDO.pdf');
+    return response($pdf)
+    ->header('Content-Type', 'application/pdf');
   }else{
     echo "Selecione ao menos um item!";
   }
 
   // header('Content-Type: application/pdf');
   // echo $pdf;
+
   
 
 }
@@ -529,9 +559,50 @@ public function mesas(){
 
 public function verMesa($mesa_id){
   $mesa = Mesa::find($mesa_id);
+  $pedidos = Pedido::
+  where('mesa_id', $mesa_id)
+  ->where('desativado', false)
+  ->where('status', false)
+  ->get();
   return view('pedido/verMesa')
   ->with('mesa', $mesa)
+  ->with('pedidos', $pedidos)
   ->with('title', 'Comandas da Mesa');
+}
+
+public function ativarMesa($id){
+  $pedido = Pedido::find($id);
+
+  $pedido->mesa_ativa = true;
+  $pedido->Save();
+  session()->flash('color', 'green');
+  session()->flash('message', 'Mesa ativada com sucesso!');
+
+  return redirect('/pedidos');
+}
+
+public function atribuirComanda(Request $request){
+  $pedido = Pedido::find($request->pedido_id);
+  $pedido->observacao = $request->observacao;
+  $pedido->comanda = $request->comanda;
+  $pedido->Save();
+  session()->flash('color', 'green');
+  session()->flash('message', 'Comanda atribuida a ' . $pedido->mesa->nome . '!');
+
+  return redirect('/pedidos');
+
+}
+
+public function atribuirMesa(Request $request){
+  $pedido = Pedido::find($request->pedido_id);
+  $pedido->mesa_id = $request->mesa;
+
+  $pedido->Save();
+  session()->flash('color', 'green');
+  session()->flash('message', 'Mesa atribuida a comanda ' . $pedido->comanda . '!');
+
+  return redirect('/pedidos');
+
 }
 
 }

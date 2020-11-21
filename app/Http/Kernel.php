@@ -57,6 +57,7 @@ class Kernel extends HttpKernel
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'access' => \App\Http\Middleware\Access::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
@@ -66,6 +67,11 @@ class Kernel extends HttpKernel
         'valid' => \App\Http\Middleware\Valid::class,
         'validNFCe' => \App\Http\Middleware\validNFCe::class,
         'control' => \App\Http\Middleware\Control::class,
+        'csv' => \App\Http\Middleware\Csv::class,
+        'pedidoAtivo' => \App\Http\Middleware\PedidoAtivo::class,
+        'mesaAtiva' => \App\Http\Middleware\MesaAtiva::class,
+        'pedidoEstaAtivo' => \App\Http\Middleware\PedidoEstaAtivo::class,
+        'authApp' => \App\Http\Middleware\AuthApp::class,
 
         // 'cors' => \App\Http\Middleware\Cors::class
     ];

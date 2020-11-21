@@ -74,9 +74,9 @@
 	<div class="container ">
 		<div class="title-section text-center">
 			<h3 class="w3ls-title mb-3">Total do Pedido <span>{{number_format($total, 2, ',', '.')}}</span></h3>
+
 		</div>
 	</div>
-
 
 
 	<!-- <input id="nome-cliente" type="hidden" value="{{$pedido->cliente->nome}} {{$pedido->cliente->sobre_nome}}" name=""> -->
@@ -92,16 +92,22 @@
 			</div>
 			<input type="hidden" id="lat_padrao" value="{{getenv('LATITUDE_PADRAO')}}">
 			<input type="hidden" id="lng_padrao" value="{{getenv('LONGITUDE_PADRAO')}}">
+			<input type="hidden" id="usar_bairros" value="{{$usar_bairros}}">
+
 
 			@if(count($enderecos) == 0)
 			<p style="margin-left: 10px;" class="text-warning">Você ainda não possui endereços cadastrados</p><br>
 
 			@endif
+
+			<h4 class="w3ls-title mb-4">Selecione o endereço de entrega:</h4>
+
 			<div class="row ends">
 
 				@foreach($enderecos as $e)
 
 				<div class="col-lg-4 col-md-6" onclick="set_endereco({{$e->id}})">
+
 					<div id="endereco_select_{{$e->id}}" class="card border-0 med-blog">
 
 						<div class="card-body border border-top-0">
@@ -145,12 +151,16 @@
 			<h4 style="margin-left: 10px;">Acrescimo de entrega R$ <strong id="valor-entrega" style="color: red;">
 				
 			</strong></h4>
+			<h5 id="frete-gratuito" style="margin-left: 10px; display: none; color: blue;">Seu frete é gratuito para este endereço</h5>
+
 		</div>
+
+		<h5 id="entrega-distante" style="margin-left: 10px; display: none; color: red;">Este endereço excede o limite de nossas entregas: maximo {{$maximo_km_entrega}} KM</h5>
 
 		<div class="form-group">
 			<div class="col-lg-4 col-md-6 col-10">
-				<label class="mb-2">Telefone de contato</label>
-				<input type="text" value="{{$ultimoPedido != null ? $ultimoPedido->telefone : ''}}" class="form-control" id="telefone" required="">
+				<label class="mb-2">Celular para contato</label>
+				<input type="text" value="{{$ultimoPedido != null ? $ultimoPedido->telefone : $cliente->celular}}" class="form-control" id="telefone" required="">
 			</div>
 		</div>
 
@@ -193,7 +203,7 @@
 
 								<input class="form-check-input" type="radio" name="gridRadios" id="maquineta" value="maquineta">
 								<label class="form-check-label" for="maquineta">
-									Maquineta Crédito/Débito
+									Maquina de cartão Crédito/Débito
 								</label>
 								<img width="40" src="/imgs/credit-card.png">
 
@@ -237,7 +247,7 @@
 	<input type="hidden" id="pedido_id" value="{{$pedido->id}}">
 	<input type="hidden" id="total-init" value="{{$total}}">
 
-	<a href="#!" type="button" id="finalizar-venda" class="btn btn-success btn-lg btn-block disabled">
+	<a href="#!" type="button" id="finalizar-venda" class="btn btn-success btn-lg btn-block">
 		<span class="fa fa-check mr-2"></span> FINALIZAR <strong id="total"></strong>
 	</a>
 	<br>
@@ -268,17 +278,32 @@
 			</div>
 
 			<div class="form-group">
-				<label class="mb-2">Numero</label>
+				<label class="mb-2">Número</label>
 				<input type="text" class="form-control fr" id="numero" required="true">
 			</div>
 
+
+			@if($usar_bairros == 1)
+
+			<div class="form-group">
+				<label class="mb-2">Bairro</label>
+				<select id="bairro" class="form-control">
+					<option value="" disabled selected hidden>Selecione o bairro...</option>
+					@foreach($bairros as $b)
+					<option value="id:{{$b->id}}">{{$b->nome}} - R$ {{number_format($b->valor_entrega, 2)}}</option>
+					@endforeach
+				</select>
+			</div>
+
+			@else
 			<div class="form-group">
 				<label class="mb-2">Bairro</label>
 				<input type="text" class="form-control fr" id="bairro" required="true">
 			</div>
+			@endif
 
 			<div class="form-group">
-				<label class="mb-2">Referencia</label>
+				<label class="mb-2">Referencia ou apartamento</label>
 				<input type="text" class="form-control fr" id="referencia" required="">
 			</div>
 			<a href="#!" id="salvar_endereco" class="btn btn-danger btn-block mb-4 disabled">Salvar</a>

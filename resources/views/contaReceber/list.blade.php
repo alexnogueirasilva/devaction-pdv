@@ -166,17 +166,7 @@
 		<br>
 
 		@if(count($contas) > 0)
-		<div class="row">
-			<h4 class="center-align">Graficos</h4>
-			<div class="col s6">
-				<div style="height: 400px; width: 100%;" id="pizza"></div>
-				
-			</div>
-			<div class="col s6">
-				<div style="height: 400px; width: 100%;" id="coluna"></div>
-				
-			</div>
-		</div>
+		
 		@endif
 
 	</div>

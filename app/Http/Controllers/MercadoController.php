@@ -13,8 +13,10 @@ use App\BannerTopo;
 use App\BannerMaisVendido;
 use App\Rules\CelularDup;
 use App\PedidoDelivery;
+use App\BairroDelivery;
 use Comtele\Services\TextMessageService;
 use App\FuncionamentoDelivery;
+use Mail;
 
 class MercadoController extends Controller
 {
@@ -96,21 +98,21 @@ class MercadoController extends Controller
             if(sizeof($arrBloco1) < $sizeBloco1){
                 array_push($arrBloco1, $c);
             } else if(sizeof($arrBloco1) == $sizeBloco1 && sizeof($arrBloco2) < $sizeBloco2){
-             array_push($arrBloco2, $c);
-         } else if(sizeof($arrBloco2) == $sizeBloco2 && sizeof($arrBloco3) < $sizeBloco3){
-             array_push($arrBloco3, $c);
-         }
-     }
+               array_push($arrBloco2, $c);
+           } else if(sizeof($arrBloco2) == $sizeBloco2 && sizeof($arrBloco3) < $sizeBloco3){
+               array_push($arrBloco3, $c);
+           }
+       }
 
 
-     return [
-      'bloco1' => $arrBloco1,
-      'bloco2' => $arrBloco2,
-      'bloco3' => $arrBloco3,
-  ];
-}
+       return [
+          'bloco1' => $arrBloco1,
+          'bloco2' => $arrBloco2,
+          'bloco3' => $arrBloco3,
+      ];
+  }
 
-private function produtoEmDestaque(){
+  private function produtoEmDestaque(){
     return ProdutoDelivery::
     where('destaque', 1)
     ->limit(6)
@@ -118,10 +120,10 @@ private function produtoEmDestaque(){
 }
 
 private function produtosDeliveryLimit($limit = 6){
-   $produtos = ProdutoDelivery::
-   limit($limit)
-   ->get();
-   return $produtos;
+ $produtos = ProdutoDelivery::
+ limit($limit)
+ ->get();
+ return $produtos;
 }
 
 public function categorias(){
@@ -140,6 +142,11 @@ public function categorias(){
 }
 
 public function produto($id){
+    $cliente = session('cliente_log');
+    if($cliente == null){
+        session()->flash('message_erro', 'Faça o login ou cadastre-se');
+        return redirect("/delivery/login");
+    }
     $produto = ProdutoDelivery::find($id);
     $config = DeliveryConfig::first();
     $mercadoConfig = MercadoConfig::first();
@@ -201,7 +208,7 @@ public function loginUser(Request $request){
             $celular = str_replace(" ", "", $celular);
             if(getenv("AUTENTICACAO_SMS") == 1) $this->sendSms($celular, $cliente->token);
 
-            if(getenv("AUTENTICACAO_EMAIL") == 1 && getenv("SERVIDOR_WEB") == 1) $this->sendEmailLink($cliente->email, $cliente->token);
+            if(getenv("AUTENTICACAO_EMAIL") == 1) $this->sendEmailLink($cliente->email, $cliente->token);
             $config = DeliveryConfig::first();
             $mercadoConfig = MercadoConfig::first();
             $rota = 'login';
@@ -215,14 +222,15 @@ public function loginUser(Request $request){
             ->with('imagens', $this->imagensRandom)
             ->with('cadastro_ative_mercado_js', true)
             ->with('title', 'AUTENTICAR');
+        }else{
+            $session = [
+                'id' => $cliente->id,
+                'nome' => $cliente->nome,
+            ];
+            session(['cliente_log' => $session]);
+            session()->flash("message_sucesso", "Bem vindo ". $cliente->nome);
+            return redirect('/delivery'); 
         }
-        $session = [
-            'id' => $cliente->id,
-            'nome' => $cliente->nome,
-        ];
-        session(['cliente_log' => $session]);
-        session()->flash("message_sucesso", "Bem vindo ". $cliente->nome);
-        return redirect('/delivery'); 
     }
 }
 
@@ -240,6 +248,8 @@ public function cadastrar(){
 }
 
 public function produtos($categoriaId){
+    $cliente = session('cliente_log');
+    
     $rota = 'categorias';
     $config = DeliveryConfig::first();
     $mercadoConfig = MercadoConfig::first();
@@ -294,15 +304,15 @@ private function atribuirQuantidadeAosProdutos($produtos){
                     if($p->produto->unidade_venda == 'UNID'){
                         $p->quantidade = (int) $item->quantidade;
                     }else{
-                       $p->quantidade = number_format($item->quantidade, 3);
-                   }
-               }
-           }
-       }
-       array_push($temp, $p);
-   }
+                     $p->quantidade = number_format($item->quantidade, 3);
+                 }
+             }
+         }
+     }
+     array_push($temp, $p);
+ }
 
-   return $temp;
+ return $temp;
 
 }
 
@@ -327,7 +337,8 @@ public function salvarRegistro(Request $request){
         if(getenv("AUTENTICACAO_SMS") == 1){
             $this->sendSms($celular, $cod);
         }
-        else if(getenv("AUTENTICACAO_EMAIL") == 1 && getenv("SERVIDOR_WEB") == 1) { $this->sendEmailLink($request->email, $cod);
+        else if(getenv("AUTENTICACAO_EMAIL") == 1) { 
+            $this->sendEmailLink($request->email, $cod);
         }else{
             $cliente = ClienteDelivery::find($result->id);
             $session = [
@@ -436,8 +447,8 @@ private function sendSms($phone, $cod){
     return $res;
 }
 
-private function sendEmailCod($email, $cod){
-    Mail::send('mail.codigo_verifica', ['cod' => $cod], function($m) use ($email){
+private function sendEmailLink($email, $cod){
+    Mail::send('mail.link_verifica', ['link' => md5("$cod-$email")], function($m) use ($email){
         $nomeEmail = getenv('MAIL_NAME');
         $nomeEmail = str_replace("_", " ", $nomeEmail);
         $m->from(getenv('MAIL_USERNAME'), $nomeEmail);
@@ -543,7 +554,7 @@ public function finalizar(Request $request){
     ->first();
 
     $cartoes = $this->getPedidosPagSeguro($cliente->id);
-
+    $bairros = BairroDelivery::orderBy('nome')->get();
     return view('delivery_mercado/finalizar')
     ->with('config', $config)
     ->with('mercadoConfig', $mercadoConfig)
@@ -555,10 +566,12 @@ public function finalizar(Request $request){
     ->with('pagseguroAtivado', $pagseguroAtivado)
     ->with('cartoes', $cartoes)
     ->with('cliente', $cliente)
+    ->with('bairros', $bairros)
+    ->with('usar_bairros', $config->usar_bairros)
     ->with('enderecos', $enderecos)
     ->with('total', $pedido->somaItens())
     ->with('imagens', $this->imagensRandom)
-    ->with('title', 'Finalziar');
+    ->with('title', 'Finalizar');
 }
 
 private function funcionamento(){
@@ -612,8 +625,7 @@ public function finalizarPedido(Request $request){
         }
 
         if($data['endereco_id'] != 'balcao'){
-            $config = DeliveryConfig::first();
-            $total += $config->valor_entrega;
+            $total += $data['valor_entrega'];
         }
 
         $pedido->forma_pagamento = $data['forma_pagamento'];
@@ -801,6 +813,10 @@ public function pedir_novamente($id){
 public function pesquisaProduto(Request $request){
     $pesquisa = $request->search;
 
+    if($pesquisa == '' || $pesquisa == ' '){
+        return redirect('/delivery');
+    }
+
     $produtos = ProdutoDelivery::
     select('produto_deliveries.*')
     ->join('produtos', 'produtos.id', '=', 'produto_deliveries.produto_id')
@@ -811,10 +827,7 @@ public function pesquisaProduto(Request $request){
     $config = DeliveryConfig::first();
     $mercadoConfig = MercadoConfig::first();
 
-    
-
     $produtos = $this->atribuirQuantidadeAosProdutos($produtos);
-
 
     return view('delivery_mercado/produtos')
     ->with('config', $config)

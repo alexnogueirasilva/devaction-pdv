@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Pedido;
+use LaravelQRCode\Facades\QRCode;
 
 class Mesa extends Model
 {

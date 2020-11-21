@@ -220,8 +220,8 @@ class PurchaseController extends Controller
 
         $stockMove = new StockMove();
         $public = getenv('SERVIDOR_WEB') ? 'public/' : '';
-        echo $public."xml_entrada/$compra->xml_path";
-        if(file_exists($public."xml_entrada/$compra->xml_path")){
+
+        if($compra->xml_path != "" && file_exists($public."xml_entrada/$compra->xml_path")){
             unlink($public."xml_entrada/$compra->xml_path");
         }
         foreach($compra->itens as $i){
@@ -270,15 +270,15 @@ class PurchaseController extends Controller
             "schemes" => "PL_009_V4",
             "versao" => "4.00",
             "tokenIBPT" => "AAAAAAA",
-            "CSC" => getenv('CSC'),
-            "CSCid" => getenv('CSCid')
+            "CSC" => $config->csc,
+            "CSCid" => $config->csc_id
         ], 55);
 
         header('Content-type: text/html; charset=UTF-8');
         $natureza = NaturezaOperacao::find($request->natureza);
 
         $nfe = $nfe_service->gerarNFe($compra, $natureza, $request->tipo_pagamento);
-
+        
         $signed = $nfe_service->sign($nfe['xml']);
         $resultado = $nfe_service->transmitir($signed, $nfe['chave']);
         if(substr($resultado, 0, 4) != 'Erro'){
@@ -344,8 +344,8 @@ class PurchaseController extends Controller
             "schemes" => "PL_009_V4",
             "versao" => "4.00",
             "tokenIBPT" => "AAAAAAA",
-            "CSC" => getenv('CSC'),
-            "CSCid" => getenv('CSCid')
+            "CSC" => $config->csc,
+            "CSCid" => $config->csc_id
         ], 55);
 
         $compra = Compra::find($request->compra_id);

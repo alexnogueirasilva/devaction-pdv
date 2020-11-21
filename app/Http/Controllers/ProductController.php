@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Produto;
+use App\Estoque;
 use App\Categoria;
 use App\ConfigNota;
 use App\Tributacao;
@@ -11,7 +12,9 @@ use App\Rules\EAN13;
 use App\Helpers\StockMove;
 use App\CategoriaProdutoDelivery;
 use App\ProdutoDelivery;
+use App\ProdutoListaPreco;
 use App\ImagensProdutoDelivery;
+use App\ItemDfe;
 
 class ProductController extends Controller
 {
@@ -34,11 +37,21 @@ class ProductController extends Controller
         paginate(15);
         $categorias = Categoria::all();
 
+        $produtos = $this->setaEstoque($produtos);
+
         return view('produtos/list')
         ->with('produtos', $produtos)
         ->with('links', true)
         ->with('categorias', $categorias)
         ->with('title', 'Produtos');
+    }
+
+    private function setaEstoque($produtos){
+        foreach($produtos as $p){
+            $estoque = Estoque::where('produto_id', $p->id)->first();
+            $p->estoque_atual = $estoque == null ? 0 : $estoque->quantidade;
+        }
+        return $produtos;
     }
 
     public function new(){
@@ -95,17 +108,20 @@ class ProductController extends Controller
 
         $anps = Produto::lista_ANP();
         $descAnp = '';
+
         foreach($anps as $key => $a){
             if($key == $request->anp){
                 $descAnp = $a;
             }
         }
+
         $request->merge([ 'composto' => $request->input('composto') ? true : false ]);
         $request->merge([ 'valor_livre' => $request->input('valor_livre') ? true : false ]);
-        $request->merge([ 'valor_venda' =>str_replace(",", ".", $request->input('valor_venda'))]);
+        $request->merge([ 'gerenciar_estoque' => $request->input('gerenciar_estoque') ? true : false ]);
+        $request->merge([ 'valor_venda' => str_replace(",", ".", $request->input('valor_venda'))]);
+        $request->merge([ 'valor_compra' => str_replace(",", ".", $request->input('valor_compra'))]);
         $request->merge([ 'conversao_unitaria' => $request->input('conversao_unitaria') ? 
             $request->input('conversao_unitaria') : 1]);
-
         $request->merge([ 'codBarras' => $request->input('codBarras') ?? 'SEM GTIN']);
         $request->merge([ 'CST_CSOSN' => $request->input('CST_CSOSN') ?? '0']);
         $request->merge([ 'CST_PIS' => $request->input('CST_PIS') ?? '0']);
@@ -117,13 +133,15 @@ class ProductController extends Controller
         $request->merge([ 'cListServ' => $request->cListServ ?? '']);
         $request->merge([ 'alerta_vencimento' => $request->alerta_vencimento ?? 0]);
         $request->merge([ 'imagem' => '' ]);
+        $request->merge([ 'estoque_minimo' => $request->estoque_minimo ?? 0]);
+        $request->merge([ 'referencia' => $request->referencia ?? '']);
         
-
         $this->_validate($request);
 
         $result = $produto->create($request->all());
         $produto = Produto::find($result->id);
         $this->salveImagemProduto($request, $produto); // salva a imagem no produto comum
+
         if($request->atribuir_delivery){
             $this->salvarProdutoNoDelivery($request, $produto); 
         // salva o produto no delivery
@@ -212,7 +230,8 @@ class ProductController extends Controller
         $pesquisa = $request->input('pesquisa');
         $produtos = Produto::where('nome', 'LIKE', "%$pesquisa%")->get();
         $categorias = Categoria::all();
-
+        $produtos = $this->setaEstoque($produtos);
+        
         return view('produtos/list')
         ->with('categorias', $categorias)
         ->with('produtos', $produtos)
@@ -225,7 +244,7 @@ class ProductController extends Controller
         $categorias = Categoria::all();
 
         $nomeCategoria = Categoria::find($categoria);
-
+        $produtos = $this->setaEstoque($produtos);
 
         return view('produtos/list')
         ->with('produtos', $produtos)
@@ -247,7 +266,7 @@ class ProductController extends Controller
     }
 
     public function update(Request $request){
-        
+
         $product = new Produto();
 
         $id = $request->input('id');
@@ -268,6 +287,7 @@ class ProductController extends Controller
         $resp->categoria_id = $request->input('categoria_id');
         $resp->cor = $request->input('cor');
         $resp->valor_venda = str_replace(",", ".", $request->input('valor_venda'));
+        $resp->valor_compra = str_replace(",", ".", $request->input('valor_compra'));
         $resp->NCM = $request->input('NCM');
         $resp->CEST = $request->input('CEST') ?? '';
 
@@ -293,14 +313,19 @@ class ProductController extends Controller
         $resp->codigo_anp = $request->input('anp') ?? '';
         $resp->descricao_anp = $descAnp;
         $resp->alerta_vencimento = $request->alerta_vencimento;
+        $resp->referencia = $request->referencia;
 
         $resp->composto = $request->composto ? true : false;
         $resp->valor_livre = $request->valor_livre ? true : false;
+        $resp->gerenciar_estoque = $request->gerenciar_estoque ? true : false;
+        $resp->estoque_minimo = $request->estoque_minimo;
 
         $result = $resp->save();
         $this->salveImagemProduto($request, $resp);
         if($result){
-            $this->updateProdutoNoDelivery($request, $resp);
+            if($request->atribuir_delivery){
+                $this->updateProdutoNoDelivery($request, $resp);
+            }
             session()->flash('color', 'green');
             session()->flash('message', 'Produto editado com sucesso!');
         }else{
@@ -343,12 +368,13 @@ class ProductController extends Controller
         $rules = [
             'nome' => 'required|max:100',
             'valor_venda' => 'required',
-            'NCM' => 'required',
+            'valor_compra' => 'required',
+            'NCM' => 'required|min:10',
             'perc_icms' => 'required',
             'perc_pis' => 'required',
             'perc_cofins' => 'required',
             'perc_ipi' => 'required',
-            // 'codBarras' => [new EAN13],
+            'codBarras' => [new EAN13],
             'CFOP_saida_estadual' => 'required',
             'CFOP_saida_inter_estadual' => 'required',
             'file' => 'max:300',
@@ -358,9 +384,11 @@ class ProductController extends Controller
         $messages = [
             'nome.required' => 'O campo nome é obrigatório.',
             'NCM.required' => 'O campo NCM é obrigatório.',
+            'NCM.min' => 'NCM precisa de 8 digitos.',
             // 'CFOP.required' => 'O campo CFOP é obrigatório.',
             'CEST.required' => 'O campo CEST é obrigatório.',
-            'valor_venda.required' => 'O campo valor é obrigatório.',
+            'valor_venda.required' => 'O campo valor de venda é obrigatório.',
+            'valor_compra.required' => 'O campo valor de compra é obrigatório.',
             'nome.max' => '100 caracteres maximos permitidos.',
             'perc_icms.required' => 'O campo %ICMS é obrigatório.',
             'perc_pis.required' => 'O campo %PIS é obrigatório.',
@@ -378,7 +406,7 @@ class ProductController extends Controller
         $products = Produto::all();
         $arr = array();
         foreach($products as $p){
-            $arr[$p->id. ' - ' .$p->nome . ($p->cor != '--' ? ' | Cor: ' . $p->cor : '')] = null;
+            $arr[$p->id. ' - ' .$p->nome . ($p->cor != '--' ? ' | COR: ' . $p->cor : '') . ($p->referencia != '' ? ' | REF: ' . $p->referencia : '')] = null;
                 //array_push($arr, $temp);
         }
         echo json_encode($arr);
@@ -386,7 +414,6 @@ class ProductController extends Controller
 
     public function getUnidadesMedida(){
         $unidades = Produto::unidadesMedida();
-
         echo json_encode($unidades);
     }
 
@@ -396,7 +423,7 @@ class ProductController extends Controller
         ->get();
         $arr = array();
         foreach($products as $p){
-            $arr[$p->id. ' - ' .$p->nome . ($p->cor != '--' ? ' | Cor: ' . $p->cor : '')] = null;
+            $arr[$p->id. ' - ' .$p->nome . ($p->cor != '--' ? ' | Cor: ' . $p->cor : '') . ($p->referencia != '' ? ' | REF: ' . $p->referencia : '')] = null;
                 //array_push($arr, $temp);
         }
         echo json_encode($arr);
@@ -408,7 +435,7 @@ class ProductController extends Controller
         ->get();
         $arr = array();
         foreach($products as $p){
-            $arr[$p->id. ' - ' .$p->nome . ($p->cor != '--' ? ' | Cor: ' . $p->cor : '')] = null;
+            $arr[$p->id. ' - ' .$p->nome . ($p->cor != '--' ? ' | Cor: ' . $p->cor : '') . ($p->referencia != '' ? ' | REF: ' . $p->referencia : '')] = null;
                 //array_push($arr, $temp);
         }
         echo json_encode($arr);
@@ -434,6 +461,32 @@ class ProductController extends Controller
         echo json_encode($produto);
     }
 
+    public function getProdutoVenda($id, $listaId){
+        $produto = Produto::
+        where('id', $id)
+        ->first();
+        if($produto->delivery){
+            foreach($produto->delivery->pizza as $tp){
+                $tp->tamanho;
+            }
+        }
+
+        if($listaId > 0){
+            $lista = ProdutoListaPreco::
+            where('lista_id', $listaId)
+            ->where('produto_id', $produto->id)
+            ->first();
+
+            if($lista->valor > 0){
+                $produto->valor_venda = (string) $lista->valor;
+            }
+        }
+
+        $estoque = Estoque::where('produto_id', $id)->first();
+        $produto->estoque_atual = $estoque != null ? $estoque->quantidade : 0; 
+        echo json_encode($produto);
+    }
+
     public function getProdutoCodBarras($cod){
         $produto = Produto::
         where('codBarras', $cod)
@@ -449,11 +502,15 @@ class ProductController extends Controller
 
         $valorVenda = str_replace(".", "", $produto['valorVenda']);
         $valorVenda = str_replace(",", ".", $valorVenda);
+
+        $valorCompra = $produto['valorCompra'];
+
         $result = Produto::create([
             'nome' => $produto['nome'],
             'NCM' => $produto['ncm'],
             // 'CFOP' => $produto['cfop'],
             'valor_venda' => $valorVenda,
+            'valor_compra' => $produto['valorCompra'],
             'valor_livre' => false,
             'cor' => $produto['cor'],
             'conversao_unitaria' => (int) $produto['conversao_unitaria'],
@@ -476,7 +533,8 @@ class ProductController extends Controller
             'descricao_anp' => '',
             'cListServ' => '',
             'imagem' => '',
-            'alerta_vencimento' => 0
+            'alerta_vencimento' => 0,
+            'referencia' => $produto['referencia']
 
         ]);
 
@@ -489,12 +547,13 @@ class ProductController extends Controller
         $natureza = Produto::firstNatureza();
         $valorVenda = str_replace(",", ".", $produto['valorVenda']);
 
-        $valorCompra = str_replace(",", ".", $produto['valorCompra']);
+        $valorCompra = $produto['valorCompra'];
+
         $result = Produto::create([
             'nome' => $produto['nome'],
             'NCM' => $produto['ncm'],
-
             'valor_venda' => $valorVenda,
+            'valor_compra' => $valorCompra,
             'valor_livre' => false,
             'cor' => $produto['cor'],
             'conversao_unitaria' => (int) $produto['conversao_unitaria'],
@@ -517,14 +576,29 @@ class ProductController extends Controller
             'descricao_anp' => '',
             'cListServ' => '',
             'imagem' => '',
-            'alerta_vencimento' => 0
+            'alerta_vencimento' => 0,
+            'referencia' => $produto['referencia']
 
         ]);
+
+        ItemDfe::create(
+            [
+                'numero_nfe' => $produto['numero_nfe'],
+                'produto_id' => $result->id
+            ]
+        );
 
         $stockMove = new StockMove();
         $stockMove->pluStock($result->id, $produto['quantidade'], $valorCompra);
 
         echo json_encode($result);  
+    }
+
+    public function setEstoque(Request $request){
+        $stockMove = new StockMove();
+        $stockMove->pluStock($request->produto, $request->quantidade, $request->valor);
+
+        echo json_encode("ok");  
     }
 
     private function salvarProdutoNoDelivery($request, $produto){
@@ -589,6 +663,8 @@ class ProductController extends Controller
             if($result){
                 $this->salveImagemProdutoDelivery($request, $produtoDelivery);
             }
+        }else{
+            $this->salvarProdutoNoDelivery($request, $produto);
         }
 
     }
@@ -622,7 +698,7 @@ class ProductController extends Controller
 
             // $upload = $file->move(public_path('imagens_produtos'), $nomeImagem);
             // if(file_exists($public.'imgs_produtos/'.$nomeImagem)){
-                copy($public.'imgs_produtos/'.$nomeImagem, $public.'imagens_produtos/'.$nomeImagem);
+            copy($public.'imgs_produtos/'.$nomeImagem, $public.'imagens_produtos/'.$nomeImagem);
             // }else{
             //     $file->move(public_path('imagens_produtos'), $nomeImagem);
             // }

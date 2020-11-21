@@ -4,6 +4,7 @@ function redireciona(){
 	location.href= path + "mdfe";
 }
 
+
 function enviar(){
 	$('#preloader').css('display', 'block');
 	let id = 0
@@ -254,7 +255,7 @@ function validaBtns(){
 		desabilitaBotoes(cont);
 	}else{
 		habilitaBotoes();
-		if(estado == 'DISPONIVEL'){
+		if(estado == 'NOVO'){
 			$('#btn-enviar').removeClass("disabled");
 			$('#btn-imprimir').addClass("disabled");
 			$('#btn-consultar').addClass("disabled");

@@ -107,7 +107,7 @@
 								<th>{{ $v->usuario->nome }}</th>
 								<th>{{ number_format($v->valor_total, 2, ',', '.') }}</th>
 								<th>
-									@if($v->NFcNumero)
+									@if($v->estado == 'APROVADO')
 									<a href="#!" onclick="modalCancelar({{$v->id}})" class="waves-light">
 										<i class="material-icons red-text">close</i>
 									</a>

@@ -449,6 +449,10 @@ public function imprimir($id){
     $ordem = OrdemServico::find($id);
     $config = ConfigNota::first();
 
+    if($config == null){
+        return redirect('/configNF');
+    }
+
     return view('os/print')
     ->with('ordem', $ordem)
     ->with('config', $config)

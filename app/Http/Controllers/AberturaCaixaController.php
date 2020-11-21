@@ -7,7 +7,6 @@ use App\AberturaCaixa;
 
 class AberturaCaixaController extends Controller
 {
-
 	public function __construct(){
 		$this->middleware(function ($request, $next) {
 			$value = session('user_logged');
@@ -20,7 +19,7 @@ class AberturaCaixaController extends Controller
 
 	public function abrir(Request $request){
 		$verify = $this->verificaAberturaCaixa();
-		if($verify == false){
+		if($verify == -1){
 			$result = AberturaCaixa::create([
 				'usuario_id' => get_id_user(),
 				'valor' => str_replace(",", ".", $request->valor) 
@@ -62,9 +61,9 @@ class AberturaCaixaController extends Controller
 		if($ab){
 			$ultimaDataAbertura = substr($ab->data_registro, 0, 10);
 			if($ultimaDataAbertura == $dataHoje) return $ab->valor;
-			else return false;
+			else return -1;
 		}else{
-			return false;
+			return -1;
 		}
 	}
 

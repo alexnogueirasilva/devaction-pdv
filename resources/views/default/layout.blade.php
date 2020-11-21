@@ -55,12 +55,14 @@
 				<span style="margin-left: 50px;">Cadastros</span>
 			</a></div>
 			<ul class="submenu"> 
+
 				<li><a href="/categorias"><span class="left material-icons">radio_button_unchecked</span>Categorias</a></li>
 				<li><a href="/produtos"><span class="left material-icons">radio_button_unchecked</span>Produtos</a></li>
 				<li><a href="/clientes"><span class="left material-icons">radio_button_unchecked</span>Clientes</a></li>
 				<li><a href="/fornecedores"><span class="left material-icons">radio_button_unchecked</span>Fornecedores</a></li>
 				<li><a href="/transportadoras"><span class="left material-icons">radio_button_unchecked</span>Transportadoras</a></li>
 				<li><a href="/funcionarios"><span class="left material-icons">radio_button_unchecked</span>Funcionarios</a></li>
+				<li><a href="/listaDePrecos"><span class="left material-icons">radio_button_unchecked</span>Lista de Preços</a></li>
 
 				@if(getenv('OS') == 1)
 				<li><a href="/categoriasServico"><span class="left material-icons">radio_button_unchecked</span>Categorias de Serviços</a></li>
@@ -162,7 +164,7 @@
 			<ul class="submenu">
 				<li><a href="/pedidos"><span class="left material-icons">radio_button_unchecked</span>Listar</a></li>
 				<li><a href="/controleCozinha"><span class="left material-icons">radio_button_unchecked</span>Controle de Pedidos</a></li>
-				<li><a href="/bairrosDelivery"><span class="left material-icons">radio_button_unchecked</span>Bairros</a></li>
+				
 				<li><a href="/mesas"><span class="left material-icons">radio_button_unchecked</span>Mesas</a></li>
 				@if(session('user_logged')['adm'] == 1)
 				<li><a href="/pedidos/controleComandas"><span class="left material-icons">radio_button_unchecked</span>Controle de Comandas</a></li>
@@ -185,12 +187,16 @@
 				<li><a href="/deliveryComplemento"><span class="left material-icons">radio_button_unchecked</span>Adicionais</a></li>
 				<li><a href="/pedidosDelivery"><span class="left material-icons">radio_button_unchecked</span>Pedidos de Delivery</a></li>
 
+				<li><a href="/controleCozinha"><span class="left material-icons">radio_button_unchecked</span>Controle de Pedidos</a></li>
 				<li><a href="/pedidosDelivery/frente"><span class="left material-icons">radio_button_unchecked</span>Frente de Pedido</a></li>
 
 				<li><a href="/configDelivery"><span class="left material-icons">radio_button_unchecked</span>Configuração</a></li>
 				@if(getenv("DELIVERY_MERCADO") == 1)
 				<li><a href="/configMercado"><span class="left material-icons">radio_button_unchecked</span>Configuração de Mercado</a></li>
 				@endif
+
+				<li><a href="/bairrosDelivery"><span class="left material-icons">radio_button_unchecked</span>Bairros</a></li>
+
 				<li><a href="/funcionamentoDelivery"><span class="left material-icons">radio_button_unchecked</span>Funcionamento</a></li>
 				<li><a href="/push"><span class="left material-icons">radio_button_unchecked</span>Push</a></li>
 				
@@ -277,12 +283,11 @@
 		<a href="/frenteCaixa" style="margin-top: 0px;" class="btn green accent-3" href="">
 		PDV</a>
 	</div>
+	
 </div>
 <!-- FIM MENU -->
 <div class="space">
 	@yield('content')
-
-
 
 </div>
 
@@ -447,7 +452,7 @@
 @endif
 
 @if(isset($mapJs))
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqDmzire4loEp5mlUxhz6VCdT0rzgN56U"
+<script src="https://maps.googleapis.com/maps/api/js?key={{getenv('API_KEY_MAPS')}}"
 async defer></script>
 <script type="text/javascript" src="/js/map.js"></script>
 @endif
@@ -494,8 +499,15 @@ async defer></script>
 <script type="text/javascript" src="/js/banner.js"></script>
 @endif
 
+@if(isset($atribuirComandaJs))
+<script type="text/javascript" src="/js/atribuirComandaJs.js"></script>
+@endif
+
+
+
 <script src="/js/lottie-player.js"></script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA==" crossorigin="anonymous"></script>
 
 @if(isset($graficoJs))
 
@@ -610,7 +622,6 @@ async defer></script>
 
 	$(function() {
 
-
 		var Accordion = function(el, multiple) {
 			this.el = el || {};
 			this.multiple = multiple || false;
@@ -665,9 +676,12 @@ async defer></script>
 
 <?php 
 $protocol = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+
+
 if(getenv('PATH_URL') != $protocol.$_SERVER['HTTP_HOST']){
 	echo "<script type='text/javascript'>alert('Por favor configure a variavel PATH_URL do arquivo .env corretamente')</script>";
 
+	echo "<script type='text/javascript'>alert('Informe: ".$protocol.$_SERVER['HTTP_HOST']."')</script>";
 
 }
 
@@ -696,8 +710,6 @@ if(getenv('PATH_URL') != $protocol.$_SERVER['HTTP_HOST']){
 			@endif
 
 		</ul>
-
-
 
 
 		<label class="info-user right white-text">

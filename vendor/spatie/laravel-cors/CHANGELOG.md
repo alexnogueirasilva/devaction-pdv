@@ -2,9 +2,25 @@
 
 All notable changes to `laravel-cors` will be documented in this file
 
-## 1.3.3 - 2018-02-27
+## 1.6.0 - 2019-09-04
 
-- add support for Laravel 5.8
+- make compatible with Laravel 6
+
+## 1.5.2 - 2019-07-19
+
+- improve responses for preflight requests
+
+## 1.5.1 - 2019-06-06
+
+- change preflight response status code to 204
+
+## 1.5.0 - 2019-04-17
+
+- add wildcard matching for subdomains (#51)
+
+## 1.4.0 - 2018-02-27
+
+- drop support for PHP 7.1
 
 ## 1.3.2 - 2018-01-28
 

@@ -71,7 +71,7 @@
                     <?php  $total += $a->quantidade * $a->adicional->valor * $i->quantidade?>
                     @endforeach
                     @else
-                    <label>Nenum adicional</label>
+                    <label>Nenhum adicional</label>
                     @endif
                   </span>
 

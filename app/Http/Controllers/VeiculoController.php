@@ -147,6 +147,7 @@ class VeiculoController extends Controller
     		'marca' => 'required|max:20',
             'modelo' => 'required|max:20',
             'tara' => 'required|max:10',
+            'rntrc' => 'required|min:8',
             'capacidade' => 'required|max:10',
             'proprietario_nome' => 'required|max:40',
             'proprietario_ie' => 'required|max:13',
@@ -165,6 +166,9 @@ class VeiculoController extends Controller
 
             'tara.required' => 'O campo tara é obrigatório.',
             'tara.max' => '10 caracteres maximos permitidos.',
+
+            'rntrc.required' => 'O campo RNTRC é obrigatório.',
+            'rntrc.min' => '8 caracteres minimos permitidos.',
 
             'proprietario_nome.required' => 'O campo Nome proprietário é obrigatório.',
             'proprietario_nome.max' => '40 caracteres maximos permitidos.',

@@ -4,10 +4,36 @@ var FATURA = [];
 var TOTAL = 0;
 var TOTALQTD = 0;
 var CLIENTE = null;
+var LISTAID = 0;
 var receberContas = [];
+var PRODUTO = null;
+var VENDA = null;
 
+function convertData(data){
+	let d = data.split('-');
+	return d[2] + '/' + d[1] + '/' + d[0];
+}
 $(function () {
 
+	if($('#venda_edit').val()){
+		VENDA = JSON.parse($('#venda_edit').val())
+		VENDA.itens.map((rs) => {
+			addItemTable(rs.produto.id, rs.produto.nome, rs.quantidade, rs.valor);
+		})
+		let t = montaTabela();
+		$('#prod tbody').html(t)
+
+		
+		CLIENTE = VENDA.cliente;
+		if(VENDA.duplicatas.length > 0){
+			VENDA.duplicatas.map((rs) => {
+				addpagamento(convertData(rs.data_vencimento), rs.valor_integral)
+			})
+		}else{
+			addpagamento(convertData(VENDA.created_at.substring(0,10)), VENDA.valor_total)
+		}
+		habilitaBtnSalarVenda();
+	}
 	let itensDeCredito = $('#itens_credito').val();
 	let cli = $('#cliente_crediario').val();
 	if(itensDeCredito){
@@ -103,11 +129,19 @@ $(function () {
 				console.log(prod)
 				getProduto(prod[0], (d) => {
 					console.log(d)
-
-					$('#valor').val(d.valor_venda.replace(".", ','))
-					$('#quantidade').val('1,000')
+					PRODUTO = d;
+					if(d.gerenciar_estoque == 1 && d.estoque_atual < 1){
+						$('#autocomplete-produto').val('')
+						$('#quantidade').html('0');
+						$('#valor').val('0');
+						swal("Erro", 'Estoque insuficiente!!', "warning")
+					}else{
+						$('#valor').val(d.valor_venda.replace(".", ','))
+						$('#quantidade').val('1,000')
+						calcSubtotal();
+					}
 					$('#preloader1').css('display', 'none');
-					calcSubtotal();
+
 
 				})
 			},
@@ -161,6 +195,7 @@ function verificaProdutoIncluso(){
 	let cod = $('#autocomplete-produto').val().split('-')[0];
 	let duplicidade = false;
 
+	let soma = 0;
 	ITENS.map((v) => {
 		if(v.codigo == cod){
 			duplicidade = true;
@@ -211,6 +246,11 @@ $('#valor').on('keyup', () => {
 	calcSubtotal()
 })
 
+$('#lista_id').change(() => {
+	let lista = $('#lista_id').val();
+	LISTAID = lista;
+})
+
 function calcSubtotal(){
 	let quantidade = $('#quantidade').val();
 	let valor = $('#valor').val();
@@ -220,25 +260,44 @@ function calcSubtotal(){
 	$('#subtotal').val(sub)
 }
 
+function somaQuantidade(call){
+	let soma = 0;
+	ITENS.map((rs) => {
+		if(PRODUTO != null && rs.id == PRODUTO.id){
+			soma += parseFloat(rs.quantidade);
+		}
+	})
+	call(soma);
+}
+
 function addItemTable(codigo, nome, quantidade, valor){
 	if(!verificaProdutoIncluso()) {
-		limparDadosFatura();
-		TOTAL += parseFloat(valor.replace(',','.'))*(quantidade.replace(',','.'));
-		TOTAL = parseFloat(TOTAL.toFixed(2));
-		TOTALQTD += parseFloat(quantidade.replace(',','.'));
-		ITENS.push({id: (ITENS.length+1), codigo: codigo, nome: nome, 
-			quantidade: quantidade, valor: valor})
+		somaQuantidade((qtd) => {
 
-	// apagar linhas tabela
-	$('#prod tbody').html("");
-	refatoreItens();
+			if(PRODUTO != null && PRODUTO.gerenciar_estoque == 1 && (parseFloat(quantidade) + parseFloat(qtd)) > PRODUTO.estoque_atual){
+				$('#quantidade').val('1')
+				swal("Erro", 'O estoque atual deste produto é de ' + PRODUTO.estoque_atual, "warning")
 
-	
-	atualizaTotal();
-	limparCamposFormProd();
-	let t = montaTabela();
-	$('#prod tbody').html(t)
-}
+			}else{
+				limparDadosFatura();
+				TOTAL += parseFloat(valor.replace(',','.'))*(quantidade.replace(',','.'));
+				TOTAL = parseFloat(TOTAL.toFixed(2));
+				TOTALQTD += parseFloat(quantidade.replace(',','.'));
+				ITENS.push({id: (ITENS.length+1), codigo: codigo, nome: nome, 
+					quantidade: quantidade, valor: valor})
+
+
+				$('#prod tbody').html("");
+				refatoreItens();
+
+
+				atualizaTotal();
+				limparCamposFormProd();
+				let t = montaTabela();
+				$('#prod tbody').html(t)
+			}
+		})
+	}
 }
 
 $('#delete-parcelas').click(() => {
@@ -352,11 +411,11 @@ function getProdutos(data){
 }
 
 function getProduto(id, data){
-	console.log(id)
+
 	$.ajax
 	({
 		type: 'GET',
-		url: path + 'produtos/getProduto/'+id,
+		url: path + 'produtos/getProdutoVenda/' + id + '/' + LISTAID,
 		dataType: 'json',
 		success: function(e){
 			data(e)
@@ -563,7 +622,7 @@ function addpagamento(data, valor){
 		$("#valor_parcela").val("");
 		$('#add-pag').removeClass("disabled");
 		FATURA = [];
-
+		habilitaBtnSalarVenda();
 	}
 
 	$('#qtdParcelas').on('keyup', () => {
@@ -586,9 +645,12 @@ function addpagamento(data, valor){
 		if(desconto.length == 0) desconto = 0;
 		else desconto = desconto.replace(',', '.');
 		
+
 		if(ITENS.length > 0 && FATURA.length > 0 && (TOTAL - parseFloat(desconto)) > 0 && CLIENTE != null){
 			$('#salvar-venda').removeClass('disabled')
 			$('#salvar-orcamento').removeClass('disabled')
+		}else{
+			$('#salvar-venda').addClass('disabled')
 		}
 	}
 
@@ -648,7 +710,9 @@ $('#desconto').on('keyup', () => {
 		let t = parseFloat(TOTAL) - parseFloat(desconto)
 		console.log(t)
 	}else{
-		alert("Adicione itens para despois informar o desconto")
+		// alert("Adicione itens para despois informar o desconto")
+		swal("Erro", 'Adicione itens para despois informar o desconto', "warning")
+		
 		$('#desconto').val('')
 	}
 	//atualizaTotal();
@@ -704,7 +768,88 @@ $('#formaPagamento').change(() => {
 	}
 })
 
+function atualizarVenda(btnClick){
+	verificaLimite((limite) => {
 
+		if(limite){
+
+			validaFrete((validaFrete) => {
+				if(validaFrete){
+					$('#preloader2').css('display', 'block');
+
+					let vol = {
+						'especie': $('#especie').val(),
+						'numeracaoVol': $('#numeracaoVol').val(),
+						'qtdVol': $('#qtdVol').val(),
+						'pesoL': $('#pesoL').val(),
+						'pesoB': $('#pesoB').val(),
+					}
+
+
+
+
+					var transportadora = $('#autocomplete-transportadora').val().split('-');
+					if($('#autocomplete-transportadora').val().length > 0 && transportadora.length > 0){
+						transportadora = transportadora[0]
+					}else{
+						transportadora = null;
+					}
+					let js = {
+						venda_id: VENDA.id,
+						cliente: parseInt(CLIENTE.id),
+						transportadora: transportadora,
+						formaPagamento: $('#formaPagamento').val(),
+						tipoPagamento: $('#tipoPagamento').val(),
+						naturezaOp: parseInt($('#natureza').val()),
+						frete: $('#frete').val(),
+						placaVeiculo: $('#placa').val(),
+						ufPlaca: $('#uf_placa').val(),
+						valorFrete: $('#valor_frete').val(),
+						itens: ITENS,
+						fatura: FATURA,
+						volume: vol,
+						receberContas: receberContas,
+						total: TOTAL,
+						observacao: $('#obs').val(),
+						desconto: $('#desconto').val(),
+						btn: btnClick
+					}
+					let token = $('#_token').val();
+					console.log(js)
+					$.ajax
+					({
+						type: 'POST',
+						data: {
+							venda: js,
+							_token: token
+						},
+						url: path + 'vendas/atualizar',
+						dataType: 'json',
+						success: function(e){
+							console.log(e)
+							$('#preloader2').css('display', 'none');
+							sucesso(e)
+
+						}, error: function(e){
+							console.log(e)
+							$('#preloader2').css('display', 'none');
+						}
+					});
+
+					if(btnClick == 'cp_fiscal'){
+					// eviar NF
+				}
+			}else{
+				Materialize.toast('Informe placa e valor de frete!', 4000)
+			}
+		})
+		}else{
+
+			Materialize.toast('Erro Limite!', 4000)
+
+		}
+	})
+}
 
 function salvarVenda(btnClick) {
 

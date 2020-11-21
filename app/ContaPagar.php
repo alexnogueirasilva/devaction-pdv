@@ -21,7 +21,7 @@ class ContaPagar extends Model
 
 	public static function filtroData($dataInicial, $dataFinal, $status){
 		$c = ContaPagar::
-		orderBy('data_vencimento', 'desc')
+		orderBy('data_vencimento', 'asc')
 		->whereBetween('data_vencimento', [$dataInicial, 
 			$dataFinal]);
 
@@ -34,7 +34,7 @@ class ContaPagar extends Model
 	}
 	public static function filtroDataFornecedor($fornecedor, $dataInicial, $dataFinal, $status){
 		$c = ContaPagar::
-		orderBy('conta_pagars.data_vencimento', 'desc')
+		orderBy('conta_pagars.data_vencimento', 'asc')
 		->join('compras', 'compras.id' , '=', 'conta_pagars.compra_id')
 		->join('fornecedors', 'fornecedors.id' , '=', 'compras.fornecedor_id')
 		->where('fornecedors.razao_social', 'LIKE', "%$fornecedor%")
@@ -51,7 +51,7 @@ class ContaPagar extends Model
 
 	public static function filtroFornecedor($fornecedor, $status){
 		$c = ContaPagar::
-		orderBy('conta_pagars.data_vencimento', 'desc')
+		orderBy('conta_pagars.data_vencimento', 'asc')
 		->join('compras', 'compras.id' , '=', 'conta_pagars.compra_id')
 		->join('fornecedors', 'fornecedors.id' , '=', 'compras.fornecedor_id')
 		->where('razao_social', 'LIKE', "%$fornecedor%");
@@ -67,7 +67,7 @@ class ContaPagar extends Model
 
 	public static function filtroStatus($status){
 		$c = ContaPagar::
-		orderBy('conta_pagars.data_vencimento', 'desc');
+		orderBy('conta_pagars.data_vencimento', 'asc');
 
 		if($status == 'pago'){
 			$c->where('status', true);

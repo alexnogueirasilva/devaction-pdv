@@ -13,6 +13,7 @@ use App\ProdutoPizza;
 use App\ItemPizzaPedido;
 use App\CodigoDesconto;
 use App\FuncionamentoDelivery;
+use App\BairroDelivery;
 
 class CarrinhoController extends Controller
 {	
@@ -23,7 +24,7 @@ class CarrinhoController extends Controller
 		$this->middleware(function ($request, $next) {
 			$value = session('cliente_log');
 			if(!$value){
-				session()->flash("message_erro", "Voçe precisa estar logado para comprar nossos produtos");
+				session()->flash("message_erro", "Voce precisa estar logado para comprar nossos produtos");
 				return redirect('/autenticar'); 
 			}
 			return $next($request);
@@ -106,7 +107,7 @@ class CarrinhoController extends Controller
 				echo json_encode(false);
 			}
 		}else{
-			session()->flash("message_erro", "Voçe precisa estar logado, realize seu cadastro por gentileza");
+			session()->flash("message_erro", "Voce precisa estar logado, realize seu cadastro por gentileza");
 			echo json_encode('401');
 		}
 	}
@@ -230,7 +231,7 @@ class CarrinhoController extends Controller
 
 					$total = 0;
 					foreach($pedido->itens as $i){
-						// $total += ($i->produto->valor * $i->quantidade);
+						$total += ($i->produto->valor * $i->quantidade);
 						if(count($i->sabores) > 0){
 							$maiorValor = 0;
 							$somaValores = 0;
@@ -249,7 +250,6 @@ class CarrinhoController extends Controller
 						}
 					}
 
-
 					$cliente = ClienteDelivery::
 					where('id', $clienteLog['id'])
 					->first();
@@ -265,7 +265,15 @@ class CarrinhoController extends Controller
 						->orderBy('id', 'desc')
 						->first();
 
-						$cartoes = $this->getPedidosPagSeguro($cliente->id);
+						if($pagseguroAtivado){
+							$cartoes = $this->getPedidosPagSeguro($cliente->id);
+						}else{
+							$cartoes = [];
+						}
+						
+						$d = DeliveryConfig::first();
+
+						$bairros = BairroDelivery::orderBy('nome')->get();
 
 						return view('delivery/forma_pagamento')
 						->with('pedido', $pedido)
@@ -275,13 +283,17 @@ class CarrinhoController extends Controller
 						->with('enderecos', $enderecos)
 						->with('forma_pagamento', true)
 						->with('total', $total)
+						->with('total', $total)
 						->with('mapaJs', true)
+						->with('bairros', $bairros)
+						->with('usar_bairros', $d->usar_bairros)
+						->with('maximo_km_entrega', $d->maximo_km_entrega)
 						->with('cupom', $cupom)
 						->with('pagseguroAtivado', $pagseguroAtivado)
 						->with('config', $this->config)
 						->with('title', 'FINALIZAR PEDIDO');
 					}else{
-						session()->flash("message_erro", "Voçe precisa estar logado, realize seu cadastro por gentileza");
+						session()->flash("message_erro", "Voce precisa estar logado, realize seu cadastro por gentileza");
 						return redirect('/autenticar/registro'); 
 					}
 				}else{
@@ -310,11 +322,13 @@ class CarrinhoController extends Controller
 		$cartaoInserido = [];
 		foreach($pedidos as $p){
 			if($p->forma_pagamento == 'pagseguro'){
-				if(!in_array($p->pagseguro->numero_cartao, $cartaoInserido)){
-					$p->pagseguro->src_bandeira = 'https://stc.pagseguro.uol.com.br/public/img/payment-methods-flags/68x30/'.
-					$p->pagseguro->bandeira . '.png';
-					array_push($arr, $p->pagseguro);
-					array_push($cartaoInserido, $p->pagseguro->numero_cartao);
+				if($p->pagseguro){
+					if(!in_array($p->pagseguro->numero_cartao, $cartaoInserido)){
+						$p->pagseguro->src_bandeira = 'https://stc.pagseguro.uol.com.br/public/img/payment-methods-flags/68x30/'.
+						$p->pagseguro->bandeira . '.png';
+						array_push($arr, $p->pagseguro);
+						array_push($cartaoInserido, $p->pagseguro->numero_cartao);
+					}
 				}
 			}
 		}
@@ -360,8 +374,8 @@ class CarrinhoController extends Controller
 			}
 
 			if($data['endereco_id'] != 'balcao'){
-				$config = DeliveryConfig::first();
-				$total += $config->valor_entrega;
+				// $config = DeliveryConfig::first();
+				$total += $data['valor_entrega'];
 			}
 
 			$pedido->forma_pagamento = $data['forma_pagamento'];
@@ -482,7 +496,6 @@ class CarrinhoController extends Controller
 		}
 	}
 
-
 	public function finalizado($id){
 		$clienteLog = session('cliente_log');
 		$pedido = PedidoDelivery::
@@ -492,9 +505,19 @@ class CarrinhoController extends Controller
 		->where('cliente_id', $clienteLog['id'])
 		->first();
 
+		$valorEntrega = 0;
+		if($pedido->endereco){
+			if($this->config->usar_bairros){
+				$bairro = BairroDelivery::find($pedido->endereco->bairro_id);
+				$valorEntrega = $bairro->valor_entrega;
+			}else{
+				$valorEntrega = $this->config->valor_entrega;
+			}
+		}
 		if($pedido){
 			return view('delivery/pedido_finalizado')
 			->with('pedido', $pedido)
+			->with('valorEntrega', $valorEntrega)
 			->with('config', $this->config)
 			->with('carrinho', true)
 			->with('title', 'Pedido Finalizado');
@@ -569,7 +592,29 @@ class CarrinhoController extends Controller
 		}else{
 			return ['status' => false, 'funcionamento' => null];
 		}
+	}
 
+	public function getDadosCalculoEntrega(Request $request){
+		try{
+			$config = DeliveryConfig::first();
+			if($config->usar_bairros == 0){
+				$latitude_local = $config->latitude;
+				$longitude_local = $config->longitude;
+
+				$data = [ 
+					'valor_km' => $config->valor_km,
+					'entrega_gratis_ate' => $config->entrega_gratis_ate,
+					'latitude_local' => $latitude_local,
+					'longitude_local' => $longitude_local,
+					'maximo_km_entrega' => $config->maximo_km_entrega
+				];
+
+				return response()->json($data, 200);
+			}
+		}catch(\Exception $e){
+			return response()->json('', 401);
+
+		}
 	}
 
 

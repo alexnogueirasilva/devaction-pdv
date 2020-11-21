@@ -285,21 +285,29 @@ $('#sabores').on('chip.add', function(e, chip){
 		$('#sabores input').css('display', 'none')
 	}
 	let soma = 0;
+
+	let maiorValorPizza = 0;
+
 	TODOSSABORES.map((v) => {
 		console.log(v)
 		console.log(SABORESESCOLHIDOS)
 		if(SABORESESCOLHIDOS.includes(v.produto.nome)){
+
 			if(DIVISAO_VALOR_PIZZA == 0){
 				if(v.tamanhoValor > maiorValorPizza) maiorValorPizza = v.tamanhoValor;
-				$('#valor').val(maiorValorPizza)
+
 			}else{
 
 				soma += parseFloat(v.tamanhoValor);
 			}
 		}
 	})
-	let calc = (soma + parseFloat(VALOR_PIZZA) )/(SABORESESCOLHIDOS.length + 1);
-	$('#valor').val(calc.toFixed(2));
+	if(DIVISAO_VALOR_PIZZA == 1){
+		let calc = (soma + parseFloat(VALOR_PIZZA) )/(SABORESESCOLHIDOS.length + 1);
+		$('#valor').val(calc.toFixed(2));
+	}else{
+		$('#valor').val(parseFloat(maiorValorPizza).toFixed(2));
+	}
 
 
 });

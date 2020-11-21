@@ -41,7 +41,7 @@ class VendaCaixaController extends Controller
     'troco' => str_replace(",", ".", $venda['troco']),
     'dinheiro_recebido' => str_replace(",", ".", $venda['dinheiro_recebido']),
     'forma_pagamento' => $venda['acao'] == 'credito' ? 'credito' : " ",
-    'tipo_pagamento' => $venda['tipo_pagamento'],
+    'tipo_pagamento' => $venda['tipo_pagamento_1'] ? '99' : $venda['tipo_pagamento'],
     'estado' => 'DISPONIVEL',
     'NFcNumero' => 0,
     'chave' => '',
@@ -49,7 +49,14 @@ class VendaCaixaController extends Controller
     'nome' => $venda['nome'] ?? '',
     'cpf' => $venda['cpf'] ?? '',
     'observacao' => $venda['observacao'] ?? '',
-    'desconto' => $venda['desconto']
+    'desconto' => $venda['desconto'],
+    'pedido_delivery_id' => isset($venda['delivery_id']) ? $venda['delivery_id'] : 0,
+    'tipo_pagamento_1' => $venda['tipo_pagamento_1'] ?? '', 
+    'valor_pagamento_1' => $venda['valor_pagamento_1'] ?? 0,
+    'tipo_pagamento_2' => $venda['tipo_pagamento_2'] ?? '',
+    'valor_pagamento_2' => $venda['valor_pagamento_2'] ?? 0,
+    'tipo_pagamento_3' => $venda['tipo_pagamento_3'] ?? '',
+    'valor_pagamento_3' => $venda['valor_pagamento_3'] ?? 0
   ]);
 
    if($venda['codigo_comanda'] > 0){
@@ -79,7 +86,8 @@ class VendaCaixaController extends Controller
     ]);
 
 
-    if(!isset($venda['delivery_id']) || $venda['delivery_id'] == 0){ // nao delivery
+    if(!isset($venda['delivery_id']) || $venda['delivery_id'] == 0){
+     // nao delivery
       $prod = Produto
       ::where('id', $i['id'])
       ->first();

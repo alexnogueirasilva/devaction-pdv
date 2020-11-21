@@ -48,6 +48,19 @@
 				message
 			</i>
 		ENVIAR WHATSAPP</a>
+
+		<a target="_blank" href="/relatorios/filtroVendaDiaria?data_inicial={{date('d-m-Y')}}&total_resultados=" class="btn-large red accent-3">
+			<i class="material-icons left">
+				insert_drive_file
+			</i>
+		BAIXAR RELATÓRIO</a>
+
+		<a href="#modal-somas" class="btn-large modal-trigger orange accent-3">
+			<i class="material-icons left">
+				attach_money
+			</i>
+		SOMA DETALHADA</a>
+
 		<p class="red-text">{{$info}}</p>
 
 		<div class="row">
@@ -60,6 +73,7 @@
 						<th>#</th>
 						<th>Cliente</th>
 						<th>Data</th>
+						<th>Tipo de pagamento</th>
 						<th>Estado</th>
 						<th>NFCe</th>
 						<th>Usuário</th>
@@ -87,6 +101,19 @@
 								<th>{{ $v->id }}</th>
 								<th>{{ $v->cliente->razao_social ?? 'NAO IDENTIFCADO' }}</th>
 								<th>{{ \Carbon\Carbon::parse($v->data_registro)->format('d/m/Y H:i:s')}}</th>
+								<th>
+									@if($v->tipo_pagamento == '99')
+
+									<a class="btn green lighten-2 tooltipped" data-position="bottom" data-delay="50" data-tooltip="{{$v->multiplo()}}">
+										<i class="material-icons">money</i>
+
+									</a>
+
+									@else
+									{{$v->getTipoPagamento($v->tipo_pagamento)}}
+									@endif
+
+								</th>
 								<th>{{ $v->estado }}</th>
 
 
@@ -99,6 +126,16 @@
 									<a target="_blank" title="CUPOM FISCAL" href="/nfce/imprimir/{{$v->id}}">
 										<i class="material-icons green-text">print</i>
 									</a>
+
+									<a onclick="consultarNFCe('{{$v->id}}')" title="CONSULTAR" href="#!">
+										<i class="material-icons orange-text">find_in_page</i>
+									</a>
+
+									<a target="_blank" title="BAIXAR XML" href="/nfce/baixarXml/{{$v->id}}">
+										<i class="material-icons red-text">file_download</i>
+									</a>
+
+									
 									@else
 									<a class="disabled">
 										<i class="material-icons grey-text">print</i>
@@ -109,11 +146,12 @@
 									</a>
 
 									@if(!$v->NFcNumero)
-									<a data-position="top" data-delay="50" data-tooltip="Enviar para Sefaz" class="tooltipped" href="#!" onclick = "if (! confirm('Deseja enviar esta venda para Sefaz?')) { return false; }else{emitirNFCe({{$v->id}})}" >
+									<a data-position="top" data-delay="50" data-tooltip="Enviar para Sefaz" onclick='swal("Atenção!", "Deseja enviar esta venda para Sefaz?", "warning").then((sim) => {if(sim){ emitirNFCe({{$v->id}}) }else{return false} })' href="#!" class="tooltipped">
 										<i class="material-icons green-text">nfc</i>
 									</a>
 									@endif
 
+									
 
 									<div id="preloader_{{$v->id}}" style="display: none" class="preloader-wrapper small active">
 										<div class="spinner-layer spinner-red-only">
@@ -191,6 +229,21 @@
 			</div>
 			<div class="modal-footer">
 				<a href="#!" onclick="redireciona()" class="modal-action modal-close waves-effect waves-green btn-flat">Fechar</a>
+			</div>
+		</div>
+
+		<div id="modal-somas" class="modal">
+
+			<div class="modal-content">
+				@foreach($somaTiposPagamento as $key => $s)
+				@if($s > 0)
+				<h4 class="center-align">{{App\VendaCaixa::getTipoPagamento($key)}} = <strong class="red-text">R$ {{number_format($s, 2)}}</strong></h4>
+				@endif
+				@endforeach
+
+			</div>
+			<div class="modal-footer">
+				<a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Fechar</a>
 			</div>
 		</div>
 

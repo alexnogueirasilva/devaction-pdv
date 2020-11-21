@@ -19,7 +19,9 @@ class CreateUsuarioTable extends Migration
             $table->string('login');
             $table->boolean('adm');
             $table->string('senha');
-            $table->string('ativo');
+            $table->string('img', 100)->default('');
+
+            $table->boolean('ativo');
 
             $table->boolean('acesso_cliente');
             $table->boolean('acesso_fornecedor');
@@ -29,6 +31,7 @@ class CreateUsuarioTable extends Migration
             $table->boolean('acesso_estoque');
             $table->boolean('acesso_compra');
             $table->boolean('acesso_fiscal');
+            $table->boolean('venda_nao_fiscal');
             $table->timestamps();
         });
     }

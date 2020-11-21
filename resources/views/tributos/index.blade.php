@@ -68,6 +68,19 @@
 				</div>
 
 				<div class="row">
+
+					<div class="input-field col s4">
+						<input value="{{{ isset($tributo->ncm_padrao) ? $tributo->ncm_padrao : old('ncm_padrao') }}}" id="ncm_padrao" name="ncm_padrao" type="text" class="validate upper-input">
+						<label for="ncm_padrao">NCM Padrão</label>
+
+						@if($errors->has('ncm_padrao'))
+						<div class="center-align red lighten-2">
+							<span class="white-text">{{ $errors->first('ncm_padrao') }}</span>
+						</div>
+						@endif
+
+					</div>
+
 					<div class="input-field col s4">
 						<select name="regime">
 							@foreach($regimes as $key => $r)

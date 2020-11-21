@@ -72,9 +72,11 @@
 						<thead>
 							<tr>
 								<th>Código</th>
+								<th>C.SIAD</th>
 								<th>Produto</th>
 								<th>NCM</th>
 								<th>CFOP</th>
+								<th>Conv. CFOP</th>
 								<th>Cod Barra</th>
 								<th>Un. Compra</th>
 								<th>Valor</th>
@@ -84,14 +86,24 @@
 							</tr>
 						</thead>
 
+						<?php $arrCfopEntrada = []; ?>
 						<tbody id="tbody">
 							@foreach($itens as $i)
 							<tr id="tr_{{$i['codigo']}}">
 								<th class="codigo">{{$i['codigo']}}</th>
+								<th class="codigo_siad">
+									<input id="codigo_siad_input" style="width: 60px;" type="text" value="{{$i['codSiad']}}" name="">
+								</th>
 								<th id="th_{{$i['codigo']}}" class="nome {{$i['produtoNovo'] == true ? 
 								'red-text' : ''}}">{{$i['xProd']}}</th>
 								<th class="ncm">{{$i['NCM']}}</th>
 								<th class="cfop">{{$i['CFOP']}}</th>
+
+
+								<th id="cfop_entrada_{{$i['codigo']}}" class="cfop_entrada">
+									<input id="cfop_entrada_input" class="cfop" style="width: 60px;" type="text" value="{{$i['CFOP_entrada']}}" name="">
+								</th>
+
 								<th class="codBarras">{{$i['codBarras']}}</th>
 								<th class="unidade">{{$i['uCom']}}</th>
 								<th class="valor">{{$i['vUnCom']}}</th>
@@ -99,7 +111,7 @@
 								<th class="cod" id="th_prod_id_{{$i['codigo']}}" style="display: none">{{$i['produtoId']}}</th>
 
 								<th style="display: none" class="conv_estoque" id="th_prod_conv_unit_{{$i['codigo']}}">
-									{{$i['conversao_unitaria']}}
+									{{$i['conversao_unitaria']}} 
 								</th>
 
 
@@ -110,7 +122,7 @@
 								style="display: block" @else style="display: none"
 								@endif>
 
-								<a onclick="cadProd('{{$i['codigo']}}','{{$i['xProd']}}','{{$i['codBarras']}}','{{$i['NCM']}}','{{$i['CFOP']}}','{{$i['uCom']}}','{{$i['vUnCom']}}','{{$i['qCom']}}')" class="btn" href="#">
+								<a onclick="cadProd('{{$i['codigo']}}','{{$i['xProd']}}','{{$i['codBarras']}}','{{$i['NCM']}}','{{$i['CFOP']}}','{{$i['uCom']}}','{{$i['vUnCom']}}','{{$i['qCom']}}', '{{$i['CFOP_entrada']}}')" class="btn" href="#">
 									<i class="material-icons">add</i>
 								</a>
 
@@ -210,15 +222,16 @@
 		</div>
 
 		<div class="row">
-			<div class="input-field col s6">
+			<div class="input-field col s4">
 				<input disabled type="text" class="validate" id="ncm">
 				<label>NCM</label>
 			</div>
 
-			<div class="input-field col s6">
-				<input disabled type="text" class="validate" id="cfop">
+			<div class="input-field col s4">
+				<input type="text" class="validate" id="cfop">
 				<label>CFOP</label>
 			</div>
+
 		</div>
 
 		<div class="row">
@@ -235,8 +248,8 @@
 
 		<div class="row">
 			<div class="input-field col s6">
-				<input disabled type="text" class="validate" id="valor">
-				<label>Valor</label>
+				<input disabled type="text" class="validate" id="valor_compra">
+				<label>Valor de Compra</label>
 			</div>
 
 			<div class="input-field col s6">
@@ -427,14 +440,14 @@
 	<div class="modal-content">
 		<div class="row">
 			<div class="col s8">
-				<input type="text" class="validate" id="nomeEdit">
 				<label for="nome">Nome do Produto</label>
+				<input type="text" class="validate" id="nomeEdit">
 			</div> 
 			<input id="idEdit" type="hidden" value="">
 
 			<div class="col s6">
-				<input type="text" class="validate" id="conv_estoqueEdit">
 				<label>Conversão unitária para estoque</label>
+				<input type="text" class="validate" id="conv_estoqueEdit">
 			</div>
 		</div>
 	</div>

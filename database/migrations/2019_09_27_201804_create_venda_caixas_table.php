@@ -43,6 +43,16 @@ class CreateVendaCaixasTable extends Migration
             $table->string('nome', 38);
             $table->string('cpf', 18);
             $table->string('observacao', 150);
+            $table->integer('pedido_delivery_id');
+
+            $table->string('tipo_pagamento_1', 20)->default('');
+            $table->decimal('valor_pagamento_1', 10,2)->default(0);
+
+            $table->string('tipo_pagamento_2', 20)->default('');
+            $table->decimal('valor_pagamento_2', 10,2)->default(0);
+
+            $table->string('tipo_pagamento_3', 20)->default('');
+            $table->decimal('valor_pagamento_3', 10,2)->default(0);
 
             $table->timestamps();
         });

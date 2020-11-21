@@ -39,7 +39,7 @@
 								<div class="row">
 									<div class="col-sm-3 hidden-xs">
 										@if(isset($i->produto->galeria[0]))
-										<img src="/imagens_produtos/{{$i->produto->galeria[0]->path}}" alt="..." class="img-responsive mini"/>
+										<img loading="lazy" src="/imagens_produtos/{{$i->produto->galeria[0]->path}}" alt="..." class="img-responsive mini"/>
 										@else
 										<img src="/imgs/no_image.png" alt="..." class="img-responsive mini"/>
 										@endif
@@ -53,13 +53,19 @@
 											<span>Adicionais: 
 												@if(count($i->itensAdicionais)>0)
 												@foreach($i->itensAdicionais as $a)
-												<strong>{{$a->adicional->nome}}</strong>
+												<strong>{{$a->adicional->nome()}}</strong>
 												<?php  $total += $i->quantidade * $a->adicional->valor ?>
 												@endforeach
 												@else
-												<label>Nenum adicional</label>
+												<label>Nenhum adicional</label>
 												@endif
 											</span>
+
+											@if($i->observacao != '')
+											<br>
+											<span>Observação: {{$i->observacao}}
+											</span>
+											@endif
 
 											@if(count($i->sabores) > 0)
 											<br>
@@ -71,7 +77,7 @@
 												@endforeach
 											</span><br>
 											<span>Total de sabores: <strong>{{count($i->sabores)}}</strong></span>
-											<span>| Tamanho <strong>{{$i->tamanho->nome}}</strong></span>
+											<span>| Tamanho <strong>{{$i->tamanho->nome()}}</strong></span>
 											@endif
 											<br>
 
@@ -91,10 +97,14 @@
 									if($v > $maiorValor) $maiorValor = $v;
 								}
 
+
 								if(getenv("DIVISAO_VALOR_PIZZA") == 1){
 									$maiorValor = $somaValores/sizeof($i->sabores);
 								}
 
+								foreach($i->itensAdicionais as $a){
+									$maiorValor += $a->adicional->valor;
+								}
 								$total = number_format($maiorValor * $i->quantidade, 2);
 							?>
 								<td data-th="Preço">R${{number_format($maiorValor, 2)}}</td>

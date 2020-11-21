@@ -21,7 +21,7 @@ class ContaReceber extends Model
 
 	public static function filtroData($dataInicial, $dataFinal, $status){
 		$c = ContaReceber::
-		orderBy('conta_recebers.data_vencimento', 'desc')
+		orderBy('conta_recebers.data_vencimento', 'asc')
 		->whereBetween('conta_recebers.data_vencimento', [$dataInicial, 
 			$dataFinal]);
 
@@ -34,7 +34,7 @@ class ContaReceber extends Model
 	}
 	public static function filtroDataFornecedor($cliente, $dataInicial, $dataFinal, $status){
 		$c = ContaReceber::
-		orderBy('conta_recebers.data_vencimento', 'desc')
+		orderBy('conta_recebers.data_vencimento', 'asc')
 		->join('vendas', 'vendas.id' , '=', 'conta_recebers.venda_id')
 		->join('clientes', 'clientes.id' , '=', 'vendas.cliente_id')
 		->where('clientes.razao_social', 'LIKE', "%$cliente%")
@@ -51,7 +51,7 @@ class ContaReceber extends Model
 
 	public static function filtroFornecedor($cliente, $status){
 		$c = ContaReceber::
-		orderBy('conta_recebers.data_vencimento', 'desc')
+		orderBy('conta_recebers.data_vencimento', 'asc')
 		->join('vendas', 'vendas.id' , '=', 'conta_recebers.venda_id')
 		->join('clientes', 'clientes.id' , '=', 'vendas.cliente_id')
 		->where('razao_social', 'LIKE', "%$cliente%");
@@ -67,7 +67,7 @@ class ContaReceber extends Model
 
 	public static function filtroStatus($status){
 		$c = ContaReceber::
-		orderBy('conta_recebers.data_vencimento', 'desc');
+		orderBy('conta_recebers.data_vencimento', 'asc');
 		if($status == 'pago'){
 			$c->where('status', true);
 		} else if($status == 'pendente'){

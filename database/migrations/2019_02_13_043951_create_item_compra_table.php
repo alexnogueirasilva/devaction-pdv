@@ -27,6 +27,11 @@ class CreateItemCompraTable extends Migration
             $table->string('unidade_compra', 10);
 
             $table->date('validade')->nullable();
+
+            $table->string('cfop_entrada', 4)->default('');
+            $table->string('codigo_siad', 10)->default('');
+
+
             $table->timestamps();
         });
     }

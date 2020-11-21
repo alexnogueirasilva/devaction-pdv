@@ -6,7 +6,7 @@
 [![StyleCI](https://styleci.io/repos/113957368/shield?branch=master)](https://styleci.io/repos/113957368)
 [![Total Downloads](https://img.shields.io/packagist/dt/spatie/laravel-cors.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-cors)
 
-This package will add CORS headers to the responses of your Laravel or Lumen app. Read [this excellent article](https://spring.io/understanding/CORS) on the subject if you want to understand what CORS is all about.
+This package will add CORS headers to the responses of your Laravel or Lumen app. For more infomation about CORS, see the [Mozilla CORS documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS).
 
 This package supports preflight requests and is easily configurable to fit your needs.
 
@@ -89,7 +89,7 @@ return [
             'Last-Modified',
             'Pragma',
         ],
-        
+
         'forbidden_response' => [
             'message' => 'Forbidden (cors).',
             'status' => 403,
@@ -144,6 +144,24 @@ The default configuration of this package allows all requests from any origin (d
     'allow_origins' => [
         'https://spatie.be',
         'https://laravel.com',
+    ],
+    ...
+...
+```
+
+If you, for example, want to allow all subdomains from a specific domain, you can use the wildcard asterisk (`*`) and specifiy that:
+```php
+// config/cors.php
+
+    ...
+    'default_profile' => [
+
+    'allow_origins' => [
+        'https://spatie.be',
+        'https://laravel.com',
+
+        'https://*.spatie.be',
+        'https://*.laravel.com',
     ],
     ...
 ...

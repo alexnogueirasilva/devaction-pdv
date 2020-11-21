@@ -33,6 +33,9 @@ class CreatePedidosTable extends Migration
             $table->string('telefone', 15);
 
             $table->boolean('desativado');
+            $table->string('referencia_cliete', 200)->default('');
+            $table->boolean('mesa_ativa')->default(true);
+            $table->boolean('fechar_mesa')->default(true);
             $table->timestamp('data_registro')->useCurrent();
             $table->timestamps();
         });

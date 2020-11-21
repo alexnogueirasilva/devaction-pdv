@@ -18,6 +18,10 @@
 			      	<i class="material-icons left">add</i>	
 			      	Nova Mesa	
 				</a>
+
+				<a target="_blank" href="/mesas/gerarQrCode" class="btn blue accent-3">
+			      	Gerar QrCode	
+				</a>
 			</div>
 
 			

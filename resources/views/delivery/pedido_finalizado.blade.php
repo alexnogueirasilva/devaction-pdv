@@ -23,7 +23,7 @@
 				@endif
 
 				@if($config)
-				<h4 class="">Tempo médio de entrega: <strong>{{$config->tempo_medio_entrega}}</strong></h4><br>
+				<h4 class="">Tempo médio de entrega: <strong>{{$config->tempo_medio_entrega}} minutos</strong></h4><br>
 				@endif
 
 			</div>
@@ -73,11 +73,11 @@
 											<span>Adicionais: 
 												@if(count($i->itensAdicionais)>0)
 												@foreach($i->itensAdicionais as $a)
-												<strong>{{$a->adicional->nome}}</strong>
+												<strong>{{$a->adicional->nome()}}</strong>
 												<?php  $total += $a->quantidade * $a->adicional->valor * $i->quantidade?>
 												@endforeach
 												@else
-												<label>Nenum adicional</label>
+												<label>Nenhum adicional</label>
 												@endif
 											</span>
 
@@ -186,7 +186,7 @@
 						@if($pedido->endereco_id != null)
 						<tr class="visible-xs">
 
-							<td class="text-center"><strong>Taxa de entrega = R${{number_format($config->valor_entrega, 2, ',', '.')}}</strong></td>
+							<td class="text-center"><strong>Taxa de entrega = R${{number_format($valorEntrega, 2, ',', '.')}}</strong></td>
 
 						</tr>
 
@@ -194,9 +194,9 @@
 						<td class="text-center">Endereço: <strong>{{$pedido->endereco->rua}}, {{$pedido->endereco->numero}} - {{$pedido->endereco->bairro}}, {{$pedido->endereco->referencia}}</strong></td>
 					</tr>
 
-					<tr class="visible-xs">
+					<!-- <tr class="visible-xs">
 						<td class="text-center"><strong>Total pedido + Taxa de entrega = <span style="color: red">R$ {{number_format($config->valor_entrega+$geral-$valorDesconto, 2, ',', '.')}}</span></strong></td>
-					</tr>
+					</tr> -->
 					@else
 					<tr class="visible-xs">
 

@@ -15,8 +15,6 @@
 
 namespace Test\Linear;
 
-use PHPUnit\Framework\TestCase;
-
 /**
  * Barcode class test
  *
@@ -28,7 +26,7 @@ use PHPUnit\Framework\TestCase;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-barcode
  */
-class EanOneThreeTest extends TestCase
+class EanOneThreeTest extends \PHPUnit_Framework_TestCase
 {
     protected $obj = null;
 
@@ -48,19 +46,15 @@ class EanOneThreeTest extends TestCase
         $this->assertEquals('0001234567895', $bobj->getExtendedCode());
     }
 
-    /**
-     * @expectedException \Com\Tecnick\Barcode\Exception
-     */
     public function testInvalidInput()
     {
+        $this->setExpectedException('\Com\Tecnick\Barcode\Exception');
         $this->obj->getBarcodeObj('EAN13', '}{');
     }
 
-    /**
-     * @expectedException \Com\Tecnick\Barcode\Exception
-     */
     public function testInvalidLength()
     {
+        $this->setExpectedException('\Com\Tecnick\Barcode\Exception');
         $this->obj->getBarcodeObj('EAN13', '1111111111111');
     }
 }

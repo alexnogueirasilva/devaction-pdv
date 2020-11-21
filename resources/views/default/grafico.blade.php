@@ -137,8 +137,8 @@ h6{
 						<button class="btn-large" onclick="filtrar()" style="width: 100%;">Filtrar</button>
 					</div>
 				</div>
-				<div class="col s8" id="novo-faturamento">
-					<canvas id="grafico-faturamento" style="width: 100%; margin-left: 100px; margin-top: 20px;"></canvas>
+				<div class="col s8" id="novo-faturamento" style="width: 60%; margin-left: -10px; margin-top: 0px;">
+					<canvas id="grafico-faturamento"></canvas>
 
 				</div>
 			</div>

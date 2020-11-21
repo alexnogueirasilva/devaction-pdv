@@ -79,6 +79,7 @@
 							<th>Unidade Venda</th>
 							<th>Composto</th>
 							<th>Valor Livre</th>
+							<th>Estoque atual</th>
 							<th>Ações</th>
 						</tr>
 					</thead>
@@ -109,12 +110,20 @@
 								@endif
 							</th>
 							<th>
+								{{$p->estoque_atual}}
+							</th>
+							<th>
 								<a href="/produtos/edit/{{ $p->id }}">
 									<i class="material-icons left">edit</i>					
 								</a>
-								<a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/produtos/delete/{{ $p->id }}">
+								<!-- <a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/produtos/delete/{{ $p->id }}">
+									<i class="material-icons left red-text">delete</i>					
+								</a> -->
+
+								<a onclick='swal("Atenção!", "Deseja remover este registro?", "warning").then((sim) => {if(sim){ location.href="/produtos/delete/{{ $p->id }}" }else{return false} })' href="#!">
 									<i class="material-icons left red-text">delete</i>					
 								</a>
+								
 
 								@if($p->composto)
 								<a href="/produtos/receita/{{ $p->id }}">

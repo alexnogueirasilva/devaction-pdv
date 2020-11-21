@@ -35,7 +35,7 @@ h1{
 					<h5>Horário Abertura: <strong>{{ \Carbon\Carbon::parse($p->data_registro)->format('H:i')}}</strong></h5>
 					<h5>Total de Comandas: <strong class="red-text">{{$p->mesa->comandas()}}</strong></h5>
 
-					<a class="btn white red-text" onclick = "if (! confirm('Deseja desativar esta comanda? os dados não poderam ser retomados!')) { return false; }" href="/pedidos/desativar/{{$p->id}}"><i class="material-icons red-text left">close</i> desativar</a>
+					<a class="btn white red-text" onclick='swal("Atenção!", "Deseja desativar esta comanda? os dados não poderam ser retomados!", "warning").then((sim) => {if(sim){ location.href="/pedidos/desativar/{{$p->id}}" }else{return false} })' href="#!"><i class="material-icons red-text left">close</i> desativar</a>
 				</div>
 
 				<a href="/pedidos/verMesa/{{$p->mesa->id}}" style="width: 100%;" class="btn orange">Visualizar</a>

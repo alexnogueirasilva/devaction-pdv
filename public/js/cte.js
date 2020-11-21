@@ -315,7 +315,9 @@ $('#endereco-destinatario').click(() => {
 			habilitaCampos();
 
 		}else{
-			alert('Destinatário não selecionado!');
+			// alert('Destinatário não selecionado!');
+			swal("Erro!", "Destinatário não selecionado!", "warning")
+
 			$('#endereco-destinatario').prop('checked', false); 
 			
 		}
@@ -339,7 +341,9 @@ $('#endereco-remetente').click(() => {
 			habilitaCampos();
 
 		}else{
-			alert('Remetente não selecionado!');
+			// alert('Remetente não selecionado!');
+			swal("Erro!", "Remetente não selecionado!", "warning")
+
 			$('#endereco-remetente').prop('checked', false); 
 		}
 	}else{
@@ -403,7 +407,10 @@ $('#addMedida').click(() => {
 
 		habilitaBtnSalarCTe()
 	}else{
-		alert('Quantidade inválida, utilize 4 casas decimais exemplo: 1,0000')
+		// alert('Quantidade inválida, utilize 4 casas decimais exemplo: 1,0000')
+		swal("Erro!", "Quantidade inválida, utilize 4 casas decimais exemplo: 1,0000", "warning")
+
+
 	}
 });
 
@@ -572,7 +579,9 @@ function salvarCTe(){
 			console.log(err)
 		})
 	}else{
-		alert("Informe corretamente os campos para continuar!"+msg)
+		// alert("Informe corretamente os campos para continuar!"+msg)
+		swal("Erro!", "Informe corretamente os campos para continuar!"+msg, "warning")
+		
 
 	}
 }

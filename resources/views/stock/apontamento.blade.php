@@ -22,7 +22,7 @@
 						<th>Quantidade</th>
 						<th>Data de Registro</th>
 						<th>Usuario</th>
-						<th>Ações</th>
+						<!-- <th>Ações</th> -->
 					</tr>
 				</thead>
 				<tbody>
@@ -32,11 +32,11 @@
 						<td>{{$a->quantidade}}</td>
 						<td>{{ \Carbon\Carbon::parse($a->data_registro)->format('d/m/Y H:i:s')}}</td>
 						<td>{{$a->usuario->nome}}</td>
-						<td>
+						<!-- <td>
 							<a onclick = "if (! confirm('Deseja excluir este registro? O estoque de produtos será alterado!')) { return false; }" title="Remover Apontamento" 
 							href="/estoque/deleteApontamento/{{$a->id}}">
 							<i class="material-icons red-text">delete</i>
-						</a>
+						</a> -->
 					</td>
 				</tr>
 				@endforeach

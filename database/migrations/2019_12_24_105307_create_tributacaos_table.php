@@ -19,6 +19,8 @@ class CreateTributacaosTable extends Migration
             $table->decimal('pis', 4, 2);
             $table->decimal('cofins', 4, 2);
             $table->decimal('ipi', 4, 2);
+            $table->string('ncm_padrao', 10)->default('0000.00.00');
+            
             $table->string('regime');
             $table->timestamps();
         });

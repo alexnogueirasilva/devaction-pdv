@@ -167,6 +167,8 @@ class MercadoProdutoController extends Controller
 		$cliente = session('cliente_log');
 		$cliente = ClienteDelivery::find($cliente['id']);
 
+		if($cliente == null) return response()->json([], 402);
+
 		$pedido = PedidoDelivery::where('estado', 'nv')
 		->where('cliente_id', $cliente->id)
 		->where('valor_total', '=', 0)

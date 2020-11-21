@@ -25,7 +25,7 @@ class CreateItemVendaCaixasTable extends Migration
             $table->integer('item_pedido_id')->nullable()->unsigned();
             $table->foreign('item_pedido_id')->references('id')->on('item_pedidos')->onDelete('cascade');
 
-            $table->decimal('quantidade', 10,2);
+            $table->decimal('quantidade', 10,3);
             $table->decimal('valor', 10,2);
             $table->string('observacao', 80);
             $table->timestamps();

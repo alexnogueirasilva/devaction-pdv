@@ -3,7 +3,7 @@
 <div class="row">
 	<div class="col s12">
 		<h4>Receita Produto <strong>{{$produto->nome}}</strong></h4>
-		@if(count($produto->receita) == 0)
+		@if(!$produto->receita)
 
 		<!-- Bloco para cadastrar as descricoes -->
 

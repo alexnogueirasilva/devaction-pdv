@@ -16,7 +16,9 @@ function enviar(){
 	})
 
 	if(cont > 1){
-		alert('Por favor selecione apenas um item da tabela!')
+		// alert('Por favor selecione apenas um item da tabela!')
+		swal("Erro", "Por favor selecione apenas um item da tabela!", "warning")
+
 	}else{
 		if(cont > 0){
 			$('#preloader1').css('display', 'block');
@@ -47,7 +49,10 @@ function enviar(){
 
 					}
 					else if(e == 'false'){
-						alert("Esta NF já esta aprovada, não é possível enviar novamente!");
+						// alert("Esta NF já esta aprovada, não é possível enviar novamente!");
+						swal("Cuidado", "Esta NF já esta aprovada, não é possível enviar novamente!", "warning")
+
+
 					}
 					else{
 						$('#modal-alert').modal('open');
@@ -63,7 +68,9 @@ function enviar(){
 				}
 			});
 		}else{
-			alert('Selecione um documento para envio!')
+			// alert('Selecione um documento para envio!')
+			swal("Erro", "Selecione um documento para envio!", "warning")
+
 		}
 	}
 }
@@ -78,7 +85,10 @@ function imprimir(){
 		}
 	})
 	if(cont > 1){
-		alert('Selecione apenas um documento da lista!');
+		// alert('Selecione apenas um documento da lista!');
+		swal("Erro", "Selecione apenas um documento da lista!", "warning")
+
+
 	}else{
 		if(id > 0){
 			window.open(path+"/devolucao/imprimir/"+id, "_blank");

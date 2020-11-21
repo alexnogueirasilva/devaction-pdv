@@ -48,6 +48,9 @@ class CreateConfigNotasTable extends Migration
             $table->integer('ultimo_numero_cte');
             $table->integer('ultimo_numero_mdfe');
 
+            $table->string('csc', 60);
+            $table->string('csc_id', 10);
+            $table->boolean('certificado_a3')->default(0);
             
             $table->timestamps();
         });

@@ -11,9 +11,12 @@ use App\ProdutoFavoritoDelivery;
 use App\ItemPedidoDelivery;
 use App\ItemPedidoComplementoDelivery;
 use App\DeliveryConfig;
+use App\BairroDelivery;
 use App\FuncionamentoDelivery;
 use App\CodigoDesconto;
 use App\ItemPizzaPedido;
+use App\EnderecoDelivery;
+
 
 class AppCarrinhoController extends Controller
 {
@@ -152,8 +155,8 @@ class AppCarrinhoController extends Controller
 				}
 
 				if($request->forma_entrega != 'balcao'){
-					$config = DeliveryConfig::first();
-					$total += $config->valor_entrega;
+					// $config = DeliveryConfig::first();
+					$total += $request->valor_entrega;
 				}
 
 				$cupom = null;
@@ -360,6 +363,25 @@ class AppCarrinhoController extends Controller
 		}else{
 			return response()->json($func, 401);
 		}
+	}
+
+	public function getBairros(){
+		return response()->json(BairroDelivery::all(), 200);
+	}
+
+	public function getValorBairro($id){
+		$endereco = EnderecoDelivery::find($id);
+		if($endereco->bairro_id > 0){
+			$bairro = BairroDelivery::find($endereco->bairro_id);
+			if($bairro != null){
+				return response()->json($bairro, 200);
+			}else{
+				return response()->json(null, 401);
+			}
+		}else{
+			return response()->json(null, 401);
+		}
+
 	}
 
 }

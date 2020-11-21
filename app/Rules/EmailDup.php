@@ -28,7 +28,9 @@ class EmailDup implements Rule
     {
         $cli = ClienteDelivery::where('email', $value)->first();
         if(empty($cli)) return true;
-        else return false;
+        else{
+            return false;
+        }
     }
 
     /**

@@ -7,7 +7,7 @@ use App\ItemCompra;
 use App\Produto;
 use App\ContaPagar;
 use App\ContaReceber;
-
+use App\Estoque;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -63,6 +63,31 @@ class AppServiceProvider extends ServiceProvider
                     'msg' => 'Contas a receber R$'.number_format($somaContas, 2),
                     'icon' => 'attach_money',
                     'link' => '/contasReceber/filtro?cliente=&data_inicial='.$dataHoje.'&data_final='.$dataFutura.'&status=todos'
+                ]
+            );
+        }
+
+        $produtos = Produto::all();
+        $contDesfalque = 0;
+        foreach($produtos as $p){
+            if($p->estoque_minimo > 0){
+                $estoque = Estoque::where('produto_id', $p->id)->first();
+                $temp = null;
+                if($estoque == null){
+                    $contDesfalque++;
+                }else{
+                    $contDesfalque++;
+                }
+
+            }
+        }
+
+        if($contDesfalque > 0){
+             array_push($alertas, 
+                [
+                    'msg' => 'Produtos com estoque minimo: ' . $contDesfalque,
+                    'icon' => 'indeterminate_check_box',
+                    'link' => '/relatorios/filtroEstoqueMinimo'
                 ]
             );
         }

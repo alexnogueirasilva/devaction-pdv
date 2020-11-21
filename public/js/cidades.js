@@ -65,7 +65,9 @@ function getCidades(data){
       console.log(e)
     },
     error: function(err){
-      alert('Ocorreu um erro ao buscar as cidades, revise o arquivo .env PATH_URL')
+      // alert('Ocorreu um erro ao buscar as cidades, revise o arquivo .env PATH_URL')
+      swal("Erro!", "Ocorreu um erro ao buscar as cidades, revise o arquivo .env PATH_URL", "warning")
+
     }
 
   });

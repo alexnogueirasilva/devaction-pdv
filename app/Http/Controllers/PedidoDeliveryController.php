@@ -15,13 +15,15 @@ use Comtele\Services\TextMessageService;
 use App\EnderecoDelivery;
 use App\ProdutoDelivery;
 use App\Produto;
+use App\Usuario;
 use App\ItemPizzaPedido;
 use App\ComplementoDelivery;
+use App\Certificado;
 use App\ItemPedidoComplementoDelivery;
+use App\BairroDelivery;
 
 class PedidoDeliveryController extends Controller
 {
-
 	public function __construct(){
 		$this->middleware(function ($request, $next) {
 			$value = session('user_logged');
@@ -180,6 +182,16 @@ class PedidoDeliveryController extends Controller
 		return $messages[rand(0,2)];
 	}
 
+	public function gerarQrCode($pedido){
+		if(getenv("QRCODE_MAPS") == 1 && $pedido->endereco_id != null){
+			$linkDeEntrega = getenv("PATH_URL") . "/rotaEntrega/$pedido->id";
+
+			\QrCode::size(250)
+			->format('png')
+			->generate($linkDeEntrega, public_path('rotas/'.$pedido->id.'.png'));
+		}
+	}
+
 	public function verPedido($id){
 		$pedido = PedidoDelivery
 		::where('id', $id)
@@ -187,6 +199,8 @@ class PedidoDeliveryController extends Controller
 
 		$saldoSms = 0;
 		try{
+
+			$this->gerarQrCode($pedido);
 			$creditService = new CreditService(getenv('SMS_KEY'));
 
 			if(getenv("SMS_KEY") != '') {
@@ -260,6 +274,23 @@ class PedidoDeliveryController extends Controller
 		// 	$valorEntrega = $config->valor_entrega;
 		// }
 
+
+		// if($pedido->app == 1){
+		$msg = '';
+		if($tipo == 'ap'){
+			$msg = 'Seu pedido foi aprovado, esta sendo preparado par envio';
+		}
+		if($tipo == 'rp'){
+			$msg = 'Seu pedido foi reprovado por algum motivo :(';
+		}
+
+		if(strlen($msg) > 0){
+			$this->sendPushAlteracao($msg, $pedido->cliente);
+		}
+
+		// }
+
+
 		$pedido->estado = $tipo;
 		$pedido->motivoEstado = $request->motivoEstado ?? '';
 
@@ -269,19 +300,26 @@ class PedidoDeliveryController extends Controller
 		.$pedido->cliente->sobre_nome .
 		($pedido->endereco_id !=  NULL ? 
 			" - Endereço: " . $pedido->endereco->rua .", " . $pedido->endereco->numero ." - "
-			.$pedido->endereco->bairro : '');
+			.$pedido->endereco->bairro() : '');
 
 		if($tipo == 'fz'){
 			//Abrir frente de caixa
 
+			$usuario = Usuario::find(get_id_user());
 			$tiposPagamento = VendaCaixa::tiposPagamento();
+			$certificado = Certificado::first();
+			$tiposPagamentoMulti = VendaCaixa::tiposPagamentoMulti();
+			
 			return view('frontBox/main')
 			->with('itens', $this->addAtributes($pedido->itens))
 			->with('frenteCaixa', true)
 			->with('delivery_id', $pedido->id)
 			->with('valor_total', $pedido->valor_total)
 			->with('tiposPagamento', $tiposPagamento)
+			->with('tiposPagamentoMulti', $tiposPagamentoMulti)
 			->with('config', $config)
+			->with('certificado', $certificado)
+			->with('usuario', $usuario)
 			->with('observacao', $observacao)
 			->with('valor_entrega', $valorEntrega)
 			->with('title', 'Finalizar Comanda '.$id);
@@ -289,6 +327,56 @@ class PedidoDeliveryController extends Controller
 			session()->flash('color', 'green');
 			session()->flash('message', 'Pedido Alterado!');
 			return redirect('/pedidosDelivery');
+		}
+
+	}
+
+
+	private function sendPushAlteracao($msg, $cliente){
+
+		$tkTemp = [];
+		if(count($cliente->tokens) > 0){
+			foreach($cliente->tokens as $t){
+				if(!in_array($t->user_id, $tkTemp)){
+
+					array_push($tkTemp, $t->user_id);
+				}
+			}
+
+			$data = [
+				'heading' => [
+					"en" => 'Alteração de pedido'
+				],
+				'content' => [
+					"en" => $msg
+				],
+				'image' => '',
+				'referencia_produto' => 0,
+			];
+
+			$this->sendMessageOneSignal($data, $tkTemp);
+		}
+
+		if(count($cliente->tokensWeb) > 0){
+			foreach($cliente->tokensWeb as $t){
+				if(!in_array($t->token, $tkTemp)){
+
+					array_push($tkTemp, $t->token);
+				}
+			}
+
+			$data = [
+				'heading' => [
+					"en" => 'Alteração de pedido'
+				],
+				'content' => [
+					"en" => $msg
+				],
+				'image' => '',
+				'referencia_produto' => 0,
+			];
+
+			$this->sendMessageOneSignal($data, $tkTemp);
 		}
 
 	}
@@ -351,14 +439,20 @@ class PedidoDeliveryController extends Controller
 		.$pedido->cliente->sobre_nome .
 		($pedido->endereco_id !=  NULL ? 
 			" - Endereço: " . $pedido->endereco->rua .", " . $pedido->endereco->numero ." - "
-			.$pedido->endereco->bairro : '');
+			.$pedido->endereco->bairro() : '');
+		$tiposPagamentoMulti = VendaCaixa::tiposPagamentoMulti();
 
 		// if($pedido)
+		$certificado = Certificado::first();
+		$usuario = Usuario::find(get_id_user());
 		return view('frontBox/main')
 		->with('itens', $this->addAtributes($pedido->itens))
 		->with('valor_total', $pedido->valor_total)
 		->with('frenteCaixa', true)
 		->with('tiposPagamento', $tiposPagamento)
+		->with('usuario', $usuario)
+		->with('tiposPagamentoMulti', $tiposPagamentoMulti)
+		->with('certificado', $certificado)
 		->with('config', $config)
 		->with('observacao', $observacao)
 		->with('title', 'Finalizar Comanda '.$id);
@@ -392,10 +486,12 @@ class PedidoDeliveryController extends Controller
 		$ped->monta();
 		$pdf = $ped->render();
 
-		header('Content-Type: application/pdf');
+		return response($pdf)
+		->header('Content-Type', 'application/pdf');
+		// header('Content-Type: application/pdf');
 
-		file_put_contents($public.'pdf/PEDIDODELIVERY.pdf',$pdf);
-		return redirect($public.'pdf/PEDIDODELIVERY.pdf');
+		// file_put_contents($public.'pdf/PEDIDODELIVERY.pdf',$pdf);
+		// return redirect($public.'pdf/PEDIDODELIVERY.pdf');
 		// echo $pdf;
 	}
 
@@ -426,6 +522,35 @@ class PedidoDeliveryController extends Controller
 				if(!in_array($t->token, $tkTemp)){
 
 					array_push($tkTemp, $t->user_id);
+				}
+			}
+
+			$data = [
+				'heading' => [
+					"en" => $request->titulo
+				],
+				'content' => [
+					"en" => $request->texto
+				],
+				'image' => $request->imagem ?? '',
+				'referencia_produto' => 0,
+			];
+
+			$this->sendMessageOneSignal($data, $tkTemp);
+		}
+		echo json_encode('sucesso');
+
+	}
+
+	public function sendPushWeb(Request $request){
+		$cliente = ClienteDelivery::where('id', $request->cliente)
+		->first();
+		$tkTemp = [];
+		if(sizeof($cliente->tokensWeb) > 0){
+			foreach($cliente->tokensWeb as $t){
+				if(!in_array($t->token, $tkTemp)){
+
+					array_push($tkTemp, $t->token);
 				}
 			}
 
@@ -481,8 +606,8 @@ class PedidoDeliveryController extends Controller
 		}
 
 		$fields = json_encode($fields);
-		print("\nJSON sent:\n");
-		print($fields);
+		// print("\nJSON sent:\n");
+		// print($fields);
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
@@ -500,10 +625,19 @@ class PedidoDeliveryController extends Controller
 	}
 
 	public function frente(){
-
-		return view('pedidosDelivery/frente')
-		->with('frentePedidoDeliveryJs', true)
-		->with('title', 'Frente de Pedido');
+		$bairros = BairroDelivery::orderBy('nome')->get();
+		$config = DeliveryConfig::first();
+		if($config != null){
+			return view('pedidosDelivery/frente')
+			->with('frentePedidoDeliveryJs', true)
+			->with('config', $config)
+			->with('bairros', $bairros)
+			->with('title', 'Frente de Pedido');
+		}else{
+			session()->flash('color', 'red');
+			session()->flash('message', 'Defina as configurações!');
+			return redirect('/configDelivery');
+		}
 
 	}
 
@@ -511,7 +645,9 @@ class PedidoDeliveryController extends Controller
 		$clientes = ClienteDelivery::all();
 		$arr = array();
 		foreach($clientes as $c){
-			$arr[$c->id. ' - ' .$c->nome] = null;
+			$t = str_replace(" ", "", $c->celular);
+			$t = str_replace("-", "", $t);
+			$arr[$c->id. ' - ' .$c->nome . ' | ' . $t ] = null;
                 //array_push($arr, $temp);
 		}
 		return response()->json($arr, 200);
@@ -521,6 +657,7 @@ class PedidoDeliveryController extends Controller
 
 		if(isset($request->cliente)){
 			$pedidoEmAberto = PedidoDelivery::where('estado', 'nv')
+			->orwhere('estado', 'ap')
 			->where('cliente_id', $request->cliente)
 			->first();
 			if($pedidoEmAberto == null){
@@ -560,7 +697,7 @@ class PedidoDeliveryController extends Controller
 				'email' => '',
 				'token' => '',
 				'ativo' => 1,
-				'senha' => md5(rand(1000, 9999))
+				'senha' => md5($request->senha)
 			]
 		);
 		if($cli){
@@ -592,16 +729,29 @@ class PedidoDeliveryController extends Controller
 	public function frenteComPedido($id){
 		$pedido = PedidoDelivery::find($id);
 
-		if($pedido->estado == 'ap' || $pedido->valor_total > 0){
+		if($pedido->estado == 'fz'){
 			return redirect('/pedidosDelivery/verPedido/' . $pedido->id);
 		}
 		$config = DeliveryConfig::first();
+		$bairros = BairroDelivery::orderBy('nome')->get();
+		$valorEntrega = 0;
+
+		if($pedido->endereco){
+			if($config->usar_bairros){
+				$bairro = BairroDelivery::find($pedido->endereco->bairro_id);
+				$valorEntrega = $bairro->valor_entrega;
+			}else{
+				$valorEntrega = $config->valor_entrega;
+			}
+		}
 
 		return view('pedidosDelivery/frente')
 		->with('frentePedidoDeliveryJs', true)
 		->with('frentePedidoDeliveryPedidoJs', true)
 		->with('pedido', $pedido)
 		->with('config', $config)
+		->with('valorEntrega', $valorEntrega)
+		->with('bairros', $bairros)
 		->with('title', 'Frente de Pedido');
 
 	}
@@ -623,6 +773,7 @@ class PedidoDeliveryController extends Controller
 				'rua' => $request->rua ?? '',
 				'numero' => $request->numero ?? '',
 				'bairro' => $request->bairro ?? '',
+				'bairro_id' => $request->bairro_id ?? 0,
 				'referencia' => $request->referencia ?? '',
 				'latitude' => '',
 				'longitude' => ''
@@ -717,7 +868,7 @@ class PedidoDeliveryController extends Controller
 
 		session()->flash('color', 'green');
 		session()->flash('message', 'Item Adicionado!');
-		return redirect('/pedidosDelivery/frenteComPedido/'.$pedido->id);
+		return redirect()->back();
 
 	}
 
@@ -727,12 +878,15 @@ class PedidoDeliveryController extends Controller
 			$produto = $request->input('produto');
 			$produto = explode("-", $produto);
 			$produto = $produto[0];
+			try{
+				$p = ProdutoDelivery::
+				where('id', $produto)
+				->first();
 
-			$p = ProdutoDelivery::
-			where('id', $produto)
-			->first();
-
-			if(strpos(strtolower($p->categoria->nome), 'izza') !== false){
+				if(strpos(strtolower($p->categoria->nome), 'izza') !== false){
+					$validaTamanho = true;
+				}
+			}catch(\Exception $e){
 				$validaTamanho = true;
 			}
 		}
@@ -756,7 +910,9 @@ class PedidoDeliveryController extends Controller
 		$products = ProdutoDelivery::all();
 		$arr = array();
 		foreach($products as $p){
-			$arr[$p->id. ' - ' .$p->produto->nome] = null;
+			if($p->status){
+				$arr[$p->id. ' - ' .$p->produto->nome] = null;
+			}
                 //array_push($arr, $temp);
 		}
 		echo json_encode($arr);
@@ -782,11 +938,7 @@ class PedidoDeliveryController extends Controller
 
 	public function frenteComPedidoFinalizar(Request $request){
 		$pedido = PedidoDelivery::find($request->pedido_id);
-		$total = $pedido->somaItens();
-		if($pedido->endereco_id != NULL){
-			$config = DeliveryConfig::first();
-			$total -= $config->valor_entrega;
-		}
+		$total = $pedido->somaItensSemFrete();
 
 		$total += str_replace(",", ".", $request->taxa_entrega);
 
@@ -804,5 +956,12 @@ class PedidoDeliveryController extends Controller
 		echo "<script>window.open('". getenv('PATH_URL') . '/pedidosDelivery/print/' . $pedido->id ."', '_blank');</script>";
 
 		return redirect('/pedidosDelivery/frente');
+	}
+
+	public function removerCarrinho($id){
+		$pedido = PedidoDelivery::find($id);
+
+		$pedido->delete();
+		return redirect('/pedidosDelivery/verCarrinhos');
 	}
 }

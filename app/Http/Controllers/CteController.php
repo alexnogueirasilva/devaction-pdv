@@ -404,7 +404,8 @@ class CTeController extends Controller
 				'munipio_final' => $destinatario->cidade->id . " - " . $destinatario->cidade->nome . "(" .$destinatario->cidade->uf . ")",
 				'componente' => 'Transporte',
 				'valor_frete' => $xml->NFe->infNFe->total->ICMSTot->vFrete,
-				'quantidade' => number_format($somaQuantidade, 4)
+				'quantidade' => number_format($somaQuantidade, 4),
+				'data_entrega' => date('d/m/y')
 			];
 
 			// echo "<pre>";

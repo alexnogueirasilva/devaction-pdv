@@ -19,54 +19,54 @@ $(function () {
 
 	// se editar
 	if($('#mdfe_id').val()) MDFEID = $('#mdfe_id').val()
-	if(MDFEID > 0){
-
-		
-		mostraVeiculoTracao();
-		mostraVeiculoReboque();
-		let municipios = $('#municipios_hidden').val()
-		MUNIPIOSCARREGAMENTO = JSON.parse(municipios);
-		montaTabelaMunicipioCarregamento();
+		if(MDFEID > 0){
 
 
-		let percurso = $('#percurso_hidden').val()
-		PERCURSO = JSON.parse(percurso);
-		montaTabelaPercuso();
+			mostraVeiculoTracao();
+			mostraVeiculoReboque();
+			let municipios = $('#municipios_hidden').val()
+			MUNIPIOSCARREGAMENTO = JSON.parse(municipios);
+			montaTabelaMunicipioCarregamento();
 
-		let ciots = $('#ciots_hidden').val()
-		CIOT = JSON.parse(ciots);
-		montaTabelaCiot();
 
-		let vales = $('#vales_pedagio_hidden').val()
-		VALEPEDAGIO = JSON.parse(vales);
-		montaTabelaValePedagio();
+			let percurso = $('#percurso_hidden').val()
+			PERCURSO = JSON.parse(percurso);
+			montaTabelaPercuso();
 
-		let infos = $('#info_descarga_hidden').val()
-		INFODESCARGA = JSON.parse(infos);
-		montaTabelaInfosDescargaEdit();
+			let ciots = $('#ciots_hidden').val()
+			CIOT = JSON.parse(ciots);
+			montaTabelaCiot();
 
-		habilitaBtnSalvar();
-	}
+			let vales = $('#vales_pedagio_hidden').val()
+			VALEPEDAGIO = JSON.parse(vales);
+			montaTabelaValePedagio();
 
-	getCidades(function(data){
-		$('input.autocomplete-cidade-carregamento').autocomplete({
-			data: data,
-			limit: 20, 
-			onAutocomplete: function(val) {
-			},
-			minLength: 1,
+			let infos = $('#info_descarga_hidden').val()
+			INFODESCARGA = JSON.parse(infos);
+			montaTabelaInfosDescargaEdit();
+
+			habilitaBtnSalvar();
+		}
+
+		getCidades(function(data){
+			$('input.autocomplete-cidade-carregamento').autocomplete({
+				data: data,
+				limit: 20, 
+				onAutocomplete: function(val) {
+				},
+				minLength: 1,
+			});
+
+			$('input.autocomplete-cidade-descarregamento').autocomplete({
+				data: data,
+				limit: 20, 
+				onAutocomplete: function(val) {
+				},
+				minLength: 1,
+			});
 		});
 
-		$('input.autocomplete-cidade-descarregamento').autocomplete({
-			data: data,
-			limit: 20, 
-			onAutocomplete: function(val) {
-			},
-			minLength: 1,
-		});
 	});
-
-});
 
 function getCidades(data){
 	$.ajax
@@ -137,7 +137,9 @@ $('#btn-add-municipio-carregamento').click(() => {
 					MUNIPIOSCARREGAMENTO.push({id: cId, nome: cidade.split("-")[1]});
 					montaTabelaMunicipioCarregamento();
 				}else{
-					alert("Este municipio já esta incluido")
+					// alert("Este municipio já esta incluido")
+					swal("Erro", 'Este municipio já esta incluido', "warning")
+
 				}
 				console.log(MUNIPIOSCARREGAMENTO)
 			})
@@ -145,7 +147,9 @@ $('#btn-add-municipio-carregamento').click(() => {
 		habilitaBtnSalvar()
 
 	}else{
-		alert("Escolha uma cidade")
+		// alert("Escolha uma cidade")
+		swal("Erro", 'Escolha uma cidade', "warning")
+
 	}
 })
 
@@ -196,14 +200,18 @@ $('#btn-add-percurso').click(() => {
 				PERCURSO.push(uf);
 				montaTabelaPercuso();
 			}else{
-				alert("Esta UF já esta incluido")
+				// alert("Esta UF já esta incluido")
+				swal("Erro", 'Esta UF já esta incluida', "warning")
+
 			}
 			console.log(PERCURSO)
 		})
 		habilitaBtnSalvar()
 		
 	}else{
-		alert("Escolha uma UF")
+		// alert("Escolha uma UF")
+		swal("Erro", 'Escolha uma UF', "warning")
+
 	}
 })
 
@@ -255,7 +263,9 @@ $('#btn-add-ciot').click(() => {
 		habilitaBtnSalvar()
 
 	}else{
-		alert("Digite os dados válidos")
+		// alert("Digite os dados válidos")
+		swal("Erro", 'Digite os dados válidos', "warning")
+
 	}
 })
 
@@ -311,7 +321,9 @@ $('#btn-add-vale').click(() => {
 
 		contVale++;
 	}else{
-		alert("Digite todos os valores para adicionar")
+		// alert("Digite todos os valores para adicionar")
+		swal("Erro", 'Digite todos os valores para adicionar', "warning")
+
 	}
 })
 
@@ -356,14 +368,18 @@ $('#btn-add-lacre-transp').click(() => {
 				LACRESTRANSP.push(lacre);
 				montaTabelaLacreTransp();
 			}else{
-				alert("Este Lacre já esta incluido")
+				// alert("Este Lacre já esta incluido")
+				swal("Erro", 'Este Lacre já esta incluido', "warning")
+
 			}
 			console.log(LACRESTRANSP)
 		})
 		habilitaBtnSalvar()
 
 	}else{
-		alert("Informe um valor para o lacre")
+		// alert("Informe um valor para o lacre")
+		swal("Erro", 'Informe um valor para o lacre', "warning")
+
 	}
 })
 
@@ -410,14 +426,18 @@ $('#btn-add-larcre-unidade').click(() => {
 				LACRESUNIDCARGA.push(lacre);
 				montaTabelaLacreUnidCarga();
 			}else{
-				alert("Este Lacre já esta incluido")
+				// alert("Este Lacre já esta incluido")
+				swal("Erro", 'Este Lacre já esta incluido', "warning")
+
 			}
 			console.log(LACRESUNIDCARGA)
 
 		})
 
 	}else{
-		alert("Informe um valor para o lacre")
+		// alert("Informe um valor para o lacre")
+		swal("Erro", 'Informe um valor para o lacre', "warning")
+
 	}
 })
 
@@ -496,7 +516,8 @@ $('#btn-add-info-desc').click(() => {
 			habilitaBtnSalvar();
 			limparInfo();
 		}else{
-			alert(msg)
+			swal("Erro", msg, "warning")
+
 		}
 	})
 
@@ -731,7 +752,9 @@ function salvarMDFe(){
 				console.log(err)
 			})
 		}else{
-			alert(msgErro)
+			// alert(msgErro)
+			swal("Erro", msgErro, "warning")
+			
 		}
 	})
 }

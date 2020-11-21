@@ -114,8 +114,8 @@
 							{{number_format($c->somaReceita() - $c->somaDespesa(), 2)}}
 						</td>
 						<td>
-							@if($c->estado == 'DISPONIVEL')
-							<a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/cte/delete/{{ $c->id }}">
+							@if($c->estado == 'DISPONIVEL' || $c->estado == 'REJEITADO')
+							<a onclick='swal("Atenção!", "Deseja remover este registro?", "warning").then((sim) => {if(sim){ location.href="/cte/delete/{{ $c->id }}" }else{return false} })' href="#!">
 								<i class="material-icons left red-text">delete</i>					
 							</a>
 							@endif

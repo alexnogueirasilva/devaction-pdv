@@ -11,7 +11,7 @@ use NFePHP\DA\NFe\Cupom;
 use NFePHP\DA\Legacy\FilesFolders;
 use App\ConfigNota;
 use App\Helpers\StockMove;
-use App\Services\NFeService;
+use App\Services\NFCeService;
 class NFCeController extends Controller
 {
 
@@ -39,7 +39,7 @@ class NFCeController extends Controller
 		$cnpj = str_replace("-", "", $cnpj);
 		$cnpj = str_replace(" ", "", $cnpj);
 
-		$nfe_service = new NFeService([
+		$nfe_service = new NFCeService([
 			"atualizacao" => date('Y-m-d h:i:s'),
 			"tpAmb" => (int)$config->ambiente,
 			"razaosocial" => $config->razao_social,
@@ -48,33 +48,35 @@ class NFCeController extends Controller
 			"schemes" => "PL_009_V4",
 			"versao" => "4.00",
 			"tokenIBPT" => "AAAAAAA",
-			"CSC" => getenv('CSC'),
-			"CSCid" => getenv('CSCid')
-		], 65);
-
+			"CSC" => $config->csc,
+			"CSCid" => $config->csc_id
+		]);
 
 		if($venda->estado == 'REJEITADO' || $venda->estado == 'DISPONIVEL'){
 			header('Content-type: text/html; charset=UTF-8');
 
 			$nfce = $nfe_service->gerarNFCe($vendaId);
+			if(!isset($nfce['erros_xml'])){
+				$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
+				$signed = $nfe_service->sign($nfce['xml']);
+			// file_put_contents($public.'xml_nfce/'.$venda->id.'.xml',$signed);
+				$resultado = $nfe_service->transmitirNfce($signed, $nfce['chave']);
 
-			$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
-			$signed = $nfe_service->sign($nfce['xml']);
-			file_put_contents($public.'xml_nfce/'.$venda->id.'.xml',$signed);
-			$resultado = $nfe_service->transmitirNfce($signed, $nfce['chave']);
+				if(substr($resultado, 0, 4) != 'Erro'){
+					$venda->chave = $nfce['chave'];
+					$venda->path_xml = $nfce['chave'] . '.xml';
+					$venda->estado = 'APROVADO';
 
-			if(substr($resultado, 0, 4) != 'Erro'){
-				$venda->chave = $nfce['chave'];
-				$venda->path_xml = $nfce['chave'] . '.xml';
-				$venda->estado = 'APROVADO';
-
-				$venda->NFcNumero = $nfce['nNf'];
-				$venda->save();
+					$venda->NFcNumero = $nfce['nNf'];
+					$venda->save();
+				}else{
+					$venda->estado = 'REJEITADO';
+					$venda->save();
+				}
+				echo json_encode($resultado);
 			}else{
-				$venda->estado = 'REJEITADO';
-				$venda->save();
+				return response()->json($nfce['erros_xml'], 401);
 			}
-			echo json_encode($resultado);
 
 		}else{
 			echo json_encode("Apro");
@@ -96,11 +98,27 @@ class NFCeController extends Controller
 			$danfce->monta($logo);
 			$pdf = $danfce->render();
 
-			header('Content-Type: application/pdf');
-			echo $pdf;
+			// header('Content-Type: application/pdf');
+			// echo $pdf;
+			return response($pdf)
+			->header('Content-Type', 'application/pdf');
 
 		} catch (\Exception $e) {
-			echo $e->message;
+			echo $e->getMessage();
+		}
+	}
+
+	public function baixarXml($id){
+		$venda = VendaCaixa::
+		where('id', $id)
+		->first();
+		try {
+
+			$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
+
+			return response()->download($public.'xml_nfce/'.$venda->chave.'.xml');
+		} catch (\Exception $e) {
+			echo $e->getMessage();
 		}
 	}
 
@@ -115,8 +133,10 @@ class NFCeController extends Controller
 		$cupom->monta();
 		$pdf = $cupom->render();
 
-		header('Content-Type: application/pdf');
-		echo $pdf;
+		// header('Content-Type: application/pdf');
+		// echo $pdf;
+		return response($pdf)
+		->header('Content-Type', 'application/pdf');
 	}
 
 	public function imprimirNaoFiscalCredito($id){
@@ -130,8 +150,10 @@ class NFCeController extends Controller
 		$cupom->monta();
 		$pdf = $cupom->render();
 
-		header('Content-Type: application/pdf');
-		echo $pdf;
+		// header('Content-Type: application/pdf');
+		// echo $pdf;
+		return response($pdf)
+		->header('Content-Type', 'application/pdf');
 	}
 
 	public function cancelar(Request $request){
@@ -142,7 +164,7 @@ class NFCeController extends Controller
 		$cnpj = str_replace("/", "", $cnpj);
 		$cnpj = str_replace("-", "", $cnpj);
 		$cnpj = str_replace(" ", "", $cnpj);
-		$nfe_service = new NFeService([
+		$nfe_service = new NFCeService([
 			"atualizacao" => date('Y-m-d h:i:s'),
 			"tpAmb" => (int)$config->ambiente,
 			"razaosocial" => $config->razao_social,
@@ -151,9 +173,9 @@ class NFCeController extends Controller
 			"schemes" => "PL_009_V4",
 			"versao" => "4.00",
 			"tokenIBPT" => "AAAAAAA",
-			"CSC" => getenv('CSC'),
-			"CSCid" => getenv('CSCid')
-		], 65);
+			"CSC" => $config->csc,
+			"CSCid" => $config->csc_id
+		]);
 
 
 		$nfce = $nfe_service->cancelarNFCe($request->id, $request->justificativa);
@@ -188,5 +210,37 @@ class NFCeController extends Controller
 		$result = VendaCaixa::where('id', $id)
 		->delete();
 		echo json_encode($result);
+	}
+
+	public function consultar($id){
+		$venda = VendaCaixa::find($id);
+
+		$config = ConfigNota::first();
+
+		$cnpj = str_replace(".", "", $config->cnpj);
+		$cnpj = str_replace("/", "", $cnpj);
+		$cnpj = str_replace("-", "", $cnpj);
+		$cnpj = str_replace(" ", "", $cnpj);
+		try{
+			$nfe_service = new NFCeService([
+				"atualizacao" => date('Y-m-d h:i:s'),
+				"tpAmb" => (int)$config->ambiente,
+				"razaosocial" => $config->razao_social,
+				"siglaUF" => $config->UF,
+				"cnpj" => $cnpj,
+				"schemes" => "PL_009_V4",
+				"versao" => "4.00",
+				"tokenIBPT" => "AAAAAAA",
+				"CSC" => $config->csc,
+				"CSCid" => $config->csc_id
+			]);
+
+			$c = $nfe_service->consultarNFCe($venda);
+
+			return response()->json($c, 200);
+		}catch(\Exception $r){
+			return response()->json($e->getMessage(), 401);
+
+		}
 	}
 }

@@ -85,12 +85,16 @@ function consultaCadastro(){
 					})
 					
 				}else{
-					alert(e.infCons.xMotivo)
+					// alert(e.infCons.xMotivo)
+					swal("Erro", e.infCons.xMotivo, "warning")
+
 				}
 			}, error: function(e){
 				console.log(e)
 				$('#preloader1').css('display', 'none')
-				alert('CNJ e/ou UF inválido(s)')
+				// alert('CNJ e/ou UF inválido(s)')
+				swal("Erro", 'CNJ e/ou UF inválido(s)', "warning")
+
 
 			}
 

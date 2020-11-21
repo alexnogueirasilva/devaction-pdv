@@ -30,7 +30,21 @@ class DeliveryConfigProdutoController extends Controller
       ->with('title', 'Produtos de Delivery');
   }
 
-  public function new(){
+  public function pesquisa(Request $request){
+    $pesquisa = $request->pesquisa;
+    $produtos = ProdutoDelivery::
+    join('produtos', 'produto_deliveries.produto_id', '=', 'produtos.id')
+    ->where('produtos.nome', 'LIKE', "%$pesquisa%")
+    ->paginate(40);
+
+    return view('produtoDelivery/list')
+    ->with('produtos', $produtos)
+    ->with('produtoJs', true)
+    ->with('links', true)
+    ->with('title', 'Produtos de Delivery');
+}
+
+public function new(){
     $tamanhos = TamanhoPizza::all();
     $categorias = CategoriaProdutoDelivery::all();
     return view('produtoDelivery/register')
@@ -42,59 +56,59 @@ class DeliveryConfigProdutoController extends Controller
 
 public function save(Request $request){
 
-  $this->_validate($request);
-  $produto = $request->input('produto');
-  $produto = explode("-", $produto);
-  $produto = $produto[0];
+    $this->_validate($request);
+    $produto = $request->input('produto');
+    $produto = explode("-", $produto);
+    $produto = $produto[0];
 
-  $catPizza = false;
-  $categoria = CategoriaProdutoDelivery::
-  where('id', $request->categoria_id)
-  ->first();
+    $catPizza = false;
+    $categoria = CategoriaProdutoDelivery::
+    where('id', $request->categoria_id)
+    ->first();
 
-  $request->merge([ 'status' => $request->input('status') ? true : false ]);
-  $request->merge([ 'destaque' => $request->input('destaque') ? true : false ]);
-  $request->merge([ 'ingredientes' => $request->input('ingredientes') ?? '']);
-  $request->merge([ 'descricao' => $request->input('descricao') ?? '']);
-  $request->merge([ 'produto_id' => $produto]);
-
-
-  if(strpos(strtolower($categoria->nome), 'izza') !== false){
-    $request->merge([ 'valor' => 0]);
-    $request->merge([ 'valor_anterior' => 0]);
-
-}else{
-    $request->merge([ 'valor' => str_replace(",", ".", $request->valor)]);
-    $request->merge([ 'valor_anterior' => str_replace(",", ".", $request->valor_anterior ?? 0)]);
-}
+    $request->merge([ 'status' => $request->input('status') ? true : false ]);
+    $request->merge([ 'destaque' => $request->input('destaque') ? true : false ]);
+    $request->merge([ 'ingredientes' => $request->input('ingredientes') ?? '']);
+    $request->merge([ 'descricao' => $request->input('descricao') ?? '']);
+    $request->merge([ 'produto_id' => $produto]);
 
 
+    if(strpos(strtolower($categoria->nome), 'izza') !== false){
+        $request->merge([ 'valor' => 0]);
+        $request->merge([ 'valor_anterior' => 0]);
 
-$result = ProdutoDelivery::create($request->all());
-
-if(strpos(strtolower($categoria->nome), 'izza') !== false){
-    $tamanhosPizza = TamanhoPizza::all();
-
-    foreach($tamanhosPizza as $t){
-        $res = ProdutoPizza::create([
-            'produto_id' => $result->id,
-            'tamanho_id' => $t->id,
-            'valor' => str_replace(",", ".", $request->input('valor_'.$t->nome))
-        ]);
+    }else{
+        $request->merge([ 'valor' => str_replace(",", ".", $request->valor)]);
+        $request->merge([ 'valor_anterior' => str_replace(",", ".", $request->valor_anterior ?? 0)]);
     }
 
-}
 
 
-if($result){
-    session()->flash('color', 'blue');
-    session()->flash("message", "Produto cadastrado com sucesso!");
-}else{
-    session()->flash('color', 'red');
-    session()->flash('message', 'Erro ao cadastrar produto!');
-}
+    $result = ProdutoDelivery::create($request->all());
 
-return redirect('/deliveryProduto');
+    if(strpos(strtolower($categoria->nome), 'izza') !== false){
+        $tamanhosPizza = TamanhoPizza::all();
+
+        foreach($tamanhosPizza as $t){
+            $res = ProdutoPizza::create([
+                'produto_id' => $result->id,
+                'tamanho_id' => $t->id,
+                'valor' => str_replace(",", ".", $request->input('valor_'.$t->nome))
+            ]);
+        }
+
+    }
+
+
+    if($result){
+        session()->flash('color', 'blue');
+        session()->flash("message", "Produto cadastrado com sucesso!");
+    }else{
+        session()->flash('color', 'red');
+        session()->flash('message', 'Erro ao cadastrar produto!');
+    }
+
+    return redirect('/deliveryProduto');
 
 
 }
@@ -281,6 +295,8 @@ public function deleteImagem($id){
 
 
 private function _validate(Request $request, $fileExist = true){
+
+
     $catPizza = false;
     $categoria = CategoriaProdutoDelivery::
     where('id', $request->categoria_id)
@@ -289,6 +305,7 @@ private function _validate(Request $request, $fileExist = true){
     if(strpos(strtolower($categoria->nome), 'izza') !== false){
         $catPizza = true;
     }
+
     $rules = [
         'produto' => $request->id > 0 ? '' : 'required|min:5',
         'ingredientes' => 'max:255',
@@ -313,7 +330,7 @@ private function _validate(Request $request, $fileExist = true){
 
         foreach($tamanhosPizza as $t){
             $rules['valor_'.$t->nome] = 'required';
-            $messages['valor_'.$t->nome.'.required'] = 'Campo obrigatório.';
+            $messages['valor_'.$t->nome.'.required'] = 'Campo obrigatório ' . $t->nome;
         }
     }
 

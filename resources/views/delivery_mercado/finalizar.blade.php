@@ -44,7 +44,7 @@
 
 		<div class="container">
 			<div class="oh">
-				<h2 class="wow slideInUp" data-wow-delay="0s">Finalziar Pedido</h2>
+				<h2 class="wow slideInUp" data-wow-delay="0s">Finalizar Pedido</h2>
 				<h4 class="wow slideInUp" data-wow-delay="0.5s">TOTAL: R$ {{number_format($pedido->somaItens(), 2)}}</h4>
 
 			</div>
@@ -62,6 +62,7 @@
 			<input type="hidden" id="lat_padrao" value="{{getenv('LATITUDE_PADRAO')}}">
 			<input type="hidden" id="lng_padrao" value="{{getenv('LONGITUDE_PADRAO')}}">
 			<input type="hidden" id="email-cliente" value="{{$cliente->email}}">
+			<input type="hidden" id="usar_bairros" value="{{$usar_bairros}}">
 
 			<div class="row ends">
 
@@ -110,12 +111,15 @@
 				<h4 style="margin-left: 10px;">Acrescimo de entrega R$ <strong id="valor-entrega" style="color: red;">
 
 				</strong></h4>
+				<h5 id="frete-gratuito" style="margin-left: 10px; display: none; color: blue;">Seu frete é gratuito para este endereço</h5>
 			</div>
+
+			<h5 id="entrega-distante" style="margin-left: 10px; margin-top: 10px; display: none; color: red;">Este endereço excede o limite de nossas entregas: maximo {{$config->maximo_km_entrega}} KM</h5>
 			<div class="row">
 				<div class="col-lg-4 col-md-6">
 					<div class="form-group">
-						<label class="mb-2">Telefone</label>
-						<input type="text" class="form-control fr" id="telefone" required="true">
+						<label class="mb-2">Celular para contato</label>
+						<input type="text" class="form-control fr" value="{{$ultimoPedido != null ? $ultimoPedido->telefone : ''}}" id="telefone" required="true">
 					</div>
 				</div>
 
@@ -147,7 +151,7 @@
 
 									<input class="form-check-input" type="radio" name="gridRadios" id="maquineta" value="maquineta">
 									<label class="form-check-label" for="maquineta">
-										Maquineta Crédito/Débito
+										Maquina de cartão Crédito/Débito
 									</label>
 									<img width="40" src="/imgs/credit-card.png">
 
@@ -232,10 +236,24 @@
 							<input type="text" class="form-control fr" id="numero" required="true">
 						</div>
 
+						@if($usar_bairros == 1)
+
+						<div class="col-lg-12 col-md-12">
+							<label>Baiirro</label><br>
+							<select id="bairro" style="width: 300px; height: 50px; text-align: center;">
+								@foreach($bairros as $b)
+								<option value="id:{{$b->id}}">{{$b->nome}} - R$ {{number_format($b->valor_entrega, 2)}}</option>
+								@endforeach
+							</select>
+
+						</div>
+
+						@else
 						<div class="form-group">
 							<label class="mb-2">Bairro</label>
 							<input type="text" class="form-control fr" id="bairro" required="true">
 						</div>
+						@endif
 
 						<div class="form-group">
 							<label class="mb-2">Referencia</label>

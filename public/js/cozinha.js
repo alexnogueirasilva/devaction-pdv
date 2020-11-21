@@ -32,47 +32,65 @@ function buscar(call){
 	})
 }
 
-function pronto(id){
+function pronto(id, ehDelivery){
 	console.log(id)
 	let js = {
-		id: id
-	}
+		id: id,
+		ehDelivery: ehDelivery ? 1 : 0
+	}	
 
 	$.get(path+'controleCozinha/concluido', js)
 	.done((success) => {
 		console.log(success)
-		location.reload()
+		swal("Sucesso", "Item pronto", "success")
+		.then(v => {
+			location.reload()
+		})
 	})
 	.fail((err) => {
+		swal("Erro", "Algo deu errado", "warning")
+
 		console.log(err)
 	})
 }
 
 function montaHtml(obj){
 	let html = '';
+	contDelivery = 0;
+	contComanda = 0
 	obj.map((v) => {
-		console.log(v)
-		criaDiv(v.comanda, v.produto.nome, v.quantidade, v.data, v.id, 
-			v.adicionais, v.saboresPizza, v.tamanhoPizza, (res) => {
+		if(v.comanda == null){
+			contDelivery++;
+		}else{
+			contComanda++;
+		}
+		let nome = v.produto.nome;
+		if(!nome) nome = v.produto.produto.nome;
+		criaDiv(v.comanda, nome, v.quantidade, v.data, v.id, 
+			v.adicionais, v.saboresPizza, v.tamanhoPizza, v.pedido_id, (res) => {
 
 				html += res;
 			})
 	})
+	$('#contDelivery').html(contDelivery);
+	$('#contComanda').html(contComanda);
 	$('#itens').html(html);
 
 	$('.progress').css('display', 'none')
 }
 
 function criaDiv(comanda, nome, quantidade, data, item_id, adicionais, 
-	saboresPizza, tamanhoPizza, call){
-	console.log(tamanhoPizza)
+	saboresPizza, tamanhoPizza, pedidoId, call){
+
+	let tipo = comanda != null ? 'Comanda' : 'Item Delivery Pedido <strong class="blue-text">' + pedidoId + '</strong>';
+
 	let html = '<div class="col s12 m12 l6">'+
 	'<div class="card">'+
 	'<div class="row">'+
 	'<div class="card-header"><br>'+
 
-	'<h5 class="center-align">Mesa/Comanda <strong class="blue-text">'+
-	comanda+'</strong> <strong class="red-text">'+data+'</strong></h5>'+
+	'<h5 class="center-align">'+tipo+' <strong class="blue-text">'+
+	(comanda != null ? comanda : '') +'</strong> <strong class="red-text">'+data+'</strong></h5>'+
 
 	'</div>'+
 
@@ -91,7 +109,7 @@ function criaDiv(comanda, nome, quantidade, data, item_id, adicionais,
 	'</div>'+
 
 	'<div class="card-footer">'+
-	'<a onclick="pronto('+item_id+')" style="width: 100%" href="#!" class="btn btn-large green accent-3">'+
+	'<a onclick="pronto('+item_id+', '+ (comanda == null ? true : false) +')" style="width: 100%" href="#!" class="btn btn-large green accent-3">'+
 	'<i class="material-icons right">check</i> Pronto</a>'+
 	'</div>'+
 

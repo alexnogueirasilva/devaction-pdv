@@ -98,9 +98,9 @@
 				</div>
 
 				<div class="row">
-					<div class="input-field col s2">
-						<input value="{{{ isset($config->tempo_medio_entrega) ? $config->tempo_medio_entrega : old('tempo_medio_entrega') }}}" id="tempo_medio_entrega" name="tempo_medio_entrega" type="text" class="validate">
-						<label>Tempo Medio de Entrega</label>
+					<div class="input-field col s3">
+						<input value="{{{ isset($config->tempo_medio_entrega) ? $config->tempo_medio_entrega : old('tempo_medio_entrega') }}}" id="tempo_medio_entrega" name="tempo_medio_entrega" type="text" class="validate" data-mask="00">
+						<label>Tempo Medio de Entrega (minutos)</label>
 
 						@if($errors->has('tempo_medio_entrega'))
 						<div class="center-align red lighten-2">
@@ -129,6 +129,91 @@
 							<span class="white-text">{{ $errors->first('tempo_maximo_cancelamento') }}</span>
 						</div>
 						@endif
+					</div>
+				</div>
+
+				<div class="row">
+
+					<div class="input-field col s3">
+						<input value="{{{ isset($config->valor_km) ? number_format($config->valor_km, 2) : old('valor_km') }}}" id="valor_km" name="valor_km" type="text" class="validate">
+						<label>Valor por KM R$</label>
+
+						@if($errors->has('valor_km'))
+						<div class="center-align red lighten-2">
+							<span class="white-text">{{ $errors->first('valor_km') }}</span>
+						</div>
+						@endif
+					</div>
+
+					<div class="input-field col s3">
+						<input value="{{{ isset($config->maximo_km_entrega) ? $config->maximo_km_entrega : old('maximo_km_entrega') }}}" id="maximo_km_entrega" name="maximo_km_entrega" type="text" class="validate">
+						<label>Distancia máxima para entrega (KM)</label>
+
+						@if($errors->has('maximo_km_entrega'))
+						<div class="center-align red lighten-2">
+							<span class="white-text">{{ $errors->first('maximo_km_entrega') }}</span>
+						</div>
+						@endif
+					</div>
+
+					<div class="input-field col s3">
+						<input value="{{{ isset($config->entrega_gratis_ate) ? $config->entrega_gratis_ate : old('entrega_gratis_ate') }}}" id="entrega_gratis_ate" name="entrega_gratis_ate" type="text" class="validate">
+						<label>Frete gratis até X KM</label>
+
+						@if($errors->has('entrega_gratis_ate'))
+						<div class="center-align red lighten-2">
+							<span class="white-text">{{ $errors->first('entrega_gratis_ate') }}</span>
+						</div>
+						@endif
+					</div>
+					
+					<p class="red-text">Uitlize Valor KM 0 para entrega com valor fixo</p>
+
+
+				</div>
+
+				<div class="row">
+					<div class="col s2">
+						<label>Utilizar bairros</label>
+
+						<div class="switch">
+							<label class="">
+								Não
+								<input @if(isset($config->usar_bairros) && $config->usar_bairros) checked @endisset value="true" name="usar_bairros" class="red-text" type="checkbox">
+								<span class="lever"></span>
+								Sim
+							</label>
+						</div>
+					</div>
+					<p class="red-text">Se marcar esta opção desátivara o valor de entrega padrão e por KM</p>
+
+				</div>
+
+				<div class="row">
+					<div class="input-field col s3">
+
+						<input value="{{{ isset($config->maximo_adicionais) ? $config->maximo_adicionais : old('maximo_adicionais') }}}" id="maximo_adicionais" name="maximo_adicionais" type="text" class="validate">
+						<label>Maximo de adicionais produtos</label>
+
+						@if($errors->has('maximo_adicionais'))
+						<div class="center-align red lighten-2">
+							<span class="white-text">{{ $errors->first('maximo_adicionais') }}</span>
+						</div>
+						@endif
+
+					</div>
+
+					<div class="input-field col s3">
+
+						<input value="{{{ isset($config->maximo_adicionais_pizza) ? $config->maximo_adicionais_pizza : old('maximo_adicionais_pizza') }}}" id="maximo_adicionais_pizza" name="maximo_adicionais_pizza" type="text" class="validate">
+						<label>Maximo de adicionais pizzas</label>
+
+						@if($errors->has('maximo_adicionais_pizza'))
+						<div class="center-align red lighten-2">
+							<span class="white-text">{{ $errors->first('maximo_adicionais_pizza') }}</span>
+						</div>
+						@endif
+
 					</div>
 				</div>
 

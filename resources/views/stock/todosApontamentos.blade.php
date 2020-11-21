@@ -39,7 +39,7 @@
 						<th>Un. Compra</th>
 						<th>Un. Venda</th>
 						<th>Valor de Venda</th>
-						<th>Ações</th>
+						<!-- <th>Ações</th> -->
 					</tr>
 				</thead>
 
@@ -57,11 +57,11 @@
 						<td>{{$a->produto->unidade_compra}}</td>
 						<td>{{$a->produto->unidade_venda}}</td>
 						<td>{{number_format($a->produto->valor_venda, 2, ',', '.') }}</td>
-						<td>
+						<!-- <td>
 							<a onclick = "if (! confirm('Deseja excluir este registro? O estoque de produtos será alterado!')) { return false; }" title="Remover Apontamento" 
 							href="/estoque/deleteApontamento/{{$a->id}}">
 							<i class="material-icons red-text">delete</i>
-						</a>
+						</a> -->
 					</td>
 					<?php 
 					$somaQuatidade += $a->quantidade;

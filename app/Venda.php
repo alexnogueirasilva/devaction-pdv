@@ -73,12 +73,12 @@ class Venda extends Model
             else if($numeroCompra > $numeroDevolucao && $numeroCompra > $numeroVenda && $numeroCompra > $numeroConfig){
                 return $numeroCompra;
             }else{
-                return $numeroConfig+1;
+                return $numeroConfig;
             }
 
 
         }else{
-            return ConfigNota::first()->ultimo_numero_nfe+1;
+            return ConfigNota::first()->ultimo_numero_nfe;
         }
 
     }

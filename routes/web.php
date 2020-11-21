@@ -5,6 +5,10 @@ Route::group(['prefix' => '/'], function(){
 	Route::get('/', 'DeliveryController@index');
 });
 
+
+Route::get('/rotaEntrega/{id}', 'DeliveryController@rotaEntrega');
+
+
 Route::group(['prefix' => '/pagseguro'], function(){
 	Route::get('/getSessao', 'PagSeguroController@getSessao');
 	Route::post('/efetuaPagamento', 'PagSeguroController@efetuaPagamento');
@@ -17,7 +21,12 @@ Route::group(['prefix' => '/dfe'], function(){
 	Route::get('/getDocumentos', 'DFeController@getDocumentos');
 	Route::get('/manifestar', 'DFeController@manifestar');
 	Route::get('/download/{chave}', 'DFeController@download');
+	Route::get('/imprimirDanfe/{chave}', 'DFeController@imprimirDanfe');
+	Route::get('/downloadXml/{chave}', 'DFeController@downloadXml');
 	Route::get('/salvarFatura', 'DFeController@salvarFatura');
+	Route::get('/novaConsulta', 'DFeController@novaConsulta');
+	Route::get('/getDocumentosNovos', 'DFeController@getDocumentosNovos');
+	Route::get('/filtro', 'DFeController@filtro');
 });
 
 Route::group(['prefix' => '/relatorios'], function(){
@@ -26,6 +35,8 @@ Route::group(['prefix' => '/relatorios'], function(){
 	Route::get('/filtroCompras', 'RelatorioController@filtroCompras');
 	Route::get('/filtroVendaProdutos', 'RelatorioController@filtroVendaProdutos');
 	Route::get('/filtroVendaClientes', 'RelatorioController@filtroVendaClientes');
+	Route::get('/filtroEstoqueMinimo', 'RelatorioController@filtroEstoqueMinimo');
+	Route::get('/filtroVendaDiaria', 'RelatorioController@filtroVendaDiaria');
 
 });
 
@@ -65,6 +76,14 @@ Route::group(['prefix' => '/pizza'], function(){
 	Route::get('/pizzas', 'DeliveryController@pizzas');
 });
 
+Route::group(['prefix' => '/info'], function(){
+	Route::get('/', 'DeliveryController@infos');
+	Route::get('/alterarEndereco/{id}', 'DeliveryController@alterarEndereco');
+	Route::post('/atualizarSenha', 'DeliveryController@atualizarSenha');
+	Route::post('/updateEndereco', 'DeliveryController@updateEndereco');
+	
+});
+
 Route::group(['prefix' => '/carrinho'], function(){
 	Route::get('/', 'CarrinhoController@carrinho');
 	Route::post('/add', 'CarrinhoController@add');
@@ -78,12 +97,15 @@ Route::group(['prefix' => '/carrinho'], function(){
 	Route::get('/finalizado/{id}', 'CarrinhoController@finalizado');
 	Route::get('/configDelivery', 'CarrinhoController@configDelivery');
 	Route::get('/cupons', 'CarrinhoController@cupons');
+	Route::get('/getDadosCalculoEntrega', 'CarrinhoController@getDadosCalculoEntrega');
 	Route::get('/cupom/{codigo}', 'CarrinhoController@cupom');
 });
 
 Route::group(['prefix' => '/enderecoDelivery'], function(){
 	// Route::get('/{id}', 'EnderecoDeliveryController@index');
 	Route::post('/save', 'EnderecoDeliveryController@save');
+	Route::get('/', 'EnderecoDeliveryController@get');
+	Route::get('/getValorBairro', 'EnderecoDeliveryController@getValorBairro');
 });
 
 Route::group(['prefix' => '/pedidosDelivery'], function(){
@@ -100,6 +122,7 @@ Route::group(['prefix' => '/pedidosDelivery'], function(){
 	Route::get('/push/{id}', 'PedidoDeliveryController@push');
 	Route::get('/emAberto', 'PedidoDeliveryController@emAberto');
 	Route::post('/sendPush', 'PedidoDeliveryController@sendPush');
+	Route::post('/sendPushWeb', 'PedidoDeliveryController@sendPushWeb');
 	Route::post('/sendSms', 'PedidoDeliveryController@sendSms');
 
 	//para frente de pedido
@@ -116,7 +139,8 @@ Route::group(['prefix' => '/pedidosDelivery'], function(){
 	Route::get('/deleteItem/{id}', 'PedidoDeliveryController@deleteItem');
 	Route::get('/getProdutoDelivery/{id}', 'PedidoDeliveryController@getProdutoDelivery');
 	Route::get('/frenteComPedidoFinalizar', 'PedidoDeliveryController@frenteComPedidoFinalizar');
-
+	Route::get('/removerCarrinho/{id}', 'PedidoDeliveryController@removerCarrinho');
+	
 });
 
 
@@ -173,6 +197,8 @@ Route::group(['prefix' => 'deliveryProduto'], function(){
 	Route::post('/save', 'DeliveryConfigProdutoController@save');
 	Route::post('/saveImagem', 'DeliveryConfigProdutoController@saveImagem');
 	Route::post('/update', 'DeliveryConfigProdutoController@update');
+	Route::get('/pesquisa', 'DeliveryConfigProdutoController@pesquisa');
+	
 });
 
 
@@ -180,8 +206,11 @@ Route::group(['prefix' => 'configNF'], function(){
 	Route::get('/', 'ConfigNotaController@index');
 	Route::post('/save', 'ConfigNotaController@save');
 	Route::get('/certificado', 'ConfigNotaController@certificado');
-	Route::post('/certificado', 'ConfigNotaController@saveCertificado');
+	Route::get('/download', 'ConfigNotaController@download');
+	Route::get('/senha', 'ConfigNotaController@senha');
+	Route::post('/certificado', 'ConfigNotaController@saveCertificado')->middleware('csv');
 	Route::get('/teste', 'ConfigNotaController@teste');
+	Route::get('/testeEmail', 'ConfigNotaController@testeEmail');
 	Route::get('/deleteCertificado', 'ConfigNotaController@deleteCertificado');
 
 });
@@ -225,6 +254,9 @@ Route::group(['prefix' => 'pedidos'], function(){
 
 	Route::get('/mesas', 'PedidoController@mesas');
 	Route::get('/verMesa/{mesa_id}', 'PedidoController@verMesa');
+	Route::get('/ativarMesa/{mesa_id}', 'PedidoController@ativarMesa');
+	Route::post('/atribuirComanda', 'PedidoController@atribuirComanda');
+	Route::post('/atribuirMesa', 'PedidoController@atribuirMesa');
 
 
 });
@@ -352,6 +384,9 @@ Route::group(['prefix' => 'produtos'],function(){
 	Route::get('/composto', 'ProductController@composto');
 	Route::get('/naoComposto', 'ProductController@naoComposto');
 	Route::get('/getProduto/{id}', 'ProductController@getProduto');
+
+	Route::get('/getProdutoVenda/{id}/{lista_id}', 'ProductController@getProdutoVenda');
+
 	Route::get('/getProdutoCodBarras/{id}', 'ProductController@getProdutoCodBarras');
 	Route::get('/receita/{id}', 'ProductController@receita');
 	Route::get('/pesquisa', 'ProductController@pesquisa');
@@ -364,8 +399,9 @@ Route::group(['prefix' => 'produtos'],function(){
 	Route::post('/getValue', 'ProductController@getValue');
 	Route::post('/salvarProdutoDaNota', 'ProductController@salvarProdutoDaNota');
 	Route::post('/salvarProdutoDaNotaComEstoque', 'ProductController@salvarProdutoDaNotaComEstoque');
-
+	Route::post('/setEstoque', 'ProductController@setEstoque');
 });
+
 
 Route::group(['prefix' => 'receita'],function(){
 	Route::post('/save', 'ReceitaController@save');
@@ -507,25 +543,27 @@ Route::group(['prefix' => 'nfce'],function(){
 	Route::get('/imprimirNaoFiscalCredito/{id}', 'NFCeController@imprimirNaoFiscalCredito');
 	Route::post('/cancelar', 'NFCeController@cancelar');
 	Route::get('/deleteVenda/{id}', 'NFCeController@deleteVenda');
-
+	Route::get('/consultar/{id}', 'NFCeController@consultar');
+	Route::get('/baixarXml/{id}', 'NFCeController@baixarXml');
+	
 	// Route::post('/consultar', 'NotaFiscalController@consultar');
 	// Route::get('/teste', 'NotaFiscalController@teste');
 });
 
 Route::group(['prefix' => 'clientes'],function(){
-	Route::get('/', 'ClientController@index');
-	Route::get('/delete/{id}', 'ClientController@delete');
-	Route::get('/edit/{id}', 'ClientController@edit');
-	Route::get('/new', 'ClientController@new');
-	Route::get('/all', 'ClientController@all');
-	Route::get('/verificaLimite', 'ClientController@verificaLimite');
-	Route::get('/find/{id}', 'ClientController@find');
-	Route::get('/pesquisa', 'ClientController@pesquisa');
+	Route::get('/', 'ClienteController@index');
+	Route::get('/delete/{id}', 'ClienteController@delete');
+	Route::get('/edit/{id}', 'ClienteController@edit');
+	Route::get('/new', 'ClienteController@new');
+	Route::get('/all', 'ClienteController@all');
+	Route::get('/verificaLimite', 'ClienteController@verificaLimite');
+	Route::get('/find/{id}', 'ClienteController@find');
+	Route::get('/pesquisa', 'ClienteController@pesquisa');
 	
-	Route::post('/request', 'ClientController@request');
-	Route::post('/save', 'ClientController@save');
-	Route::post('/update', 'ClientController@update');
-	Route::get('/cpfCnpjDuplicado', 'ClientController@cpfCnpjDuplicado');
+	Route::post('/request', 'ClienteController@request');
+	Route::post('/save', 'ClienteController@save');
+	Route::post('/update', 'ClienteController@update');
+	Route::get('/cpfCnpjDuplicado', 'ClienteController@cpfCnpjDuplicado');
 
 });
 
@@ -698,11 +736,17 @@ Route::group(['prefix' => 'vendas'],function(){
 	Route::get('/lista', 'VendaController@lista');
 	Route::get('/detalhar/{id}', 'VendaController@detalhar');
 	Route::get('/delete/{id}', 'VendaController@delete');
+	Route::get('/edit/{id}', 'VendaController@edit');
 	Route::post('/salvar', 'VendaController@salvar');
+	Route::post('/atualizar', 'VendaController@atualizar');
 	Route::post('/salvarCrediario', 'VendaController@salvarCrediario');
 	Route::get('/filtro', 'VendaController@filtro');
 	Route::get('/rederizarDanfe/{id}', 'VendaController@rederizarDanfe');
+	Route::get('/baixarXml/{id}', 'VendaController@baixarXml');
 	Route::get('/imprimirPedido/{id}', 'VendaController@imprimirPedido');
+	Route::get('/clone/{id}', 'VendaController@clone');
+	Route::get('/gerarXml/{id}', 'VendaController@gerarXml');
+	Route::post('/clone', 'VendaController@salvarClone');
 });
 
 Route::group(['prefix' => 'compras'],function(){
@@ -739,6 +783,8 @@ Route::group(['prefix' => 'estoque'],function(){
 	Route::get('/filtroApontamentos', 'StockController@filtroApontamentos');
 	Route::post('/saveApontamento', 'StockController@saveApontamento');
 	Route::post('/saveApontamentoManual', 'StockController@saveApontamentoManual');
+	Route::get('/listApontamentos', 'StockController@listApontamentos');
+	Route::get('/listApontamentos/delete/{id}', 'StockController@listApontamentosDelte');
 
 });
 
@@ -907,6 +953,11 @@ Route::group(['prefix' => 'mesas'],function(){
 
 	Route::post('/save', 'MesaController@save');
 	Route::post('/update', 'MesaController@update');
+	Route::get('/gerarQrCode', 'MesaController@gerarQrCode');
+	Route::get('/issue/{id}', 'MesaController@issue');
+	Route::get('/issue2/{id}', 'MesaController@issue2');
+	Route::get('/imprimirQrCode/{id}', 'MesaController@imprimirQrCode');
+
 });
 
 Route::group(['prefix' => 'bannerTopo'],function(){
@@ -971,6 +1022,7 @@ Route::group(['prefix' => 'orcamentoVenda'], function(){
 	Route::get('/detalhar/{id}', 'OrcamentoController@detalhar');
 	Route::get('/delete/{id}', 'OrcamentoController@delete');
 	Route::get('/imprimir/{id}', 'OrcamentoController@imprimir');
+	Route::get('/imprimirCompleto/{id}', 'OrcamentoController@imprimirCompleto');
 	Route::get('/rederizarDanfe/{id}', 'OrcamentoController@rederizarDanfe');
 	Route::get('/enviarEmail', 'OrcamentoController@enviarEmail');
 	Route::get('/deleteItem/{id}', 'OrcamentoController@deleteItem');
@@ -981,7 +1033,56 @@ Route::group(['prefix' => 'orcamentoVenda'], function(){
 	Route::get('/deleteParcela/{id}', 'OrcamentoController@deleteParcela');
 	Route::get('/filtro', 'OrcamentoController@filtro');
 	Route::get('/reprovar/{id}', 'OrcamentoController@reprovar');
+});
 
+Route::group(['prefix' => 'listaDePrecos'], function(){
+	Route::get('/', 'ListaPrecoController@index');
+	Route::get('/delete/{id}', 'ListaPrecoController@delete');
+	Route::get('/edit/{id}', 'ListaPrecoController@edit');
+	Route::get('/new', 'ListaPrecoController@new');
+
+	Route::post('/save', 'ListaPrecoController@save');
+	Route::post('/update', 'ListaPrecoController@update');
+
+	Route::get('/ver/{id}', 'ListaPrecoController@ver');
+	Route::get('/gerar/{id}', 'ListaPrecoController@gerar');
+	Route::get('/editValor/{id}', 'ListaPrecoController@editValor');
+
+	Route::post('/salvarPreco', 'ListaPrecoController@salvarPreco');
+	
+	Route::get('/pesquisa', 'ListaPrecoController@pesquisa');
+	Route::get('/filtro', 'ListaPrecoController@filtro');
+
+});
+
+
+Route::group(['prefix' => 'pedido', 'middleware' => ['pedidoAtivo']], function(){
+	Route::get('/', 'PedidoQrCodeController@index');
+	Route::get('/open/{id}', 'PedidoQrCodeController@open');
+	Route::get('/erro', 'PedidoQrCodeController@erro');
+	Route::get('/cardapio/{id}', 'PedidoQrCodeController@cardapio');
+
+
+	Route::get('/escolherSabores', 'PedidoQrCodeController@escolherSabores');
+	Route::post('/adicionarSabor', 'PedidoQrCodeController@adicionarSabor');
+	Route::get('/verificaPizzaAdicionada', 'PedidoQrCodeController@verificaPizzaAdicionada');
+	Route::get('/removeSabor/{id}', 'PedidoQrCodeController@removeSabor');
+	Route::get('/adicionais/{id}', 'PedidoQrCodeController@adicionais');
+	Route::get('/adicionaisPizza', 'PedidoQrCodeController@adicionaisPizza');
+	Route::get('/pesquisa', 'PedidoQrCodeController@pesquisa');
+	Route::get('/pizzas', 'DeliveryController@pizzas');
+
+	Route::get('/ver', 'PedidoQrCodeController@ver');
+
+	Route::post('/addPizza', 'PedidoQrCodeController@addPizza')->middleware('mesaAtiva');
+	Route::post('/addProd', 'PedidoQrCodeController@addProd')->middleware('mesaAtiva');
+
+	Route::get('/refreshItem/{id}/{quantidade}', 'PedidoQrCodeController@refreshItem');
+	Route::get('/removeItem/{id}', 'PedidoQrCodeController@removeItem');
+	Route::get('/finalizar', 'PedidoQrCodeController@finalizar');
+
+
+	
 });
 
 

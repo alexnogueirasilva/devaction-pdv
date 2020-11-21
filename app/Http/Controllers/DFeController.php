@@ -14,6 +14,9 @@ use App\Certificado;
 use App\Fornecedor;
 use App\Compra;
 use App\ContaPagar;
+use NFePHP\DA\NFe\Danfe;
+use App\ItemDfe;
+
 
 class DFeController extends Controller
 {
@@ -48,32 +51,83 @@ class DFeController extends Controller
 			return redirect('configNF');
 		}
 
-		$cnpj = str_replace(".", "", $config->cnpj);
-		$cnpj = str_replace("/", "", $cnpj);
-		$cnpj = str_replace("-", "", $cnpj);
-		$cnpj = str_replace(" ", "", $cnpj);
-
-		$dfe_service = new DFeService([
-			"atualizacao" => date('Y-m-d h:i:s'),
-			"tpAmb" => 1,
-			"razaosocial" => $config->razao_social,
-			"siglaUF" => $config->UF,
-			"cnpj" => $cnpj,
-			"schemes" => "PL_009_V4",
-			"versao" => "4.00",
-			"tokenIBPT" => "AAAAAAA",
-			"CSC" => getenv('CSC'),
-			"CSCid" => getenv('CSCid')
-		], 55);
 
 		$data_inicial = date('d/m/Y', strtotime("-90 day",strtotime(date("Y-m-d"))));
 		$data_final = date('d/m/Y');
 
+		$docs = ManifestaDfe::orderBy('id', 'desc')->get();
+		$arrayDocs = [];
+		foreach($docs as $d){
+			$dIni = str_replace("/", "-", $data_inicial);
+			$dFim = str_replace("/", "-", $data_final);
+
+			$dIni = \Carbon\Carbon::parse($dIni)->format('Y-m-d');
+			$dFim = \Carbon\Carbon::parse($dFim)->format('Y-m-d');
+			$data_dfe = \Carbon\Carbon::parse($d->data_emissao)->format('Y-m-d');
+
+			if(strtotime($data_dfe) >= strtotime($dIni) && strtotime($data_dfe) <= strtotime($dFim)){
+				array_push($arrayDocs, $d);
+			}
+		}
+
 		return view('dfe/index')
-		->with('docs', [])
-		->with('dfeJS', true)
+		->with('docs', $arrayDocs)
+		->with('dfeJS', $arrayDocs)
 		->with('data_final', $data_final)
 		->with('data_inicial', $data_inicial)
+		->with('title', 'DF-e');
+	}
+
+	public function filtro(Request $request){
+
+		$tipo = $request->tipo;
+		$dataInicial = $request->data_inicial;
+		$dataFinal = $request->data_final;
+
+		$config = ConfigNota::first();
+
+		if($config == null){
+			session()->flash('color', 'red');
+			session()->flash('message', 'Configure o Emitente');
+			return redirect('configNF');
+		}
+
+		$certificado = Certificado::first();
+		if($certificado == null){
+			session()->flash('color', 'red');
+			session()->flash('message', 'Configure o Certificado');
+			return redirect('configNF');
+		}
+
+
+		$docs = ManifestaDfe::orderBy('id', 'desc')->get();  
+		$arrayDocs = [];
+
+		foreach($docs as $d){
+			$dIni = str_replace("/", "-", $dataInicial);
+			$dFim = str_replace("/", "-", $dataFinal);
+
+			$dIni = \Carbon\Carbon::parse($dIni)->format('Y-m-d');
+			$dFim = \Carbon\Carbon::parse($dFim)->format('Y-m-d');
+			$data_dfe = \Carbon\Carbon::parse($d->data_emissao)->format('Y-m-d');
+			if($tipo != '--'){
+				if(strtotime($data_dfe) >= strtotime($dIni) && strtotime($data_dfe) <= strtotime($dFim)){
+					if($d->tipo == $tipo){
+						array_push($arrayDocs, $d);
+					}
+				}
+			}else{
+				if(strtotime($data_dfe) >= strtotime($dIni) && strtotime($data_dfe) <= strtotime($dFim)){
+					array_push($arrayDocs, $d);
+				}
+			}
+		}
+
+		return view('dfe/index')
+		->with('docs', $arrayDocs)
+		->with('dfeJS', $arrayDocs)
+		->with('data_final', $dataFinal)
+		->with('data_inicial', $dataInicial)
 		->with('title', 'DF-e');
 	}
 
@@ -97,14 +151,20 @@ class DFeController extends Controller
 			"schemes" => "PL_009_V4",
 			"versao" => "4.00",
 			"tokenIBPT" => "AAAAAAA",
-			"CSC" => getenv('CSC'),
-			"CSCid" => getenv('CSCid')
+			"CSC" => $config->csc,
+			"CSCid" => $config->csc_id
 		], 55);
 
 		$docs = $this->validaDocsIncluidos($dfe_service->consulta(
 			\Carbon\Carbon::parse($data_inicial)->format('Y-m-d'),
 			\Carbon\Carbon::parse($data_final)->format('Y-m-d')
 		));
+
+		usort($docs, function ($a, $b) {
+			return \Carbon\Carbon::parse($a['data_emissao'])->format('Y-m-d') <
+			\Carbon\Carbon::parse($b['data_emissao'])->format('Y-m-d');
+		});
+
 		for($aux = 0; $aux < count($docs); $aux++){
 			$docs[$aux]['data_emissao'] = \Carbon\Carbon::parse($docs[$aux]['data_emissao'])->format('d/m/Y H:i:s');
 		}
@@ -112,12 +172,15 @@ class DFeController extends Controller
 		return response()->json($docs, 200);
 	}
 
+
+
 	private function validaDocsIncluidos($docs){
 		for($aux = 0; $aux < count($docs); $aux++){
 			if($docs[$aux]){
 				$manifesta = ManifestaDfe::where('chave', $docs[$aux]['chave'])->first();
 				if($manifesta != null){
 					$docs[$aux]['incluso'] = true;
+					$docs[$aux]['tipo'] = $manifesta->tipo;
 				}
 			}
 		}
@@ -142,46 +205,70 @@ class DFeController extends Controller
 			"schemes" => "PL_009_V4",
 			"versao" => "4.00",
 			"tokenIBPT" => "AAAAAAA",
-			"CSC" => getenv('CSC'),
-			"CSCid" => getenv('CSCid')
+			"CSC" => $config->csc,
+			"CSCid" => $config->csc_id
 		], 55);
+		$evento = $request->evento;
 
 		$manifestaAnterior = $this->verificaAnterior($request->chave);
 
-		$res = $dfe_service->manifesta($request->chave,	 
-			$manifestaAnterior != null ? ($manifestaAnterior->sequencia_evento + 1) : 1);
+		if($evento == 1){
+			$res = $dfe_service->manifesta($request->chave,	 
+				$manifestaAnterior != null ? ($manifestaAnterior->sequencia_evento + 1) : 1);
+		}else if($evento == 2){
+			$res = $dfe_service->confirmacao($request->chave,	 
+				$manifestaAnterior != null ? ($manifestaAnterior->sequencia_evento + 1) : 1);
+		}else if($evento == 3){
+			$res = $dfe_service->desconhecimento($request->chave,	 
+				$manifestaAnterior != null ? ($manifestaAnterior->sequencia_evento + 1) : 1, $request->justificativa);
+		}else if($evento == 4){
+			$res = $dfe_service->operacaoNaoRealizada($request->chave,	 
+				$manifestaAnterior != null ? ($manifestaAnterior->sequencia_evento + 1) : 1, $request->justificativa);
+		}
 
 		// echo $res['retEvento']['infEvento']['cStat'];
 		if($res['retEvento']['infEvento']['cStat'] == '135'){ //sucesso
-			$manifesta = [
-				'chave' => $request->chave,
-				'nome' => $request->nome,
-				'documento' => $request->cnpj,
-				'valor' => $request->valor,
-				'num_prot' => $request->num_prot,
-				'data_emissao' => $request->data_emissao,
-				'sequencia_evento' => 1, 
-				'fatura_salva' => false,	 
-			];
+			// $manifesta = [
+			// 	'chave' => $request->chave,
+			// 	'nome' => $request->nome,
+			// 	'documento' => $request->cnpj,
+			// 	'valor' => $request->valor,
+			// 	'num_prot' => $request->num_prot,
+			// 	'data_emissao' => $request->data_emissao,
+			// 	'sequencia_evento' => 1, 
+			// 	'fatura_salva' => false,	 
+			// 	'tipo' => $evento
+			// ];
 
-			ManifestaDfe::create($manifesta);
+			$manifesto = ManifestaDfe::where('chave', $request->chave)
+			->first();
+			$manifesto->tipo = $evento;
+			$manifesto->save();
+
+			// ManifestaDfe::create($manifesta);
 			session()->flash('color', 'green');
 			session()->flash('message', 'XML ' . $request->chave . ' manifestado!');
 			return redirect('/dfe');
 		}else{
 
-			$manifesta = [
-				'chave' => $request->chave,
-				'nome' => $request->nome,
-				'documento' => $request->cnpj,
-				'valor' => $request->valor,
-				'num_prot' => $request->num_prot,
-				'data_emissao' => $request->data_emissao,
-				'sequencia_evento' => 1, 
-				'fatura_salva' => false,	 
-			];
+			// $manifesta = [
+			// 	'chave' => $request->chave,
+			// 	'nome' => $request->nome,
+			// 	'documento' => $request->cnpj,
+			// 	'valor' => $request->valor,
+			// 	'num_prot' => $request->num_prot,
+			// 	'data_emissao' => $request->data_emissao,
+			// 	'sequencia_evento' => 1, 
+			// 	'fatura_salva' => false,	
+			// 	'tipo' => $evento 
+			// ];
 
-			ManifestaDfe::create($manifesta);
+			$manifesto = ManifestaDfe::where('chave', $request->chave)
+			->first();
+			$manifesto->tipo = $evento;
+			$manifesto->save();
+
+			// ManifestaDfe::create($manifesta);
 			session()->flash('color', 'red');
 			session()->flash('message', 'Já esta manifestado a chave ' . $request->chave);
 			return redirect('/dfe');
@@ -210,70 +297,124 @@ class DFeController extends Controller
 			"schemes" => "PL_009_V4",
 			"versao" => "4.00",
 			"tokenIBPT" => "AAAAAAA",
-			"CSC" => getenv('CSC'),
-			"CSCid" => getenv('CSCid')
+			"CSC" => $config->csc,
+			"CSCid" => $config->csc_id
+		], 55);
+		try{
+			$response = $dfe_service->download($chave);
+		// print_r($response);
+			
+			$stz = new Standardize($response);
+			$std = $stz->toStd();
+			if ($std->cStat != 138) {
+				echo "Documento não retornado. [$std->cStat] $std->xMotivo" . ", aguarde alguns instantes e atualize a pagina!";  
+				die();
+			}    
+			$zip = $std->loteDistDFeInt->docZip;
+			$xml = gzdecode(base64_decode($zip));
+
+			$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
+
+			file_put_contents($public.'xml_dfe/'.$chave.'.xml',$xml);
+			$nfe = simplexml_load_string($xml);
+			if(!$nfe) {
+				echo "Erro ao ler XML";
+			}else{
+
+				$fornecedor = $this->getFornecedorXML($nfe);
+				$itens = $this->getItensDaNFe($nfe);
+				$infos = $this->getInfosDaNFe($nfe);
+				$fatura = $this->getFaturaDaNFe($nfe);
+			// echo "<pre>";
+			// print_r($fatura);
+			// echo "</pre>";
+
+			//caregar view
+
+				$categorias = Categoria::all();
+				$unidadesDeMedida = Produto::unidadesMedida();
+
+				$listaCSTCSOSN = Produto::listaCSTCSOSN();
+				$listaCST_PIS_COFINS = Produto::listaCST_PIS_COFINS();
+				$listaCST_IPI = Produto::listaCST_IPI();
+				$config = ConfigNota::first();
+
+				$manifesto = ManifestaDfe::where('chave', $chave)->first();
+
+				$compra = Compra::
+				where('chave', $chave)
+				->first();
+
+				return view('dfe/view')
+				->with('fornecedor', $fornecedor)
+				->with('itens', $itens)
+				->with('infos', $infos)
+				->with('dfeJS', true)
+				->with('compraFiscal', $compra != null ? true : false)
+				->with('fatura', $fatura)
+				->with('listaCSTCSOSN', $listaCSTCSOSN)
+				->with('listaCST_PIS_COFINS', $listaCST_PIS_COFINS)
+				->with('listaCST_IPI', $listaCST_IPI)
+				->with('categorias', $categorias)
+				->with('config', $config)
+				->with('fatura_salva', $manifesto == null ? false : $manifesto->fatura_salva)
+				->with('unidadesDeMedida', $unidadesDeMedida)
+				->with('title', 'Visualizando XML');
+			}
+		}catch(\Exception $e){
+			echo "Erro de soap:<br>";
+			echo $e->getMessage();
+		}
+
+	}
+
+	public function imprimirDanfe($chave){
+		$config = ConfigNota::first();
+
+		$cnpj = str_replace(".", "", $config->cnpj);
+		$cnpj = str_replace("/", "", $cnpj);
+		$cnpj = str_replace("-", "", $cnpj);
+		$cnpj = str_replace(" ", "", $cnpj);
+
+		$dfe_service = new DFeService([
+			"atualizacao" => date('Y-m-d h:i:s'),
+			"tpAmb" => 1,
+			"razaosocial" => $config->razao_social,
+			"siglaUF" => $config->UF,
+			"cnpj" => $cnpj,
+			"schemes" => "PL_009_V4",
+			"versao" => "4.00",
+			"tokenIBPT" => "AAAAAAA",
+			"CSC" => $config->csc,
+			"CSCid" => $config->csc_id
 		], 55);
 
 		$response = $dfe_service->download($chave);
 		// print_r($response);
-
-		$stz = new Standardize($response);
-		$std = $stz->toStd();
-		if ($std->cStat != 138) {
-			echo "Documento não retornado. [$std->cStat] $std->xMotivo" . ", aguarde alguns instantes e atualize a pagina!";  
-			die;
-		}    
-		$zip = $std->loteDistDFeInt->docZip;
-		$xml = gzdecode(base64_decode($zip));
-		
-		$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
-
-		file_put_contents($public.'xml_dfe/'.$chave.'.xml',$xml);
-		$nfe = simplexml_load_string($xml);
-		if(!$nfe) {
-			echo "Erro ao ler XML";
-		}else{
-
-			$fornecedor = $this->getFornecedorXML($nfe);
-			$itens = $this->getItensDaNFe($nfe);
-			$infos = $this->getInfosDaNFe($nfe);
-			$fatura = $this->getFaturaDaNFe($nfe);
-			// echo "<pre>";
-			// print_r($fatura);
-			// echo "</pre>";
+		try {
+			$stz = new Standardize($response);
+			$std = $stz->toStd();
+			if ($std->cStat != 138) {
+				echo "Documento não retornado. [$std->cStat] $std->xMotivo" . ", aguarde alguns instantes e atualize a pagina!";  
+				die;
+			}    
+			$zip = $std->loteDistDFeInt->docZip;
+			$xml = gzdecode(base64_decode($zip));
 			
-			//caregar view
+			$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
 
-			$categorias = Categoria::all();
-			$unidadesDeMedida = Produto::unidadesMedida();
+			file_put_contents($public.'xml_dfe/'.$chave.'.xml',$xml);
 
-			$listaCSTCSOSN = Produto::listaCSTCSOSN();
-			$listaCST_PIS_COFINS = Produto::listaCST_PIS_COFINS();
-			$listaCST_IPI = Produto::listaCST_IPI();
-			$config = ConfigNota::first();
-
-			$manifesto = ManifestaDfe::where('chave', $chave)->first();
-
-			$compra = Compra::
-			where('chave', $chave)
-			->first();
-
-			return view('dfe/view')
-			->with('fornecedor', $fornecedor)
-			->with('itens', $itens)
-			->with('infos', $infos)
-			->with('dfeJS', true)
-			->with('compraFiscal', $compra != null ? true : false)
-			->with('fatura', $fatura)
-			->with('listaCSTCSOSN', $listaCSTCSOSN)
-			->with('listaCST_PIS_COFINS', $listaCST_PIS_COFINS)
-			->with('listaCST_IPI', $listaCST_IPI)
-			->with('categorias', $categorias)
-			->with('config', $config)
-			->with('fatura_salva', $manifesto == null ? false : $manifesto->fatura_salva)
-			->with('unidadesDeMedida', $unidadesDeMedida)
-			->with('title', 'Visualizando XML');
-		}
+			
+			$danfe = new Danfe($xml);
+			$id = $danfe->monta();
+			$pdf = $danfe->render();
+			header('Content-Type: application/pdf');
+			echo $pdf;
+		} catch (InvalidArgumentException $e) {
+			echo "Ocorreu um erro durante o processamento :" . $e->getMessage();
+		}  
+		
 
 	}
 
@@ -311,10 +452,17 @@ class DFeController extends Controller
 		foreach($xml->NFe->infNFe->det as $item) {
 
 			$produto = Produto::verificaCadastrado($item->prod->cEAN,
-				$item->prod->xProd);
+				$item->prod->xProd, $item->prod->cProd);
 
 			$produtoNovo = !$produto ? true : false;
 
+			$tp = null;
+			if($produto != null){
+				$tp = ItemDfe::
+				where('produto_id', $produto->id)
+				->where('numero_nfe', $xml->NFe->infNFe->ide->nNF)
+				->first();
+			}
 
 			$item = [
 				'codigo' => $item->prod->cProd,
@@ -326,6 +474,7 @@ class DFeController extends Controller
 				'qCom' => $item->prod->qCom,
 				'codBarras' => $item->prod->cEAN,
 				'produtoNovo' => $produtoNovo,
+				'produtoSetadoEstoque' => $tp != null ? true : false,
 				'produtoId' => $produtoNovo ? '0' : $produto->id,
 				'conversao_unitaria' => $produtoNovo ? '' : $produto->conversao_unitaria
 			];
@@ -451,32 +600,68 @@ class DFeController extends Controller
 		return redirect('/dfe/download/'.$chave);
 	}
 
-	public function teste(){
-		$config = ConfigNota::first();
+	public function novaConsulta(){
+		return view('dfe/nova_consulta')
+		->with('dfeJS', true)
+		->with('title', 'Nova Consulta');
+	}
 
-		$cnpj = str_replace(".", "", $config->cnpj);
-		$cnpj = str_replace("/", "", $cnpj);
-		$cnpj = str_replace("-", "", $cnpj);
-		$cnpj = str_replace(" ", "", $cnpj);
+	public function getDocumentosNovos(){
+		try{
+			$config = ConfigNota::first();
+
+			$cnpj = str_replace(".", "", $config->cnpj);
+			$cnpj = str_replace("/", "", $cnpj);
+			$cnpj = str_replace("-", "", $cnpj);
+			$cnpj = str_replace(" ", "", $cnpj);
 
 
-		$dfe_service = new DFeService([
-			"atualizacao" => date('Y-m-d h:i:s'),
-			"tpAmb" => 1,
-			"razaosocial" => $config->razao_social,
-			"siglaUF" => $config->UF,
-			"cnpj" => $cnpj,
-			"schemes" => "PL_009_V4",
-			"versao" => "4.00",
-			"tokenIBPT" => "AAAAAAA",
-			"CSC" => getenv('CSC'),
-			"CSCid" => getenv('CSCid')
-		], 55);
+			$dfe_service = new DFeService([
+				"atualizacao" => date('Y-m-d h:i:s'),
+				"tpAmb" => 1,
+				"razaosocial" => $config->razao_social,
+				"siglaUF" => $config->UF,
+				"cnpj" => $cnpj,
+				"schemes" => "PL_009_V4",
+				"versao" => "4.00",
+				"tokenIBPT" => "AAAAAAA",
+				"CSC" => $config->csc,
+				"CSCid" => $config->csc_id
+			], 55);
 
-		$docs = $dfe_service->todos();
+			$manifesto = ManifestaDfe::orderBy('nsu', 'desc')->first();
+			if($manifesto == null) $nsu = 0;
+			else $nsu = $manifesto->nsu;
+			$docs = $dfe_service->novaConsulta($nsu);
+			$novos = [];
+			foreach($docs as $d) {
+				if($this->validaNaoInserido($d['chave'])){
+					if($d['valor'] > 0 && $d['nome']){
+						ManifestaDfe::create($d);
+						array_push($novos, $d);
+					}
+				}
+			}
+			return response()->json($novos, 200);
 
-		echo "<pre>";
-		print_r($docs);
-		echo "</pre>";
+		}catch(Exception $e){
+			return response()->json($e->getMessage(), 403);
+		}
+
+	}
+
+	private function validaNaoInserido($chave){
+		$m = ManifestaDfe::where('chave', $chave)->first();
+		if($m == null) return true;
+		else return false;
+	}
+
+	public function downloadXml($chave){
+		$dfe = ManifestaDfe::where('chave', $chave)->first();
+		$chave = $dfe->chave; 
+		$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
+		if(file_exists($public.'xml_dfe/'.$chave.'.xml'))
+			return response()->download($public.'xml_dfe/'.$chave.'.xml');
+		else echo "Erro ao baixar XML, arquivo não encontrado!";
 	}
 }

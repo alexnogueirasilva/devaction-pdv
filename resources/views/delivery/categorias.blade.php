@@ -18,7 +18,7 @@
 					<div class="card-header p-0">
 						@if($key%3 == 0 && $key > 0) <br> @endif
 						<a href="/cardapio/{{$c->id}}">
-							<img style="height: 200px; width: 100%;" class="card-img-bottom" src="/imagens_categorias/{{$c->path}}" alt="Card image cap">
+							<img loading="lazy" style="height: 200px; width: 100%;" class="card-img-bottom" src="/imagens_categorias/{{$c->path}}" alt="Card image cap">
 						</a>
 					</div>
 					<div class="card-body border border-top-0">

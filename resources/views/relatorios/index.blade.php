@@ -199,6 +199,98 @@
 		</div>
 	</div>
 
+	<div class="col s6">
+		<div class="card relatorios">
+			<div class="row">
+
+				<div class="card-header">
+					<h4 class="center-align">Relatório de Estoque Mínimo</h4>
+				</div>
+				<div class="divider"></div>
+				<div class="card-content">
+					<form method="get" action="/relatorios/filtroEstoqueMinimo">
+						<div class="row">
+							<!-- <div class="input-field col s3">
+								<input type="text" class="date-input" name="data_inicial">
+								<label>Data inicial</label>
+							</div>
+							<div class="input-field col s3">
+								<input type="text" class="date-input" name="data_final">
+								<label>Data Final</label>
+							</div> -->
+							<div class="input-field col s3">
+								<input type="text" placeholder="20" class="date-input" name="total_resultados">
+								<label>Nro. Resultados</label>
+							</div>
+
+							<!-- <div class="input-field col s3">
+								<select name="ordem">
+									<option value="desc">Menor estoque</option>
+									<option value="asc">Maior estoque</option>
+
+								</select>
+								<label>Ordem</label>
+							</div> -->
+						</div>
+
+						<div class="input-field col s12">
+							<button style="width: 100%" class="btn btn-large purple">
+								Gerar Relatório<i class="material-icons right">insert_drive_file</i>
+							</button>
+						</div>
+
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col s6">
+		<div class="card relatorios">
+			<div class="row">
+
+				<div class="card-header">
+					<h4 class="center-align">Relatório de Venda Diária</h4>
+				</div>
+				<div class="divider"></div>
+				<div class="card-content">
+					<form method="get" action="/relatorios/filtroVendaDiaria">
+						<div class="row">
+							<div class="input-field col s3">
+								<input type="text" class="date-input" name="data_inicial">
+								<label>Data</label>
+							</div>
+							<!-- <div class="input-field col s3">
+								<input type="text" class="date-input" name="data_final">
+								<label>Data Final</label>
+							</div> -->
+							<div class="input-field col s3">
+								<input type="text" placeholder="20" class="date-input" name="total_resultados">
+								<label>Nro. Resultados</label>
+							</div>
+
+							<!-- <div class="input-field col s3">
+								<select name="ordem">
+									<option value="desc">Mais vendido</option>
+									<option value="asc">Menos vendido</option>
+
+								</select>
+								<label>Ordem</label>
+							</div> -->
+						</div>
+
+						<div class="input-field col s12">
+							<button style="width: 100%" class="btn btn-large yellow">
+								Gerar Relatório<i class="material-icons right">insert_drive_file</i>
+							</button>
+						</div>
+
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
 </div>
 
 @endsection	

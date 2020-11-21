@@ -15,7 +15,7 @@ use App\NaturezaOperacao;
 use App\FaturaOrcamento;
 use Dompdf\Dompdf;
 use Dompdf\Options;
-use App\Services\NFeService;
+use App\Services\NFService;
 use NFePHP\DA\NFe\Danfe;
 use Mail;
 use App\Helpers\StockMove;
@@ -189,6 +189,36 @@ class OrcamentoController extends Controller
 
 	}
 
+	public function imprimirCompleto($id){
+		$orcamento = Orcamento::find($id);
+		$config = ConfigNota::first();
+
+		$p = view('orcamentos/print_completo')
+		->with('orcamento', $orcamento)
+		->with('config', $config);
+
+
+		$options = new Options();
+		$options->set('isRemoteEnabled', TRUE);
+		$domPdf = new Dompdf($options);
+		
+		$contxt = stream_context_create([ 
+			'ssl' => [ 
+				'verify_peer' => FALSE, 
+				'verify_peer_name' => FALSE,
+				'allow_self_signed'=> TRUE
+			] 
+		]);
+		$domPdf->setHttpContext($contxt);
+
+		$domPdf->loadHtml($p);
+
+		$domPdf->setPaper("A4");
+		$domPdf->render();
+		$domPdf->stream("orcamento.pdf");
+
+	}
+
 	public function rederizarDanfe($id){
 		$orcamento = Orcamento::find($id);
 		$config = ConfigNota::first();
@@ -198,7 +228,7 @@ class OrcamentoController extends Controller
 		$cnpj = str_replace("-", "", $cnpj);
 		$cnpj = str_replace(" ", "", $cnpj);
 
-		$nfe_service = new NFeService([
+		$nfe_service = new NFService([
 			"atualizacao" => date('Y-m-d h:i:s'),
 			"tpAmb" => (int)$config->ambiente,
 			"razaosocial" => $config->razao_social,
@@ -207,24 +237,31 @@ class OrcamentoController extends Controller
 			"schemes" => "PL_009_V4",
 			"versao" => "4.00",
 			"tokenIBPT" => "AAAAAAA",
-			"CSC" => getenv('CSC'),
-			"CSCid" => getenv('CSCid')
-		], 55);
+			"CSC" => $config->csc,
+			"CSCid" => $config->csc_id
+		]);
 		$nfe = $nfe_service->simularOrcamento($orcamento);
-		$xml = $nfe['xml'];
+		if(!isset($nfe['erros_xml'])){
+			$xml = $nfe['xml'];
 
-		$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
-		$logo = 'data://text/plain;base64,'. base64_encode(file_get_contents($public.'imgs/logo.jpg'));
+			$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
+			$logo = 'data://text/plain;base64,'. base64_encode(file_get_contents($public.'imgs/logo.jpg'));
 
-		try {
-			$danfe = new Danfe($xml);
-			$id = $danfe->monta();
-			$pdf = $danfe->render();
-			header('Content-Type: application/pdf');
-			echo $pdf;
-		} catch (InvalidArgumentException $e) {
-			echo "Ocorreu um erro durante o processamento :" . $e->getMessage();
-		}  
+			try {
+				$danfe = new Danfe($xml);
+				$id = $danfe->monta();
+				$pdf = $danfe->render();
+				header('Content-Type: application/pdf');
+				echo $pdf;
+			} catch (InvalidArgumentException $e) {
+				echo "Ocorreu um erro durante o processamento :" . $e->getMessage();
+			}  
+
+		}else{
+			foreach($nfe['erros_xml'] as $e){
+				echo $e;
+			}
+		}
 
 	}
 

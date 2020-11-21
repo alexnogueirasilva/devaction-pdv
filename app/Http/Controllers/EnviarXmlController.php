@@ -43,80 +43,96 @@ class EnviarXmlController extends Controller
 
 		$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
 
-		if(count($xml) > 0){
+		try{
+			if(count($xml) > 0){
 
-			$zip_file = $public.'xml.zip';
-			$zip = new \ZipArchive();
-			$zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+				$zip_file = $public.'xml.zip';
+				$zip = new \ZipArchive();
+				$zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
-			foreach($xml as $x){
-				if(file_exists($public.'xml_nfe/'.$x->chave. '.xml'))
-					$zip->addFile($public.'xml_nfe/'.$x->chave. '.xml', $x->path_xml);
+				foreach($xml as $x){
+					if(file_exists($public.'xml_nfe/'.$x->chave. '.xml'))
+						$zip->addFile($public.'xml_nfe/'.$x->chave. '.xml', $x->path_xml);
+				}
+				$zip->close();
 			}
-			$zip->close();
-		}
-
-		$xmlCte = Cte::
-		whereBetween('updated_at', [
-			$this->parseDate($request->data_inicial), 
-			$this->parseDate($request->data_final, true)])
-		->where('estado', 'APROVADO')
-		->get();
-
-		if(count($xmlCte) > 0){
-
-
-			$zip_file = $public.'xmlcte.zip';
-			$zip = new \ZipArchive();
-			$zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-
-			foreach($xmlCte as $x){
-				if(file_exists($public.'xml_cte/'.$x->chave. '.xml'))
-					$zip->addFile($public.'xml_cte/'.$x->chave. '.xml', $x->path_xml);
-			}
-			$zip->close();
+		}catch(\Exception $e){
 
 		}
 
-		$xmlNfce = VendaCaixa::
-		whereBetween('updated_at', [
-			$this->parseDate($request->data_inicial), 
-			$this->parseDate($request->data_final, true)])
-		->where('estado', 'APROVADO')
-		->get();
+		try{
+			$xmlCte = Cte::
+			whereBetween('updated_at', [
+				$this->parseDate($request->data_inicial), 
+				$this->parseDate($request->data_final, true)])
+			->where('estado', 'APROVADO')
+			->get();
 
-		if(count($xmlNfce) > 0){
+			if(count($xmlCte) > 0){
 
-			$zip_file = $public.'xmlnfce.zip';
-			$zip = new \ZipArchive();
-			$zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
-			foreach($xmlNfce as $x){
-				if(file_exists($public.'xml_nfce/'.$x->chave. '.xml'))
-					$zip->addFile($public.'xml_nfce/'.$x->chave. '.xml', $x->path_xml);
+				$zip_file = $public.'xmlcte.zip';
+				$zip = new \ZipArchive();
+				$zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+				foreach($xmlCte as $x){
+					if(file_exists($public.'xml_cte/'.$x->chave. '.xml'))
+						$zip->addFile($public.'xml_cte/'.$x->chave. '.xml', $x->path_xml);
+				}
+				$zip->close();
+
 			}
-			$zip->close();
+		}catch(\Exception $e){
+
 		}
 
-		$xmlMdfe = Mdfe::
-		whereBetween('updated_at', [
-			$this->parseDate($request->data_inicial), 
-			$this->parseDate($request->data_final, true)])
-		->where('estado', 'APROVADO')
-		->get();
+		try{
+			$xmlNfce = VendaCaixa::
+			whereBetween('updated_at', [
+				$this->parseDate($request->data_inicial), 
+				$this->parseDate($request->data_final, true)])
+			->where('estado', 'APROVADO')
+			->get();
 
-		if(count($xmlMdfe) > 0){
+			if(count($xmlNfce) > 0){
 
+				$zip_file = $public.'xmlnfce.zip';
+				$zip = new \ZipArchive();
+				$zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
-			$zip_file = $public.'xmlmdfe.zip';
-			$zip = new \ZipArchive();
-			$zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-
-			foreach($xmlMdfe as $x){
-				if(file_exists($public.'xml_mdfe/'.$x->chave. '.xml'))
-					$zip->addFile($public.'xml_mdfe/'.$x->chave. '.xml', $x->path_xml);
+				foreach($xmlNfce as $x){
+					if(file_exists($public.'xml_nfce/'.$x->chave. '.xml'))
+						$zip->addFile($public.'xml_nfce/'.$x->chave. '.xml', $x->path_xml);
+				}
+				$zip->close();
 			}
-			$zip->close();
+		}catch(\Exception $e){
+
+		}
+
+		try{
+			$xmlMdfe = Mdfe::
+			whereBetween('updated_at', [
+				$this->parseDate($request->data_inicial), 
+				$this->parseDate($request->data_final, true)])
+			->where('estado', 'APROVADO')
+			->get();
+
+			if(count($xmlMdfe) > 0){
+
+
+				$zip_file = $public.'xmlmdfe.zip';
+				$zip = new \ZipArchive();
+				$zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+				foreach($xmlMdfe as $x){
+					if(file_exists($public.'xml_mdfe/'.$x->chave. '.xml'))
+						$zip->addFile($public.'xml_mdfe/'.$x->chave. '.xml', $x->path_xml);
+				}
+				$zip->close();
+
+			}
+		}catch(\Exception $e){
 
 		}
 
@@ -215,6 +231,7 @@ class EnviarXmlController extends Controller
 				}
 				$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
 
+				$nomeEmail = getenv('MAIL_NAME');
 				$nomeEmail = str_replace("_", " ", $nomeEmail);
 				$m->from(getenv('MAIL_USERNAME'), $nomeEmail);
 				$m->subject('Envio de XML');
@@ -237,7 +254,7 @@ class EnviarXmlController extends Controller
 					die();
 				}
 				$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
-
+				$nomeEmail = getenv('MAIL_NAME');
 				$nomeEmail = str_replace("_", " ", $nomeEmail);
 				$m->from(getenv('MAIL_USERNAME'), $nomeEmail);
 				$m->subject('Envio de XML');
@@ -260,7 +277,7 @@ class EnviarXmlController extends Controller
 					die();
 				}
 				$public = getenv('SERVIDOR_WEB') ? 'public/' : '';
-
+				$nomeEmail = getenv('MAIL_NAME');
 				$nomeEmail = str_replace("_", " ", $nomeEmail);
 				$m->from(getenv('MAIL_USERNAME'), $nomeEmail);
 				$m->subject('Envio de XML');
@@ -271,6 +288,8 @@ class EnviarXmlController extends Controller
 		echo '<h1>Email enviado</h1>';
 
 	}
+
+	
 	
 
 }

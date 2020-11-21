@@ -18,6 +18,8 @@
 			</div>
 		</div>
 		@endif
+		
+		
 
 		<div class="row">
 			<div class="col s6">
@@ -30,37 +32,65 @@
 					<i class="material-icons left">cloud</i>
 				Fazer upload agora</a>
 				@else
-				<a onclick = "if (! confirm('Deseja excluir o certificado')) { return false; }" class="btn red" href="/configNF/deleteCertificado">
-					<i class="material-icons left">close</i>
+				<a onclick='swal("Atenção!", "Deseja remover o certificado?", "warning").then((sim) => {if(sim){ location.href="/configNF/deleteCertificado" }else{return false} })' href="#!" class="btn red">
+					<!-- <i class="material-icons left">close</i> -->
 				Deletar Certificado</a>
+				<a id="testar" class="btn indigo">Testar ambiente Sefaz</a>
+
+
+				<div id="preloader" style="display: none">
+					<br><div class="col s12 center-align">
+						<div class="preloader-wrapper active">
+							<div class="spinner-layer spinner--only">
+								<div class="circle-clipper left">
+									<div class="circle"></div>
+								</div><div class="gap-patch">
+									<div class="circle"></div>
+								</div><div class="circle-clipper right">
+									<div class="circle"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+
 
 				<h6>Serial Certificado: <strong class="green-text">{{$infoCertificado['serial']}}</strong></h6>
 				<h6>Inicio: <strong class="green-text">{{$infoCertificado['inicio']}}</strong></h6>
 				<h6>Expiração: <strong class="green-text">{{$infoCertificado['expiracao']}}</strong></h6>
 				<h6>IDCTX: <strong class="green-text">{{$infoCertificado['id']}}</strong></h6>
 
-				<a id="testar" class="btn indigo">Testar ambiente</a>
+				
+				@endif
 
-				<div class="col s2">
-					<div id="preloader" style="display: none">
-						<div class="col s12 center-align">
-							<div class="preloader-wrapper active">
-								<div class="spinner-layer spinner--only">
-									<div class="circle-clipper left">
-										<div class="circle"></div>
-									</div><div class="gap-patch">
-										<div class="circle"></div>
-									</div><div class="circle-clipper right">
-										<div class="circle"></div>
-									</div>
+				<a style="margin-top: 10px;" id="testarEmail" class="btn orange">Testar Email</a>
+
+				<div id="preloaderEmail" style="display: none">
+					<br><div class="col s12 center-align">
+						<div class="preloader-wrapper active">
+							<div class="spinner-layer spinner--only">
+								<div class="circle-clipper left">
+									<div class="circle"></div>
+								</div><div class="gap-patch">
+									<div class="circle"></div>
+								</div><div class="circle-clipper right">
+									<div class="circle"></div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
+
+
+				@if($soapDesativado)
+				<h6 class="red-text">>>Ative no arquivo php.ini a extensão SOAP</h6>
 				@endif
+
+
 			</div>
 		</div>
+
 		<form method="post" action="/configNF/save" enctype="multipart/form-data">
 			<input type="hidden" name="id" value="{{{ isset($config->id) ? $config->id : 0 }}}">
 
@@ -232,7 +262,7 @@
 
 				<div class="row">
 					<div class="input-field col s3">
-						<input value="{{{ isset($config->pais) ? $config->pais : old('pais') }}}" id="pais" name="pais" type="text" class="validate upper-input">
+						<input value="{{{ isset($config->pais) ? $config->pais : old('pais') }}}" id="pais" placeholder="Brasil" name="pais" type="text" class="validate upper-input">
 						<label for="pais">Pais</label>
 
 						@if($errors->has('pais'))
@@ -243,7 +273,7 @@
 
 					</div>
 					<div class="input-field col s2">
-						<input value="{{{ isset($config->codPais) ? $config->codPais : old('codPais') }}}" id="codPais" name="codPais" type="text" class="validate">
+						<input value="{{{ isset($config->codPais) ? $config->codPais : old('codPais') }}}" placeholder="1058" id="codPais" name="codPais" type="text" class="validate">
 						<label for="codPais">Codigo do Pais</label>
 
 						@if($errors->has('codPais'))
@@ -483,6 +513,47 @@
 							</div>
 							@endif
 						</div>
+					</div>
+
+					<div class="row">
+						<div class="input-field col s4">
+
+							<input value="{{{ isset($config->csc) ? $config->csc : old('csc') }}}" id="csc" name="csc" type="text" class="validate">
+							<label for="csc">CSC</label>
+
+							@if($errors->has('csc'))
+							<div class="center-align red lighten-2">
+								<span class="white-text">{{ $errors->first('csc') }}</span>
+							</div>
+							@endif
+						</div>
+
+						<div class="input-field col s2">
+
+							<input value="{{{ isset($config->csc_id) ? $config->csc_id : old('csc_id') }}}" id="csc_id" name="csc_id" type="text" class="validate">
+							<label for="csc_id">CSC ID</label>
+
+							@if($errors->has('csc_id'))
+							<div class="center-align red lighten-2">
+								<span class="white-text">{{ $errors->first('csc_id') }}</span>
+							</div>
+							@endif
+						</div>
+
+						<div class="col s2">
+							<label>Certificado A3</label>
+							<div class="switch">
+								<label class="">
+									Não
+									<input @if(isset($config->certificado_a3) && $config->certificado_a3) checked @endisset value="true" name="certificado_a3" class="red-text" type="checkbox">
+									<span class="lever"></span>
+									Sim
+								</label>
+
+							</div>
+							<span class="red-text">*Em desenvolvimento</span>
+						</div>
+
 					</div>
 				</section>
 

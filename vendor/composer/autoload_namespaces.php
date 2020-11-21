@@ -7,11 +7,11 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'stock' => array($baseDir . '/app/Helpers/StockMove.php'),
+    'UpdateHelper\\' => array($vendorDir . '/kylekatarnls/update-helper/src'),
+    'SimpleSoftwareIO\\QrCode\\' => array($vendorDir . '/simplesoftwareio/simple-qrcode/src'),
     'Sabberworm\\CSS' => array($vendorDir . '/sabberworm/php-css-parser/lib'),
-    'Prophecy\\' => array($vendorDir . '/phpspec/prophecy/src'),
     'Parsedown' => array($vendorDir . '/erusev/parsedown'),
     'Mockery' => array($vendorDir . '/mockery/mockery/library'),
     'ForceUTF8\\' => array($vendorDir . '/neitanod/forceutf8/src'),
-    'Doctrine\\Common\\Lexer\\' => array($vendorDir . '/doctrine/lexer/lib'),
     'BaconQrCode' => array($vendorDir . '/bacon/bacon-qr-code/src'),
 );

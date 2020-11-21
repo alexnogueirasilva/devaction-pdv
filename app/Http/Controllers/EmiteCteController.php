@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\CTeService;
-use App\Services\NFeService;
+use App\Services\NFService;
 use App\ConfigNota;
 use App\Cte;
 use NFePHP\DA\CTe\Dacte;
@@ -83,7 +83,7 @@ class EmiteCteController extends Controller
 		$cnpj = str_replace("/", "", $cnpj);
 		$cnpj = str_replace("-", "", $cnpj);
 		$cnpj = str_replace(" ", "", $cnpj);
-		$nfe_service = new NFeService([
+		$nfe_service = new NFService([
 			"atualizacao" => date('Y-m-d h:i:s'),
 			"tpAmb" => (int)$config->ambiente, // ambiente de producao para consulta nfe
 			"razaosocial" => $config->razao_social,
@@ -92,9 +92,9 @@ class EmiteCteController extends Controller
 			"schemes" => "PL_009_V4",
 			"versao" => "4.00",
 			"tokenIBPT" => "AAAAAAA",
-			"CSC" => "GPB0JBWLUR6HWFTVEAS6RJ69GPCROFPBBB8G",
-			"CSCid" => "000002"
-		], 55);
+			"CSC" => $config->csc,
+			"CSCid" => $config->csc_id
+		]);
 
 		$consulta = $nfe_service->consultaChave($request['chave']);
 		echo json_encode($consulta);

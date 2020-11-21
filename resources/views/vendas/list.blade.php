@@ -1,6 +1,5 @@
 @extends('default.layout')
 @section('content')
-
 <div class="row">
 	<div class="col s12">
 
@@ -105,17 +104,30 @@
 						<th>{{ \Carbon\Carbon::parse($v->data_registro)->format('d/m/Y H:i:s')}}</th>
 						<td id="numeroNf">{{$v->NfNumero}}</td>
 
-
 						<td>{{$v->forma_pagamento}}</td>
 						<td>{{$v->getTipoPagamento()}}</td>
 						<td>
 							@if($v->estado == 'DISPONIVEL')
-							<a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/vendas/delete/{{ $v->id }}">
+							<a onclick='swal("Atenção!", "Deseja remover este registro?", "warning").then((sim) => {if(sim){ location.href="/vendas/delete/{{ $v->id }}" }else{return false} })' href="#!">
 								<i class="material-icons left red-text">delete</i>					
+							</a>
+							@endif
+							@if($v->estado == 'DISPONIVEL' || $v->estado == 'REJEITADO')
+
+							<a onclick='swal("Atenção!", "Deseja editar este registro?", "warning").then((sim) => {if(sim){ location.href="/vendas/edit/{{ $v->id }}" }else{return false} })' href="#!">
+								<i class="material-icons left blue-text">edit</i>					
 							</a>
 							@endif
 							<a href="/vendas/detalhar/{{ $v->id }}">
 								<i class="material-icons left orange-text">visibility</i>
+							</a>
+
+							<a title="Clonar venda" href="/vendas/clone/{{ $v->id }}">
+								<i class="material-icons left purple-text">content_copy</i>
+							</a>
+
+							<a target="_blank" title="Ver XML" href="/vendas/gerarXml/{{ $v->id }}">
+								<i class="material-icons left red-text">insert_drive_file</i>
 							</a>
 						</td>
 
@@ -160,7 +172,7 @@
 			</div>
 		</div>
 
-
+		@if($certificado != null)
 		<div class="row">
 			<div class="col s2">
 				<a id="btn-enviar" onclick="enviar()" style="width: 100%" class="btn-large green" href="#!">Enviar</a>
@@ -189,7 +201,11 @@
 		<div class="row">
 
 			<div class="col s2">
-				<a id="btn-danfe" target="_black" style="width: 100%" class="btn-large blue waves-light">Gerar Danfe</a>
+				<a id="btn-danfe" target="_blank" style="width: 100%" class="btn-large blue waves-light">Gerar Danfe</a>
+			</div>
+
+			<div class="col s2">
+				<a id="btn-baixar-xml" onclick="baixarXml()" target="_blank" style="width: 100%" class="btn-large brown waves-light">Baixar XML</a>
 			</div>
 
 			<div class="col s2">
@@ -208,6 +224,10 @@
 				<a id="btn-imprimir-cancelar" onclick="imprimirCancela()" style="width: 100%" class="btn-large red lighten-2 waves-light" href="#!">Imprimir Cancela</a>
 			</div>
 		</div>
+		@else
+
+		<input type="hidden" id="semCertificado" value="true" name="">
+		@endif
 	</div>
 </div>
 

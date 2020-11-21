@@ -20,7 +20,7 @@
 				<h4>Estado Atual: @if($pedido->estado == 'nv')
 					<strong class="blue-text">NOVO</strong>
 					@elseif($pedido->estado == 'rp')
-					<strong class="red-text">REPORVADO</strong>
+					<strong class="red-text">REPROVADO</strong>
 					@elseif($pedido->estado == 'rc')
 					<strong class="yellow-text">RECUSADO</strong>
 					@elseif($pedido->estado == 'ap')
@@ -59,6 +59,15 @@
 				<a class="btn cyan waves-light blue modal-trigger" href="#modal-push">
 					<i class="material-icons left">notifications</i> Enviar Push
 				</a>
+
+				@else
+
+				@if(sizeof($pedido->cliente->tokensWeb) > 0)
+				<a class="btn cyan waves-light blue modal-trigger" href="#modal-push-web">
+					<i class="material-icons left">notifications</i> Enviar Push Web
+				</a>
+
+				@endif
 				@endif
 
 				<a onclick="setaTelefone('{{$pedido->telefone}}')" class="btn cyan waves-light orange modal-trigger" href="#modal-sms">
@@ -69,11 +78,11 @@
 			</div>
 
 			<div class="col s12">
-				<h4>Total do Pedido: <strong class="cyan-text">{{number_format($pedido->somaItens(),2 , ',', '.')}}</strong></h4>
+				<h4>Valor da Entrega: <strong class="cyan-text">{{number_format($pedido->calculaFrete(), 2 , ',', '.')}}</strong></h4>
+				<h4>Total do Pedido: <strong class="cyan-text">{{number_format($pedido->valor_total,2 , ',', '.')}}</strong></h4>
+				
 				<h4>Total de Itens: <strong class="cyan-text">{{count($pedido->itens)}}</strong></h4>
 				<h4>Forma de pagamento: <strong class="cyan-text">{{strtoupper($pedido->forma_pagamento)}}</strong></h4>
-
-				
 
 				@if($pedido->observacao != '')
 				<h4>Observação: <strong class="cyan-text">{{$pedido->observacao}}</strong></h4>
@@ -164,7 +173,7 @@
 							{{$s->produto->produto->nome}}<br>
 
 							@endforeach
-							<strong>Tamanho: {{$i->tamanho->nome}} - {{$i->tamanho->pedacos}} pedaços</strong>
+							<strong>Tamanho: {{$i->tamanho->nome()}} - {{$i->tamanho->pedacos}} pedaços</strong>
 							@else
 							--
 							@endif
@@ -203,7 +212,7 @@
 							@if(count($i->itensAdicionais) > 0)
 
 							@foreach($i->itensAdicionais as $key => $ad)
-							{{$ad->adicional->nome}} 
+							{{$ad->adicional->nome()}} 
 							@if($key < count($i->itensAdicionais)-1)
 							|
 							@endif
@@ -295,7 +304,7 @@
 <div id="modal-endereco" class="modal">
 	<div class="modal-content">
 		<h5>Rua: <strong id="rua">{{$pedido->endereco->rua}}, {{$pedido->endereco->numero}}</strong></h5>
-		<h5>Bairro: <strong id="bairro">{{$pedido->endereco->bairro}}</strong></h5>
+		<h5>Bairro: <strong id="bairro">{{$pedido->endereco->bairroComValor()}}</strong></h5>
 		<h5>Referência: <strong id="referencia">{{$pedido->endereco->referencia}}</strong></h5>
 
 	</div>
@@ -334,6 +343,39 @@
 	</div>
 	<div class="modal-footer">
 		<a href="#!" id="btn-enviar-push" class="modal-action btn blue">Enviar Push</a>
+		<a href="#!" class="modal-action modal-close btn grey">Fechar</a>
+	</div>
+</div>
+
+<div id="modal-push-web" class="modal">
+	<div class="row">
+		<div class="col s2 offset-s5">
+			<i class="material-icons large pink-text">notifications</i>
+		</div>
+	</div>
+	<div class="modal-content">
+		<div class="row">
+			<div class="col s6 input-field">
+				<input type="text" id="titulo-push-web">
+				<label>Titulo Push</label>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col s12 input-field">
+				<input type="text" id="texto-push-web">
+				<label>Texto Push</label>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col s12 input-field">
+				<input type="text" id="imagem-push-web">
+				<label>URL Imagem (opcional)</label>
+			</div>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<a href="#!" id="btn-enviar-push-web" class="modal-action btn blue">Enviar Push Web</a>
 		<a href="#!" class="modal-action modal-close btn grey">Fechar</a>
 	</div>
 </div>

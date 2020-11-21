@@ -8,11 +8,8 @@ class Produto extends Model
 {
 	protected $fillable = [
 		'nome', 'categoria_id', 'cor', 'valor_venda', 'NCM', 'CST_CSOSN', 'CST_PIS', 'CST_COFINS', 'CST_IPI', 'unidade_compra', 'unidade_venda', 'composto', 'codBarras', 'conversao_unitaria', 'valor_livre', 'perc_icms', 'perc_pis', 'perc_cofins', 'perc_ipi', 'CFOP_saida_estadual', 'CFOP_saida_inter_estadual', 'codigo_anp', 
-		'descricao_anp', 'perc_iss', 'cListServ', 'imagem', 'alerta_vencimento'
-	];
-
-	protected $hidden = [
-		'NCM', 'CST_CSOSN', 'CST_PIS', 'CST_COFINS', 'CST_IPI', 'codBarras', 'perc_iss'
+		'descricao_anp', 'perc_iss', 'cListServ', 'imagem', 'alerta_vencimento', 'valor_compra', 'gerenciar_estoque', 
+		'estoque_minimo', 'referencia'
 	];
 
 	public function categoria(){
@@ -27,15 +24,26 @@ class Produto extends Model
 		return $this->hasOne('App\ProdutoDelivery', 'produto_id', 'id');
 	}
 
-	public static function verificaCadastrado($ean, $nome){
+	public function listaPreco(){
+		return $this->hasMany('App\ProdutoListaPreco', 'produto_id', 'id');
+	}
+
+	public static function verificaCadastrado($ean, $nome, $referencia){
+		$result = null;
 		$result = Produto::
-		where('codBarras', $ean)
-		->where('codBarras', '!=', 'SEM GTIN')
+		where('referencia', $referencia)
 		->first();
 
 		if(!$result){
 			$result = Produto::
 			where('nome', $nome)
+			->first();
+		}
+
+		if(!$result){
+			$result = Produto::
+			where('codBarras', $ean)
+			->where('codBarras', '!=', 'SEM GTIN')
 			->first();
 		}
 
@@ -285,6 +293,14 @@ class Produto extends Model
 			'420301001' =>	'OLEO DIESEL PADRAO',	
 			'820101034' =>	'OLEO DIESEL B S10 - COMUM'
 		];
+	}
+
+	public function somaVendas(){
+		$sql = \DB::table('item_vendas')
+		->select(\DB::raw('SUM(quantidade) as quantidade'))
+		->where('produto_id', $this->id)
+		->first();
+		return $sql->quantidade ? $sql->quantidade : 0;
 	}
 
 }

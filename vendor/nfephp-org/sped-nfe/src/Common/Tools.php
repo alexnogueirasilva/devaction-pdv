@@ -194,7 +194,6 @@ class Tools
         if (empty($contingency)) {
             $this->contingency = new Contingency();
         }
-        $this->soap = new SoapCurl($certificate);
     }
 
     /**
@@ -347,7 +346,7 @@ class Tools
     public function signNFe($xml)
     {
         if (empty($xml)) {
-            throw new InvalidArgumentException('$xml');
+            throw new InvalidArgumentException('O argumento xml passado para ser assinado está vazio.');
         }
         //remove all invalid strings
         $xml = Strings::clearXmlString($xml);

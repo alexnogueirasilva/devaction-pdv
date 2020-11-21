@@ -8,26 +8,27 @@ use App\ItemVenda;
 use App\VendaCaixa;
 use App\ItemVendaCaixa;
 use App\Compra;
+use App\Estoque;
+use App\Produto;
 use Dompdf\Dompdf;
-
 
 class RelatorioController extends Controller
 {
 
 	public function __construct(){
-        $this->middleware(function ($request, $next) {
-            $value = session('user_logged');
-            if(!$value){
-                return redirect("/login");
-            }else{
-                if($value['acesso_cliente'] == 0){
-                    return redirect("/sempermissao");
-                }
-            }
-            return $next($request);
-        });
-    }
-    
+		$this->middleware(function ($request, $next) {
+			$value = session('user_logged');
+			if(!$value){
+				return redirect("/login");
+			}else{
+				if($value['acesso_cliente'] == 0){
+					return redirect("/sempermissao");
+				}
+			}
+			return $next($request);
+		});
+	}
+
 	public function index(){
 		return view('relatorios/index')
 		->with('relatorioJS', true)
@@ -55,7 +56,8 @@ class RelatorioController extends Controller
 			}
 		})
 		->groupBy('data')
-		->orderBy('total', $ordem)
+		->orderBy($ordem == 'data' ? 'data' : 'total', $ordem == 'data' ? 'desc' : $ordem)
+
 
 		->limit($total_resultados ?? 1000000)
 		->get();
@@ -291,16 +293,161 @@ class RelatorioController extends Controller
 		$domPdf->stream("relatorio de compras.pdf");
 	}
 
+	public function filtroEstoqueMinimo(Request $request){
+		$data_inicial = $request->data_inicial;
+		$data_final = $request->data_final;
+		$total_resultados = $request->total_resultados;
+		$ordem = $request->ordem;
+		
+		if($data_final && $data_final){
+			$data_inicial = $this->parseDate($data_inicial);
+			$data_final = $this->parseDate($data_final, true);
+		}
+
+		$produtos = Produto::all();
+		$arrDesfalque = [];
+		foreach($produtos as $p){
+			if($p->estoque_minimo > 0){
+				$estoque = Estoque::where('produto_id', $p->id)->first();
+				$temp = null;
+				if($estoque == null){
+					$temp = [
+						'id' => $p->id,
+						'nome' => $p->nome,
+						'estoque_minimo' => $p->estoque_minimo,
+						'estoque_atual' => 0,
+						'total_comprar' => $p->estoque_minimo,
+						'valor_compra' => 0
+					];
+				}else{
+					$temp = [
+						'id' => $p->id,
+						'nome' => $p->nome,
+						'estoque_minimo' => $p->estoque_minimo,
+						'estoque_atual' => $estoque->quantidade,
+						'total_comprar' => $p->estoque_minimo - $estoque->quantidade,
+						'valor_compra' => $estoque->valor_compra
+					];
+				}
+
+				array_push($arrDesfalque, $temp);
+
+			}
+		}
+
+		if($total_resultados){
+			$arrDesfalque = array_slice($arrDesfalque, 0, $total_resultados);
+		}
+
+		// print_r($arrDesfalque);
+
+		$p = view('relatorios/relatorio_estoque_minimo')
+		->with('ordem', $ordem == 'asc' ? 'Menos' : 'Mais')
+		->with('data_inicial', $request->data_inicial)
+		->with('data_final', $request->data_final)
+		->with('itens', $arrDesfalque);
+
+		// return $p;
+
+		$domPdf = new Dompdf(["enable_remote" => true]);
+		$domPdf->loadHtml($p);
+
+		$pdf = ob_get_clean();
+
+		$domPdf->setPaper("A4");
+		$domPdf->render();
+		$domPdf->stream("relatorio de estoque minimo.pdf");
+	}
+
+	public function filtroVendaDiaria(Request $request){
+		$data = $request->data_inicial;
+		$total_resultados = $request->total_resultados;
+		$ordem = $request->ordem;
+
+		$data_inicial = null;
+		$data_final = null;
+		if(strlen($data) == 0){
+			session()->flash('color', 'red');
+			session()->flash("message", "Informe o dia para gerar o relatório!");
+			return redirect('/relatorios');
+		}else{
+			$data_inicial = $this->parseDateDay($data);
+			$data_final = $this->parseDateDay($data, true);
+		}
+
+		$vendas = Venda
+		::select(\DB::raw('vendas.id, DATE_FORMAT(vendas.data_registro, "%d-%m-%Y %H:%i") as data, valor_total'))
+		->join('item_vendas', 'item_vendas.venda_id', '=', 'vendas.id')
+		->orWhere(function($q) use ($data_inicial, $data_final){
+			if($data_final && $data_final){
+				return $q->whereBetween('vendas.created_at', [$data_inicial, 
+					$data_final]);
+			}
+		})
+		->groupBy('vendas.id')
+
+		->limit($total_resultados ?? 1000000)
+		->get();
+
+		$vendasCaixa = VendaCaixa
+		::select(\DB::raw('venda_caixas.id, DATE_FORMAT(venda_caixas.data_registro, "%d-%m-%Y %H:%i") as data, valor_total'))
+		->join('item_venda_caixas', 'item_venda_caixas.venda_caixa_id', '=', 'venda_caixas.id')
+
+		->orWhere(function($q) use ($data_inicial, $data_final){
+			if($data_final && $data_final){
+				return $q->whereBetween('venda_caixas.created_at', [$data_inicial, 
+					$data_final]);
+			}
+		})
+		->groupBy('venda_caixas.id')
+		->limit($total_resultados ?? 1000000)
+		->get();
+
+
+		$arr = $this->uneArrayVendasDay($vendas, $vendasCaixa);
+		if($total_resultados){
+			$arr = array_slice($arr, 0, $total_resultados);
+		}
+
+		// usort($arr, function($a, $b) use ($ordem){
+		// 	if($ordem == 'asc') return $a['total'] > $b['total'];
+		// 	else if($ordem == 'desc') return $a['total'] < $b['total'];
+		// 	else return $a['data'] < $b['data'];
+		// });
+
+		if(sizeof($arr) == 0){
+			session()->flash('color', 'red');
+			session()->flash("message", "Relatório sem registro!");
+			return redirect('/relatorios');
+		}
+
+		$p = view('relatorios/relatorio_diario')
+		->with('ordem', $ordem == 'asc' ? 'Menos' : 'Mais')
+
+		->with('data_inicial', $request->data_inicial)
+		->with('data_final', $request->data_final)
+		->with('vendas', $arr);
+
+		// return $p;
+
+		$domPdf = new Dompdf(["enable_remote" => true]);
+		$domPdf->loadHtml($p);
+
+		$pdf = ob_get_clean();
+
+		$domPdf->setPaper("A4");
+		$domPdf->render();
+		$domPdf->stream("relatorio de vendas.pdf");
+	}
 
 	private function uneArrayVendas($vendas, $vendasCaixa){
 		$adicionados = [];
 		$arr = [];
 
 		foreach($vendas as $v){
-
 			$temp = [
 				'data' => $v->data,
-				'total' => $v->total,
+				'total' => $v->valor_total,
 				'itens' => $v->itens
 			];
 			array_push($adicionados, $v->id);
@@ -312,7 +459,7 @@ class RelatorioController extends Controller
 			if(!in_array($v->data, $adicionados)){
 				$temp = [
 					'data' => $v->data,
-					'total' => $v->total,
+					'total' => $v->valor_total,
 					'itens' => $v->itens
 				];
 				array_push($adicionados, $v->data);
@@ -325,6 +472,39 @@ class RelatorioController extends Controller
 					}
 				}
 			}
+		}
+		return $arr;
+	}
+
+	private function uneArrayVendasDay($vendas, $vendasCaixa){
+		$adicionados = [];
+		$arr = [];
+
+		foreach($vendas as $v){
+
+			$temp = [
+				'id' => $v->id,
+				'data' => $v->data,
+				'total' => $v->valor_total,
+				'itens' => $v->itens
+			];
+			array_push($adicionados, $v->id);
+			array_push($arr, $temp);
+			
+		}
+
+		foreach($vendasCaixa as $v){
+
+			$temp = [
+				'id' => $v->id,
+				'data' => $v->data,
+				'total' => $v->valor_total,
+				'itens' => $v->itens
+			];
+
+			array_push($adicionados, $v->data);
+			array_push($arr, $temp);
+			
 		}
 		return $arr;
 	}
@@ -376,5 +556,13 @@ class RelatorioController extends Controller
 			return date('Y-m-d', strtotime(str_replace("/", "-", $date)));
 		else
 			return date('Y-m-d', strtotime("+1 day",strtotime(str_replace("/", "-", $date))));
+	}
+
+	private static function parseDateDay($date, $plusDay = false){
+		if($plusDay == false)
+			return date('Y-m-d', strtotime(str_replace("/", "-", $date))) . " 00:00";
+		else
+			return date('Y-m-d', strtotime(str_replace("/", "-", $date))) . " 23:59";
+
 	}
 }

@@ -131,12 +131,16 @@ function enviarEmail(){
 	.done(function(data){
 		console.log(data)
 		$('#preloader6').css('display', 'none');
-		alert('Email enviado com sucesso!');
+		// alert('Email enviado com sucesso!');
+		swal("Sucesso", 'Email enviado com sucesso!', "success")
+
 	})
 	.fail(function(err){
 		console.log(err)
 		$('#preloader6').css('display', 'none');
-		alert('Erro ao enviar email!')
+		// alert('Erro ao enviar email!')
+		swal("Erro", 'Erro ao enviar email!', "warning")
+
 	})
 }
 
@@ -162,7 +166,24 @@ function imprimir(){
 	if(cont > 1){
 		Materialize.toast('Selecione apenas um documento para impressão!', 5000)
 	}else{
-		window.open(path+"/orcamentoVenda/imprimir/"+id, "_blank");
+		window.open(path+"orcamentoVenda/imprimir/"+id, "_blank");
+	}
+}
+
+function imprimirCompleto(){
+	let id = 0;
+	let cont = 0;
+	$('#body tr').each(function(){
+		if($(this).find('#checkbox input').is(':checked')){
+			id = $(this).find('#id').html();
+			cont++
+		}
+	})
+
+	if(cont > 1){
+		Materialize.toast('Selecione apenas um documento para impressão!', 5000)
+	}else{
+		window.open(path+"orcamentoVenda/imprimirCompleto/"+id, "_blank");
 	}
 }
 

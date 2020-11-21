@@ -40,12 +40,14 @@
 			<thead>
 				<tr>
 					<th>#</th>
+					<th>C.SAID</th>
 					<th>Produto</th>
+					<th>Conv. CFOP</th>
 					<th>Valor</th>
 					<th>Validade</th>
 					<th>Quantidade</th>
 					<th>Subtotal</th>
-					<th>Ações</th>
+					<!-- <th>Ações</th> -->
 				</tr>
 			</thead>
 
@@ -54,17 +56,19 @@
 				@foreach($compra->itens as $i)
 				<tr>
 					<td>{{$i->produto_id}}</td>
+					<td>{{$i->codigo_siad}}</td>
 					<td>{{$i->produto->nome}}</td>
+					<td>{{$i->cfop_entrada}}</td>
 					<td>{{number_format($i->valor_unitario, 2, ',', '.')}}</td>
 					<td>{{ \Carbon\Carbon::parse($i->validade)->format('d/m/Y')}}</td>
 
 					<td>{{$i->quantidade}}</td>
 					<td>{{number_format(($i->valor_unitario * $i->quantidade), 2, ',', '.')}}</td>
-					<td>
+					<!-- <td>
 						<a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/pedidos/deleteItem/{{ $i->id }}">
 							<i class="material-icons left red-text">delete</i>					
 						</a>
-					</td>
+					</td> -->
 				</tr>
 				@endforeach
 			</tbody>

@@ -13,7 +13,13 @@ use App\TamanhoPizza;
 use App\TokenWeb;
 use Comtele\Services\TextMessageService;
 use App\Rules\CelularDup;
+use App\Rules\EmailDup;
 use App\ItemPedidoDelivery;
+use App\EnderecoDelivery;
+use App\PedidoDelivery;
+use App\BairroDelivery;
+
+use App\FuncionamentoDelivery;
 
 class DeliveryController extends Controller
 {
@@ -23,7 +29,6 @@ class DeliveryController extends Controller
 
         $this->config = DeliveryConfig::first();
         $delivery = getenv("DELIVERY");
-
         
     }
 
@@ -66,8 +71,6 @@ class DeliveryController extends Controller
             if($d->limite_diario <= $soma){
                 $d->block = true;
             }
-
-
         }
 
         if($this->config == null || getenv("DELIVERY") == 0) {
@@ -84,91 +87,190 @@ class DeliveryController extends Controller
     }
 
     public function cardapio(){
-        session()->forget('tamanho_pizza');
-        session()->forget('sabores');
-        $categorias = CategoriaProdutoDelivery::all();
 
-        return view('delivery/categorias')
-        ->with('categorias', $categorias)
-        ->with('config', $this->config)
-        ->with('tokenJs', true)
-        ->with('title', 'CARDÁPIO');
+        $funcionamento = $this->funcionamento();
+        if(!$funcionamento['status']){
+            if($funcionamento['funcionamento'] != null){
+                session()->flash("message_erro", "Delivery das " .$funcionamento['funcionamento']->inicio_expediente. " às ".$funcionamento['funcionamento']->fim_expediente);
+
+            }else{
+                session()->flash("message_erro", "Não haverá delivery no dia de hoje!");
+            }
+            return redirect('/'); 
+        }
+        $value = session('cliente_log');
+        if($value){
+            session()->forget('tamanho_pizza');
+            session()->forget('sabores');
+            $categorias = CategoriaProdutoDelivery::all();
+
+            return view('delivery/categorias')
+            ->with('categorias', $categorias)
+            ->with('config', $this->config)
+            ->with('tokenJs', true)
+            ->with('title', 'CARDÁPIO');
+        }else{
+            session()->flash("message_erro", "Voce precisa estar logado para comprar nossos produtos");
+            return redirect('/autenticar'); 
+        }
     }
 
     public function produtos($id){
 
-        $categoria = CategoriaProdutoDelivery::where('id', $id)->first();
+        $funcionamento = $this->funcionamento();
+        if(!$funcionamento['status']){
+            if($funcionamento['funcionamento'] != null){
+                session()->flash("message_erro", "Delivery das " .$funcionamento['funcionamento']->inicio_expediente. " às ".$funcionamento['funcionamento']->fim_expediente);
 
-        if(strpos(strtolower($categoria->nome), 'izza') !== false){
-
-            $tamanhos = TamanhoPizza::all();
-            return view('delivery/tipoPizza')
-            ->with('tamanhos', $tamanhos)
-            ->with('config', $this->config)
-            ->with('categoria', $categoria)
-            ->with('title', 'TIPO DA PIZZA'); 
-
-        }else{
-           return view('delivery/produtos')
-           ->with('produtos', $categoria->produtos)
-           ->with('categoria', $categoria)
-           ->with('config', $this->config)
-           ->with('title', 'PRODUTOS'); 
-       }
-
-   }
-
-   public function verProduto($id){
-
-    $produto = ProdutoDelivery
-    ::where('id', $id)
-    ->first();
-
-    return view('delivery/ver_produto')
-    ->with('produto', $produto)
-    ->with('config', $this->config)
-    ->with('title', 'ADICIONAR'); 
-
-
-}
-
-public function escolherSabores(Request $request){
-
-    if($request->tipo){
-        $tipo = $request->tipo;
-        $tamanho = explode("-", $tipo)[0];
-        $auxSabor = $sabores = explode("-", $tipo)[1];
-        $categoria = $request->categoria;
-
-        $session = [
-            'tamanho' => $tamanho,
-            'sabores' => $sabores
-        ];
-
-        session(['tamanho_pizza' => $session]);
-
-
-        $t = TamanhoPizza::
-        where('nome', $tamanho)
-        ->first();
-        $tamanho = session('tamanho_pizza');
-
-        $sabores = session('sabores');
-
-        if(empty($sabores) && $request->produto > 0){
-            $session = [
-                $request->produto,
-            ];
-            session(['sabores' => $session]);
-            $sabores = session('sabores');
-            if($auxSabor == 1){
-                return redirect('/pizza/adicionais');
+            }else{
+                session()->flash("message_erro", "Não haverá delivery no dia de hoje!");
             }
+            return redirect('/'); 
         }
 
+        $value = session('cliente_log');
+        if($value){
+            $categoria = CategoriaProdutoDelivery::where('id', $id)->first();
 
+            if(strpos(strtolower($categoria->nome), 'izza') !== false){
+
+                $tamanhos = TamanhoPizza::all();
+                return view('delivery/tipoPizza')
+                ->with('tamanhos', $tamanhos)
+                ->with('config', $this->config)
+                ->with('categoria', $categoria)
+                ->with('title', 'TIPO DA PIZZA'); 
+
+            }else{
+                return view('delivery/produtos')
+                ->with('produtos', $categoria->produtos)
+                ->with('categoria', $categoria)
+                ->with('config', $this->config)
+                ->with('title', 'PRODUTOS'); 
+            }
+        }
+        else{
+            session()->flash("message_erro", "Voce precisa estar logado para comprar nossos produtos");
+            return redirect('/autenticar'); 
+        }
+
+    }
+
+    public function verProduto($id){
+
+        $produto = ProdutoDelivery
+        ::where('id', $id)
+        ->first();
+
+        return view('delivery/ver_produto')
+        ->with('produto', $produto)
+        ->with('config', $this->config)
+        ->with('title', 'ADICIONAR'); 
+
+
+    }
+
+    public function escolherSabores(Request $request){
+
+        if($request->tipo){
+            $tipo = $request->tipo;
+            $tamanho = explode("-", $tipo)[0];
+            $auxSabor = $sabores = explode("-", $tipo)[1];
+            $categoria = $request->categoria;
+
+            $session = [
+                'tamanho' => $tamanho,
+                'sabores' => $sabores
+            ];
+
+            session(['tamanho_pizza' => $session]);
+
+
+            $t = TamanhoPizza::
+            where('nome', $tamanho)
+            ->first();
+            $tamanho = session('tamanho_pizza');
+
+            $sabores = session('sabores');
+
+            if(empty($sabores) && $request->produto > 0){
+                $session = [
+                    $request->produto,
+                ];
+                session(['sabores' => $session]);
+                $sabores = session('sabores');
+                if($auxSabor == 1){
+                    return redirect('/pizza/adicionais');
+                }
+            }
+
+
+            $saboresIncluidos = [];
+            $valorPizza;
+            $somaValores = 0;
+            $valorPizza = 0;
+            $maiorValor = 0;
+            if($sabores){
+                foreach($sabores as $s){
+                    $p = ProdutoDelivery::
+                    where('id', $s)
+                    ->first();
+
+                    $p->produto;
+                    $p->galeria;
+
+
+                    foreach($p->pizza as $pz){
+                        if($tamanho['tamanho'] == $pz->tamanho->nome){
+                            $valor = $pz->valor;
+                        }
+                    }
+                    $somaValores += $p->valorPizza = $valor;
+                    if($valor > $maiorValor) $maiorValor = $valor;
+
+                    array_push($saboresIncluidos, $p);
+                }
+            }
+
+            if(getenv("DIVISAO_VALOR_PIZZA") == 1 && sizeof($sabores) > 0){
+                $valorPizza = $somaValores/sizeof($sabores);
+            }else{
+                $valorPizza = $maiorValor;
+            }
+
+            return view('delivery/pizzas')
+            ->with('pizzas', $t->produtoPizza)
+            ->with('config', $this->config)
+            ->with('pizzaJs', true)
+            ->with('categoria', $categoria)
+            ->with('valorPizza', $valorPizza)
+            ->with('saboresIncluidos', $saboresIncluidos)
+            ->with('title', 'PIZZAS'); 
+        }else{
+            session()->flash("message_erro", "Escolha um sabor");
+            return back()->withInput();
+        }
+    }
+
+    public function pesquisa(Request $request){
+        $pesquisa = $request->input('pesquisa');
+    // $pizzas = ProdutoDelivery::
+    // select('produto_pizzas.*')
+    // ->join('produto_deliveries', 'produto_pizzas.produto_id', '=', 'produto_deliveries.id')
+    // ->join('produtos', 'produtos.id', '=', 'produto_deliveries.produto_id')
+    // ->where('produtos.nome', 'LIKE', "%$pesquisa%")->get();
+        $tamanho = session('tamanho_pizza');
+        $produtos = ProdutoPizza::
+        select('produto_pizzas.*')
+        ->join('produto_deliveries', 'produto_pizzas.produto_id', '=', 'produto_deliveries.id')
+        ->join('tamanho_pizzas', 'produto_pizzas.tamanho_id', '=', 'tamanho_pizzas.id')
+        ->join('produtos', 'produtos.id', '=', 'produto_deliveries.produto_id')
+        ->where('produtos.nome', 'LIKE', "%$pesquisa%")
+        ->where('tamanho_pizzas.nome', $tamanho['tamanho'])
+        ->get();
+
+        $sabores = session('sabores');
         $saboresIncluidos = [];
-        $valorPizza;
         $somaValores = 0;
         $valorPizza = 0;
         $maiorValor = 0;
@@ -180,7 +282,7 @@ public function escolherSabores(Request $request){
 
                 $p->produto;
                 $p->galeria;
-
+                $valor = 0;
 
                 foreach($p->pizza as $pz){
                     if($tamanho['tamanho'] == $pz->tamanho->nome){
@@ -188,180 +290,136 @@ public function escolherSabores(Request $request){
                     }
                 }
                 $somaValores += $p->valorPizza = $valor;
-                if($valor > $maiorValor) $maiorValor = $valor;
+                $p->valorPizza = $valor;
 
                 array_push($saboresIncluidos, $p);
             }
         }
-
         if(getenv("DIVISAO_VALOR_PIZZA") == 1 && sizeof($sabores) > 0){
             $valorPizza = $somaValores/sizeof($sabores);
         }else{
             $valorPizza = $maiorValor;
         }
 
+        $link = $request->link;
         return view('delivery/pizzas')
-        ->with('pizzas', $t->produtoPizza)
+        ->with('pizzas', $produtos)
         ->with('config', $this->config)
         ->with('pizzaJs', true)
-        ->with('categoria', $categoria)
+        ->with('pesquisa', true)
+        ->with('link', $link)
         ->with('valorPizza', $valorPizza)
         ->with('saboresIncluidos', $saboresIncluidos)
         ->with('title', 'PIZZAS'); 
-    }else{
-        session()->flash("message_erro", "Escolha um sabor");
-        return back()->withInput();
-    }
-}
-
-public function pesquisa(Request $request){
-    $pesquisa = $request->input('pesquisa');
-    // $pizzas = ProdutoDelivery::
-    // select('produto_pizzas.*')
-    // ->join('produto_deliveries', 'produto_pizzas.produto_id', '=', 'produto_deliveries.id')
-    // ->join('produtos', 'produtos.id', '=', 'produto_deliveries.produto_id')
-    // ->where('produtos.nome', 'LIKE', "%$pesquisa%")->get();
-    $tamanho = session('tamanho_pizza');
-    $produtos = ProdutoPizza::
-    select('produto_pizzas.*')
-    ->join('produto_deliveries', 'produto_pizzas.produto_id', '=', 'produto_deliveries.id')
-    ->join('tamanho_pizzas', 'produto_pizzas.tamanho_id', '=', 'tamanho_pizzas.id')
-    ->join('produtos', 'produtos.id', '=', 'produto_deliveries.produto_id')
-    ->where('produtos.nome', 'LIKE', "%$pesquisa%")
-    ->where('tamanho_pizzas.nome', $tamanho['tamanho'])
-    ->get();
-
-    $sabores = session('sabores');
-    $saboresIncluidos = [];
-    $somaValores = 0;
-    $valorPizza = 0;
-    $maiorValor = 0;
-    if($sabores){
-        foreach($sabores as $s){
-            $p = ProdutoDelivery::
-            where('id', $s)
-            ->first();
-
-            $p->produto;
-            $p->galeria;
-            $valor = 0;
-
-            foreach($p->pizza as $pz){
-                if($tamanho['tamanho'] == $pz->tamanho->nome){
-                    $valor = $pz->valor;
-                }
-            }
-            $somaValores += $p->valorPizza = $valor;
-            $p->valorPizza = $valor;
-
-            array_push($saboresIncluidos, $p);
-        }
-    }
-    if(getenv("DIVISAO_VALOR_PIZZA") == 1 && sizeof($sabores) > 0){
-        $valorPizza = $somaValores/sizeof($sabores);
-    }else{
-        $valorPizza = $maiorValor;
     }
 
-    return view('delivery/pizzas')
-    ->with('pizzas', $produtos)
-    ->with('config', $this->config)
-    ->with('pizzaJs', true)
-    ->with('pesquisa', true)
-    ->with('valorPizza', $valorPizza)
-    ->with('saboresIncluidos', $saboresIncluidos)
-    ->with('title', 'PIZZAS'); 
-}
-
-public function adicionais(){
+    public function adicionais(){
     //Pizza
-    $value = session('cliente_log');
-    if($value){
-        $sabores = session('sabores');
-        $tamanho = session('tamanho_pizza');
-        $saboresIncluidos = [];
-        $tamanhoId = 0;
+        $value = session('cliente_log');
+        if($value){
+            $sabores = session('sabores');
+            $tamanho = session('tamanho_pizza');
+            $saboresIncluidos = [];
+            $tamanhoId = 0;
 
-        $maiorValor = 0;
-        $somaValores = 0;
-        if($sabores){
-            foreach($sabores as $s){
-                $p = ProdutoDelivery::
-                select('produto_deliveries.*')
-                ->join('produto_pizzas', 'produto_pizzas.produto_id', '=', 'produto_deliveries.id')
-                ->join('tamanho_pizzas', 'produto_pizzas.tamanho_id', '=', 'tamanho_pizzas.id')
-                ->where('produto_deliveries.id', $s)
-                ->where('tamanho_pizzas.nome', $tamanho['tamanho'])
-                ->first();
+            $maiorValor = 0;
+            $somaValores = 0;
+            if($sabores){
+                foreach($sabores as $s){
+                    $p = ProdutoDelivery::
+                    select('produto_deliveries.*')
+                    ->join('produto_pizzas', 'produto_pizzas.produto_id', '=', 'produto_deliveries.id')
+                    ->join('tamanho_pizzas', 'produto_pizzas.tamanho_id', '=', 'tamanho_pizzas.id')
+                    ->where('produto_deliveries.id', $s)
+                    ->where('tamanho_pizzas.nome', $tamanho['tamanho'])
+                    ->first();
 
-                $p->produto;
-                $p->galeria;
+                    $p->produto;
+                    $p->galeria;
 
-                array_push($saboresIncluidos, $p);
+                    array_push($saboresIncluidos, $p);
 
-                foreach($p->pizza as $t){
-                    if($t->tamanho->nome == $tamanho['tamanho']){
-                        $tamanhoId = $t->tamanho->id;
-                        $somaValores += $t->valor;
-                        if($t->valor > $maiorValor){
-                            $maiorValor = $t->valor;
+                    foreach($p->pizza as $t){
+                        if($t->tamanho->nome == $tamanho['tamanho']){
+                            $tamanhoId = $t->tamanho->id;
+                            $somaValores += $t->valor;
+                            if($t->valor > $maiorValor){
+                                $maiorValor = $t->valor;
+                            }
                         }
                     }
                 }
+                if(getenv("DIVISAO_VALOR_PIZZA") == 1){
+                    $maiorValor = number_format(($somaValores/sizeof($sabores)),2);
+                }
             }
-            if(getenv("DIVISAO_VALOR_PIZZA") == 1){
-                $maiorValor = number_format(($somaValores/sizeof($sabores)),2);
+
+
+            $produto = $saboresIncluidos[0];
+
+            $add = $produto->categoria->adicionais;
+            $tamanho = substr($tamanho['tamanho'], 0, 1);
+
+            $adicionais = [];
+
+            foreach($add as $a){
+                $nome = $a->complemento->nome;
+                $ex = explode('>', $nome);
+
+                if(sizeof($ex) > 1){
+                    if(strtolower($ex[0]) == strtolower($tamanho)){
+                        array_push($adicionais, $a);
+                    }
+                }else{
+                    array_push($adicionais, $a);
+                }
+
             }
+
+            return view('delivery/adicionalPizza')
+            ->with('maiorValor', $maiorValor)
+            ->with('saboresIncluidos', $saboresIncluidos)
+            ->with('acompanhamentoPizza', true)
+            ->with('sabores', $sabores)
+            ->with('tamanho', $tamanhoId)
+            ->with('adicionais', $adicionais)
+            ->with('config', $this->config)
+            ->with('title', 'Adicionais para Pizza');
+        }else{
+            session()->flash("message_erro", "Voce precisa estar logado para comprar nossos produtos");
+            return redirect('/autenticar'); 
         }
-
-
-        $produto = $saboresIncluidos[0];
-
-
-        return view('delivery/adicionalPizza')
-        ->with('maiorValor', $maiorValor)
-        ->with('saboresIncluidos', $saboresIncluidos)
-        ->with('acompanhamentoPizza', true)
-        ->with('sabores', $sabores)
-        ->with('tamanho', $tamanhoId)
-        ->with('adicionais', $produto->categoria->adicionais)
-        ->with('config', $this->config)
-        ->with('title', 'Adicionais para Pizza');
-    }else{
-        session()->flash("message_erro", "Voçe precisa estar logado para comprar nossos produtos");
-        return redirect('/autenticar'); 
     }
-}
 
-public function pizzas(Request $request){
-    $categorias = CategoriaProdutoDelivery::
-    where('nome', 'like', '%izza%')
-    ->get();
-    $produtos = [];
-    foreach($categorias as $categoria){
-        foreach($categoria->produtos as $p){
-            if($p->produto->delivery){
-                $p->produto->delivery->galeria;
-                foreach($p->produto->delivery->pizza as $pp){
-                    if($request->tamanho == $pp->tamanho_id){
-                     $p->tamanhoValor = $pp->valor;
-                 }
+    public function pizzas(Request $request){
+        $categorias = CategoriaProdutoDelivery::
+        where('nome', 'like', '%izza%')
+        ->get();
+        $produtos = [];
+        foreach($categorias as $categoria){
+            foreach($categoria->produtos as $p){
+                if($p->produto->delivery){
+                    $p->produto->delivery->galeria;
+                    foreach($p->produto->delivery->pizza as $pp){
+                        if($request->tamanho == $pp->tamanho_id){
+                           $p->tamanhoValor = $pp->valor;
+                       }
+                   }
+
+               } else{
+                 $p->produto;
+                 $p->tamanhoValor = 0;
              }
 
-         } else{
-           $p->produto;
-           $p->tamanhoValor = 0;
-       }
+             array_push($produtos, $p);
+         }
+     }
 
-       array_push($produtos, $p);
-   }
-}
-
-echo json_encode($produtos);
-}
+     echo json_encode($produtos);
+ }
 
 
-public function adicionarSabor(Request $request){
+ public function adicionarSabor(Request $request){
     $sabores = session('sabores');
     if($sabores){
         array_push($sabores, $request->pizza_id);
@@ -373,7 +431,13 @@ public function adicionarSabor(Request $request){
         ];
         session(['sabores' => $session]);
     }
-    return redirect()->back();
+    $link = (string)$request->link;
+    session()->flash("message_sucesso", "Sabor adicionado!!");
+    if($link)
+        return redirect($link);
+    else
+        return redirect()->back();
+
 }
 
 public function removeSabor($id){
@@ -411,6 +475,16 @@ public function acompanhamento($id){
         $produto = ProdutoDelivery::where('id', $id)
         ->first();
 
+        $funcionamento = $this->funcionamento();
+        if(!$funcionamento['status']){
+            if($funcionamento['funcionamento'] != null){
+                session()->flash("message_erro", "Delivery das " .$funcionamento['funcionamento']->inicio_expediente. " às ".$funcionamento['funcionamento']->fim_expediente);
+
+            }else{
+                session()->flash("message_erro", "Não haverá delivery no dia de hoje!");
+            }
+            return redirect('/'); 
+        }
 
         if(strpos(strtolower($produto->categoria->nome), 'izza') !== false){
 
@@ -431,7 +505,7 @@ public function acompanhamento($id){
             ->with('title', 'ACOMPANHAMENTO');
         }
     }else{
-        session()->flash("message_erro", "Voçe precisa estar logado para comprar nossos produtos");
+        session()->flash("message_erro", "Voce precisa estar logado para comprar nossos produtos");
         return redirect('/autenticar'); 
     }
 }
@@ -451,6 +525,7 @@ private function setaMascaraPhone($phone){
 }
 
 public function autenticar(Request $request){
+
     $mailPhone = $request->mail_phone;
     $mailPhone = str_replace(" ", "", $mailPhone);
     $senha = md5($request->senha);
@@ -471,33 +546,48 @@ public function autenticar(Request $request){
         ->where('senha', $senha)
         ->first();
     }
-
     if($cliente == null){
+
         session()->flash('message_erro', 'Credenciais inválidas.');
         return redirect('/autenticar');
     }else{
 
+        if(getenv("AUTENTICACAO_SMS") == 0 && getenv("AUTENTICACAO_EMAIL") == 0){
+            $cliente->ativo = 1;
+            $cliente->save();
+
+            $session = [
+                'id' => $cliente->id,
+                'nome' => $cliente->nome,
+            ];
+            session(['cliente_log' => $session]);
+            session()->flash("message_sucesso", "Bem vindo ". $cliente->nome);
+            return redirect('/'); 
+        }
+
         if($cliente->ativo == 0){
 
-            // $celular = $cliente->celular;
-            // $celular = str_replace("-", "", $celular);
-            // $celular = str_replace(" ", "", $celular);
-            // if(getenv("AUTENTICACAO_SMS") == 1) $this->sendSms($celular, $cliente->token);
+            $celular = $cliente->celular;
+            $celular = str_replace("-", "", $celular);
+            $celular = str_replace(" ", "", $celular);
+            if(getenv("AUTENTICACAO_SMS") == 1) $this->sendSms($celular, $cliente->token);
 
-            // if(getenv("AUTENTICACAO_EMAIL") == 1 && getenv("SERVIDOR_WEB") == 1) $this->sendEmailLink($cliente->email, $cliente->token);
+            if(getenv("AUTENTICACAO_EMAIL") == 1) $this->sendEmailLink($cliente->email, $cliente->token);
             return view('delivery/ativar')
             ->with('config', $this->config)
             ->with('cliente', $cliente)
             ->with('login_ative', true)
             ->with('title', 'ATIVAR CADASTRO');
+        }else{
+            $session = [
+                'id' => $cliente->id,
+                'nome' => $cliente->nome,
+            ];
+            session(['cliente_log' => $session]);
+            session()->flash("message_sucesso", "Bem vindo ". $cliente->nome);
+            return redirect('/'); 
         }
-        $session = [
-            'id' => $cliente->id,
-            'nome' => $cliente->nome,
-        ];
-        session(['cliente_log' => $session]);
-        session()->flash("message_sucesso", "Bem vindo ". $cliente->nome);
-        return redirect('/'); 
+        
     }
 
 }
@@ -536,9 +626,9 @@ public function registro(){
     if(!$clienteLog){
         return view('delivery/registro')
         ->with('config', $this->config)
-        ->with('title', 'REGITRAR-SE');
+        ->with('title', 'REGISTRAR-SE');
     }else{
-        session()->flash("message_sucesso", "Voçe já esta logado ".$clienteLog['nome']);
+        session()->flash("message_sucesso", "Voce já esta logado ".$clienteLog['nome']);
         return redirect('/'); 
     }
 }
@@ -561,7 +651,7 @@ public function salvarRegistro(Request $request){
         if(getenv("AUTENTICACAO_SMS") == 1){
             $this->sendSms($celular, $cod);
         }
-        else if(getenv("AUTENTICACAO_EMAIL") == 1 && getenv("SERVIDOR_WEB") == 1) {
+        else if(getenv("AUTENTICACAO_EMAIL") == 1) {
             $this->sendEmailLink($request->email, $cod);
         }else{
             $cliente = ClienteDelivery::find($result->id);
@@ -648,8 +738,8 @@ private function _validate(Request $request){
         'nome' => 'required|max:30',
         'sobre_nome' => 'required|max:30',
         'senha' => 'required|min:4|max:10|same:senha_confirma',
-        'celular' => ['required','min:13', 'max:15',new CelularDup],
-        'email' => 'required|max:50|email',
+        'celular' => ['required','min:13', 'max:15', new CelularDup],
+        'email' => ['required', 'max:50','email', new EmailDup],
         'senha_confirma' => 'required'
 
     ];
@@ -768,13 +858,13 @@ public function saveTokenWeb(Request $request){
     if($tk == null){
         $res = TokenWeb::create([
             'token' => $request->token,
-            'cliente_id' => $request->cliente_logado > 0 ? $request->cliente_logado : null
+            'cliente_id' => $request->user > 0 ? $request->user : null
         ]);
         echo json_encode('insert');
 
     }else{
-        if($request->cliente_logado > 0){
-            $tk->cliente_id = $request->cliente_logado;
+        if($request->user > 0){
+            $tk->cliente_id = $request->user;
             $tk->save();
         }
         echo json_encode('update');
@@ -815,6 +905,115 @@ public function autenticarClienteEmail($cod){
         echo "Erro";
     }
 
+}
+
+private function funcionamento(){
+    $atual = strtotime(date('H:i'));
+    $dias = FuncionamentoDelivery::dias();
+    $hoje = $dias[date('w')];
+    $func = FuncionamentoDelivery::where('dia', $hoje)->first();
+
+    if($func){
+        if($atual >= strtotime($func->inicio_expediente) && $atual < strtotime($func->fim_expediente) && $func->ativo){
+            return ['status' => true, 'funcionamento' => $func];
+        }else{
+            return ['status' => false, 'funcionamento' => $func];
+        }
+    }else{
+        return ['status' => false, 'funcionamento' => null];
+    }
+}
+
+public function rotaEntrega($id){
+
+    $pedido = PedidoDelivery::find($id);
+    $endereco = $pedido->endereco;
+
+    $config = DeliveryConfig::first();
+
+    if($endereco != null){
+        return view('clienteDelivery/enderecoMap2')
+        ->with('title', 'ver Mapa')
+        ->with('mapJs', true)
+        ->with('config', $config)
+        ->with('endereco', $endereco);
+    }else{
+        echo "<h1>Não possui endereço!!</h1>";
+    }
+}
+
+public function infos(){
+    $clienteLog = session('cliente_log');
+    if($clienteLog){
+        $cliente = ClienteDelivery::find($clienteLog['id']);
+
+        return view('delivery/infos')
+        ->with('cliente', $cliente)
+        ->with('config', $this->config)
+        ->with('pass', true)
+        ->with('title', 'Minhas informações');
+    }else{
+        session()->flash("message_erro", "Você não esta logado!!");
+        return redirect('/'); 
+    }
+}
+
+public function atualizarSenha(Request $request){
+    try{
+        $cliente = ClienteDelivery::find($request->id);
+        $novaSenha = md5($request->senha);
+        $cliente->senha = $novaSenha;
+        $cliente->save();
+        return response()->json($novaSenha, 200);
+    }catch(\Exception $e){
+        return response()->json("Erro", 404);
+
+    }
+}
+
+public function alterarEndereco($id){
+    $clienteLog = session('cliente_log');
+    if($clienteLog){
+        $endereco = EnderecoDelivery::where('id', $id)
+        ->where('cliente_id', $clienteLog['id'])
+        ->first();
+        if($endereco == null){
+            session()->flash("message_erro", "Nada encontrado!!");
+            return redirect('/info'); 
+        }else{
+
+            $bairros = BairroDelivery::orderBy('nome')->get();
+
+            return view('delivery/alterar_endereco')
+            ->with('config', $this->config)
+            ->with('bairros', $bairros)
+            ->with('endereco', $endereco)
+            ->with('title', 'Alterar endereço');
+        }
+    }else{
+        session()->flash("message_erro", "Você não esta logado!!");
+        return redirect('/'); 
+    }
+}
+
+public function updateEndereco(Request $request){
+    try{
+        $endereco = EnderecoDelivery::find($request->endereco_id);
+        $endereco->rua = $request->rua;
+        $endereco->numero = $request->numero;
+        $endereco->referencia = $request->referencia;
+        if($request->bairro_id){
+            $endereco->bairro_id = $request->bairro_id;
+        }else{
+            $endereco->bairro = $request->bairro;
+        }
+        $endereco->save();
+        session()->flash("message_sucesso", "Endereço atualziado!!");
+        return redirect('/info'); 
+
+    }catch(\Exception $e){
+       
+    }
 }
 
 

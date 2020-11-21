@@ -450,7 +450,7 @@
 
 							<div class="col s12">
 								<div class="col s2 input-field">
-									<input type="text" class="datepicker" value=" " id="data_prevista_entrega">
+									<input type="text" class="datepicker" value="{{$dadosDaNFe['data_entrega']}}" id="data_prevista_entrega">
 									<label>Data Prevista de Entrega</label>
 								</div>
 

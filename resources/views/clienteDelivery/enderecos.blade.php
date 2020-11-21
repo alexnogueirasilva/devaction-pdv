@@ -37,7 +37,7 @@
 					<tr>
 						<th>{{ $e->id }}</th>
 						<th>{{ $e->rua }}, {{$e->numero}}</th>
-						<th>{{ $e->bairro }}</th>
+						<th>{{$e->bairro()}}</th>
 						<th>{{ $e->referencia }}</th>
 						<th>{{ $e->latitude }}</th>
 						<th>{{ $e->longitude }}</th>

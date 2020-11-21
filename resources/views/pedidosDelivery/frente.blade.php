@@ -6,6 +6,7 @@
 	<div class="col s12">
 		<div class="card">
 			<div class="card-content">
+				<input type="hidden" value="{{getenv('DIVISAO_VALOR_PIZZA')}}" id="DIVISAO_VALOR_PIZZA">
 				<h4 class="center-align">Frente de Pedido Delivery</h4>
 				@if(session()->has('message'))
 				<div class="row">
@@ -51,7 +52,7 @@
 								selected
 								@endif
 								@endif
-								>{{$e->rua}}, {{$e->numero}}</option>
+								>{{$e->rua}}, {{$e->numero}} - {{$e->bairro()}}</option>
 								@endforeach
 								@endif
 							</select>
@@ -72,7 +73,7 @@
 						<div class="card">
 							<div class="card-content">
 
-								<h6>Rua: <strong class="red-text">{{$pedido->endereco->rua}}, {{$pedido->endereco->numero}}</strong> - Bairro: <strong class="red-text">{{$pedido->endereco->bairro}}</strong></h6>
+								<h6>Rua: <strong class="red-text">{{$pedido->endereco->rua}}, {{$pedido->endereco->numero}}</strong> - Bairro: <strong class="red-text">{{$pedido->endereco->bairro()}}</strong></h6>
 								<h6>Refenrêcia: <strong class="red-text">{{$pedido->endereco->referencia ?? '--'}}</strong></h6>
 							</div>
 						</div>
@@ -310,7 +311,7 @@
 										</a>
 									</td>
 									<td>
-										<a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/pedidosDelivery/deleteItem/{{$i->id}}">
+										<a onclick='swal("Atenção!", "Deseja remover este registro?", "warning").then((sim) => {if(sim){ location.href="/pedidosDelivery/deleteItem/{{$i->id}}" }else{return false} })' href="#!" >
 											<i class="material-icons left red-text">delete</i>					
 										</a>
 										<!-- @if(!$i->status)
@@ -349,7 +350,7 @@
 					<div class="row">
 
 						<div class="input-field col s2">
-							<input type="text" name="taxa_entrega" value="{{{ $pedido->endereco_id != NULL ? $config->valor_entrega : 0 }}}" id="taxa_entrega" data-length="15">
+							<input type="text" name="taxa_entrega" value="{{{ $pedido->endereco_id != NULL ? $valorEntrega : 0 }}}" id="taxa_entrega" data-length="15">
 							<label>Taxa de Entrega</label>
 						</div>
 					</div>
@@ -399,10 +400,21 @@
 						<label>Número</label>
 					</div>
 
+					@if($config->usar_bairros)
+					<div class="input-field col s10">
+						<select name="bairro_id">
+							@foreach($bairros as $b)
+							<option value="{{$b->id}}">{{$b->nome}} R$ {{$b->valor_entrega}}</option>
+							@endforeach
+						</select>
+						<label>Bairro</label>
+					</div>
+					@else
 					<div class="input-field col s10">
 						<input type="text" name="bairro" id="bairro" data-length="50">
 						<label>Bairro</label>
 					</div>
+					@endif
 				</div>
 
 				<div class="row">
@@ -439,6 +451,11 @@
 					<div class="input-field col s6">
 						<input type="text" name="celular" id="celular" data-length="15">
 						<label>Celular</label>
+					</div>
+
+					<div class="input-field col s6">
+						<input type="password" name="senha" id="senha">
+						<label>Senha</label>
 					</div>
 				</div>
 

@@ -20,7 +20,7 @@
     <div class="row row-50 justify-content-center">
       <div class="col-md-10 col-lg-5 col-xl-6">
         @if(sizeof($produto->galeria) > 0)
-        <img src="/imagens_produtos/{{$produto->galeria[0]->path}}" style="width: 519px; height: 420px"/>
+        <img loading="lazy" src="/imagens_produtos/{{$produto->galeria[0]->path}}" style="width: 519px; height: 420px"/>
         @else
         <img src="/imgs/no_image.png" style="width: 519px; height: 420px"/>
         @endif

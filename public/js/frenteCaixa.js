@@ -11,10 +11,25 @@ var VALORACRESCIMO = 0;
 var OBSERVACAO = "";
 var OBSERVACAOITEM = "";
 var DESCONTO = 0;
+var LISTAID = 0;
+var PDV_VALOR_RECEBIDO = 0;
 
+var VALORPAG1 = 0
+var VALORPAG2 = 0
+var VALORPAG3 = 0
+var TIPOPAG1 = ''
+var TIPOPAG2 = ''
+var TIPOPAG3 = ''
 $(function () {
 	novaHora();
 	novaData();
+
+	let semCertificado = $('#semCertificado').val()
+	if(semCertificado){
+		swal("Aviso", "Para habilitar o cupom fiscal, realize o upload do certificado digital!!", "warning")
+	}
+
+	PDV_VALOR_RECEBIDO = $('#PDV_VALOR_RECEBIDO').val()
 
 	let valor_entrega = $('#valor_entrega').val();
 
@@ -59,14 +74,34 @@ $(function () {
 					$('#preloader1').css('display', 'block');
 					var prod = $('#autocomplete-produto').val().split('-');
 					getProduto(prod[0], (d) => {
-						PRODUTO = d;
-						$('#nome-produto').html(d.nome);
-						$('#valor_item').val(d.valor_venda);
+						console.log(d)
+						if(d.gerenciar_estoque == 1 && d.estoque_atual < 1){
+							$('#autocomplete-produto').val('')
+							$('#nome-produto').html('-');
+							$('#valor_item').val('0');
+							swal("Erro", 'Estoque insuficiente!!', "warning")
+						}else{
+
+							PRODUTO = d;
+							$('#nome-produto').html(d.nome);
+							$('#valor_item').val(d.valor_venda);
+							if(d.estoque_atual <= d.estoque_minimo){
+								$('#prod-nome').removeClass('green');
+								$('#prod-nome').addClass('red');
+							}else{
+								$('#prod-nome').addClass('green');
+								$('#prod-nome').removeClass('red');
+							}
+						}
 					})
 				}else{
-					alert('Por favor abra o caixa!');
-					location.href = path+'frenteCaixa'
-					location.reload();
+					// alert('Por favor abra o caixa!');
+					swal("Erro", 'Por favor abra o caixa!', "warning")
+					.then((v) => {
+						location.href = path+'frenteCaixa'
+					})
+
+					// location.reload();
 				}
 			},
 			minLength: 1,
@@ -74,8 +109,9 @@ $(function () {
 	});
 
 	verificaCaixa((v) => {
-		caixaAberto = v;
-		if(v == false){
+		console.log(v)
+		caixaAberto = v >= 0 ? true : false;
+		if(v < 0){
 			$('#modal1').modal('open');
 		}
 	})
@@ -121,7 +157,8 @@ $(function () {
 				quantidade: v.quantidade,
 				valor: parseFloat(valorUnit) + parseFloat(v.valorAdicional),
 				pizza: v.maiorValor ? true : false,
-				itemPedido: v.item_pedido
+				itemPedido: v.item_pedido,
+				delivery: true
 			}
 
 
@@ -139,7 +176,7 @@ $(function () {
 		}
 
 
-			atualizaTotal();
+		atualizaTotal();
 		$('#body').html(t);
 		let codigo_comanda = $('#codigo_comanda_hidden').val();
 		COMANDA = codigo_comanda;
@@ -276,11 +313,18 @@ function getVendasEmAbertoContaCredito(id, data){
 	});
 }
 
+$('#lista_id').change(() => {
+	let lista = $('#lista_id').val();
+	LISTAID = lista;
+})
+
 function getProduto(id, data){
+
+	console.log(LISTAID)
 	$.ajax
 	({
 		type: 'GET',
-		url: path + 'produtos/getProduto/'+id,
+		url: path + 'produtos/getProdutoVenda/' + id + '/' + LISTAID,
 		dataType: 'json',
 		success: function(e){
 			data(e)
@@ -292,53 +336,68 @@ function getProduto(id, data){
 
 function addItem(){
 	verificaProdutoIncluso((call) => {
-
-		if(!call){
+		console.log("cal", call)
+		if(call >= 0){
 			let quantidade = $('#quantidade').val();
 			quantidade = quantidade.replace(",", ".");
 			let valor = $('#valor_item').val();
+			console.log("teste", (parseFloat(quantidade) + parseFloat(call)));
+			if(PRODUTO.gerenciar_estoque == 1 && (parseFloat(quantidade) + parseFloat(call)) > PRODUTO.estoque_atual){
+				swal("Erro", 'O estoque atual deste produto é de ' + PRODUTO.estoque_atual, "warning")
+				$('#quantidade').val('1')
 
-			if(quantidade.length > 0 && parseFloat(quantidade.replace(",", ".")) > 0 && valor.length > 0 && 
-				parseFloat(valor.replace(",", ".")) > 0
-				&& PRODUTO != null){
-				TOTAL += parseFloat(valor.replace(',','.'))*(quantidade.replace(',','.'));
-
-			let item = {
-				cont: (ITENS.length+1),
-				obs: OBSERVACAOITEM,
-				id: PRODUTO.id,
-				nome: PRODUTO.nome,
-				quantidade: $('#quantidade').val(),
-				valor: $('#valor_item').val()
-			}
-			$('#body').html("");
-			ITENS.push(item);
-
-			limparCamposFormProd();
-			atualizaTotal();
-
-			let v = $('#valor_recebido').val();
-			v = v.replace(",", ".");
-
-			if(ITENS.length > 0 && ((parseFloat(v) >= TOTAL))){
-				$('#finalizar-venda').removeClass('disabled');
 			}else{
-				$('#finalizar-venda').addClass('disabled');
+
+				if(quantidade.length > 0 && parseFloat(quantidade.replace(",", ".")) > 0 && valor.length > 0 && parseFloat(valor.replace(",", ".")) > 0 && PRODUTO != null){
+					
+					let vTemp = valor.replace(',','.') * quantidade.replace(',','.')
+					console.log(vTemp)
+					TOTAL = parseFloat(TOTAL) + parseFloat(vTemp);
+					console.log(TOTAL)
+
+					let item = {
+						cont: (ITENS.length+1),
+						obs: OBSERVACAOITEM,
+						id: PRODUTO.id,
+						nome: PRODUTO.nome,
+						quantidade: $('#quantidade').val(),
+						valor: $('#valor_item').val()
+					}
+
+					$('#body').html("");
+					ITENS.push(item);
+
+					limparCamposFormProd();
+					atualizaTotal();
+
+					let v = $('#valor_recebido').val();
+					v = v.replace(",", ".");
+
+					if(PDV_VALOR_RECEBIDO == 0){
+						$('#valor_recebido').val(TOTAL)
+						Materialize.updateTextFields();
+					}
+
+					if(ITENS.length > 0 && ((parseFloat(v) >= TOTAL))){
+						$('#finalizar-venda').removeClass('disabled');
+					}else{
+						$('#finalizar-venda').addClass('disabled');
+					}
+
+					let t = montaTabela();
+
+					$('#body').html(t);
+					PRODUTO = null;
+					$('#obs-item').val('');
+					OBSERVACAOITEM = "";
+					$('#prod-nome').addClass('green');
+					$('#prod-nome').removeClass('red');
+				}
 			}
-
-			let t = montaTabela();
-
-			$('#body').html(t);
-			PRODUTO = null;
-			$('#obs-item').val('');
-			OBSERVACAOITEM = "";
-			// var audio = new Audio('/notificacao/beep.mp3');
-			// audio.play();
+		}else{
+			Materialize.toast('Informe corretamente os campos para continuar!', 4000)
 		}
-	}else{
-		Materialize.toast('Informe corretamente os campos para continuar!', 4000)
-	}
-});
+	});
 }
 
 $('#adicionar-item').click(() => {
@@ -348,8 +407,11 @@ $('#adicionar-item').click(() => {
 function atualizaTotal(){
 
 	let valor_recebido = $('#valor_recebido').val();
-	valor_recebido = valor_recebido.replace(",", ".");
-	valor_recebido = parseFloat(valor_recebido)
+	if(!valor_recebido) valor_recebido = 0;
+	if(valor_recebido > 0){
+		valor_recebido = valor_recebido.replace(",", ".");
+		valor_recebido = parseFloat(valor_recebido)
+	}
 	console.log(TOTAL + VALORBAIRRO + VALORACRESCIMO - DESCONTO)
 	if((TOTAL + VALORBAIRRO + VALORACRESCIMO - DESCONTO) > valor_recebido){
 		$('#finalizar-venda').addClass('disabled')
@@ -369,6 +431,7 @@ function montaTabela(){
 	let t = ""; 
 	let quantidades = 0;
 	ITENS.map((v) => {
+		console.log(v)
 		t += "<tr>";
 		t += "<td>"+v.cont+"</td>";
 		t += "<td class='cod'>"+v.id+"</td>";
@@ -377,14 +440,17 @@ function montaTabela(){
 
 		t += "<td>"+v.quantidade+"</td>";
 		t += "<td>"+formatReal(v.valor)+"</td>";
-		t += "<td>"+formatReal(v.valor*v.quantidade)+"</td>";
-		t += "<td><a href='#prod tbody' onclick='deleteItem("+v.cont+")'>"
-		t += "<i class=' material-icons red-text'>delete</i></a></td>";
+		t += "<td>"+formatReal(v.valor*v.quantidade.replace(',', '.'))+"</td>";
+		if(!v.delivery){
+			t += "<td><a href='#prod tbody' onclick='deleteItem("+v.cont+")'>"
+			t += "<i class=' material-icons red-text'>delete</i></a></td>";
+		}
 		t+= "</tr>";
 		quantidades += parseInt(v.quantidade);
 	});
 	$('#qtd-itens').html(ITENS.length);
 	$('#_qtd').html(quantidades);
+
 	return t
 }
 
@@ -417,12 +483,18 @@ function limparCamposFormProd(){
 }
 
 function verificaProdutoIncluso(call){
-
-
-	call(false);
+	let cont = 0;
+	ITENS.map((rs) => {
+		if(PRODUTO.id == rs.id){
+			cont += parseFloat(rs.quantidade);
+		}
+	})
+	call(cont);
 }
 
 function getProdutoCodBarras(cod, data){
+	let tamanho = ITENS.length;
+	console.log(tamanho)
 	$.ajax
 	({
 		type: 'GET',
@@ -437,8 +509,10 @@ function getProdutoCodBarras(cod, data){
 			}else{
 				if(cod.length == 13){
 					//validar pelo cod balança
-					
+
 					let id = parseInt(cod.substring(1,5));
+
+					console.log(id)
 
 					$.get(path+'produtos/getProduto/'+id)
 					.done((res) => {
@@ -447,17 +521,35 @@ function getProdutoCodBarras(cod, data){
 
 						let temp = valor.substring(0,3) + '.' +valor.substring(3,5);
 						valor = parseFloat(temp)
+						console.log(valor)
 
 						PRODUTO = JSON.parse(res);
+
 						$('#nome-produto').html(PRODUTO.nome);
+						let quantidade = 1;
+						if(PRODUTO.unidade_venda == 'KG'){
+							let valor_venda = PRODUTO.valor_venda;
+							quantidade = valor/valor_venda;
+							quantidade = quantidade.toFixed(3);
+							valor = valor_venda;
+						}
 						$('#valor_item').val(valor);
+						$('#quantidade').val(quantidade);
+						let tamanho2 = ITENS.length;
+						if(tamanho2 == tamanho){
+							console.log("inserindo");
+							$('#adicionar-item').trigger('click');
+						}
 
 					})
 					.fail((err) => {
-						alert('Produto nao encontrado!')
+						// alert('Produto nao encontrado!')
+						swal("Erro", 'Produto nao encontrado!', "warning")
+
 						$('#autocomplete-produto').val('')
 
 					})
+					
 					
 
 				}
@@ -477,6 +569,7 @@ function verificaCaixa(data){
 		url: path + 'aberturaCaixa/verificaHoje',
 		dataType: 'json',
 		success: function(e){
+			console.log(e)
 			data(e)
 
 		}, error: function(e){
@@ -489,8 +582,8 @@ function verificaCaixa(data){
 function abrirCaixa(){
 	let token = $('#_token').val();
 	let valor = $('#valor').val();
-	valor = valor.length > 0 ? valor.replace(",", ".") : 0 ;
-	if(parseFloat(valor) > 0){
+	valor = valor.length >= 0 ? valor.replace(",", ".") : 0 ;
+	if(parseFloat(valor) >= 0){
 		$.ajax
 		({
 			type: 'POST',
@@ -503,15 +596,19 @@ function abrirCaixa(){
 			success: function(e){
 				caixaAberto = true;
 				$('#modal1').modal('close');
+				swal("Sucesso", "Caixa aberto", "success")
 
 
 			}, error: function(e){
+				swal("Erro", "Erro ao abrir caixa", "error")
 				console.log(e)
 			}
 
 		});
 	}else{
-		alert('Insira um valor válido')
+		// alert('Insira um valor válido')
+		swal("Erro", 'Insira um valor válido', "warning")
+
 	}
 	
 }
@@ -561,12 +658,14 @@ function getSangriaDiaria(data){
 }
 
 function getAberturaDiaria(data){
+
 	$.ajax
 	({
 		type: 'GET',
 		url: path + 'aberturaCaixa/verificaHoje',
 		dataType: 'json',
 		success: function(e){
+			console.log(e)
 			data(e)
 
 		}, error: function(e){
@@ -850,7 +949,7 @@ function finalizarVenda(acao) {
 		
 		let valorRecebido = $('#valor_recebido').val();
 		let troco = 0;
-		if(valorRecebido.length > 0 && parseFloat(valorRecebido) > TOTAL){
+		if(valorRecebido.length > 0 && parseFloat(valorRecebido) > (TOTAL + VALORACRESCIMO + VALORBAIRRO - DESCONTO)){
 			troco = parseFloat(valorRecebido) - (TOTAL + VALORACRESCIMO + VALORBAIRRO - DESCONTO);
 		}
 
@@ -873,11 +972,20 @@ function finalizarVenda(acao) {
 			pedido_local: $('#pedidoLocal').val() ? true : false,
 			codigo_comanda: COMANDA,
 			desconto: desconto ? desconto : 0,
-			observacao: OBSERVACAO
+			observacao: OBSERVACAO,
+			tipo_pagamento_1: TIPOPAG1,
+			tipo_pagamento_2: TIPOPAG2,
+			tipo_pagamento_3: TIPOPAG3,
+			valor_pagamento_1: VALORPAG1,
+			valor_pagamento_2: VALORPAG2,
+			valor_pagamento_3: VALORPAG3
 		}
 
+		console.log(js)
 		let token = $('#_token').val();
+
 		if(acao != 'credito'){
+			$('#btn_nao_fiscal').addClass('disabled')
 			$.ajax
 			({
 				type: 'POST',
@@ -893,9 +1001,22 @@ function finalizarVenda(acao) {
 						$('#preloader9').css('display', 'block');
 						emitirNFCe(e.id);	
 					} else{
-						console.log("Imprime nao fiscal");
-						window.open(path + 'nfce/imprimirNaoFiscal/'+e.id, '_blank');
-						location.href=path+'frenteCaixa';
+						swal({
+							title: "Sucesso",
+							text: "Deseja imprimir comprovante?",
+							icon: "success",
+							buttons: ["Não", 'Imprimir'],
+							dangerMode: true,
+						})
+						.then((v) => {
+							if (v) {
+								window.open(path + 'nfce/imprimirNaoFiscal/'+e.id, '_blank');
+								location.href=path+'frenteCaixa';
+							} else {
+								location.href=path+'frenteCaixa';
+							}
+						});
+						
 					}
 
 				}, error: function(e){
@@ -907,38 +1028,28 @@ function finalizarVenda(acao) {
 
 			});
 		}else{
-			let valorUltrapassadoConfirma = true;
+			// let valorUltrapassadoConfirma = true;
+			// if(CLIENTE.limite_venda < TOTALEMABERTOCLIENTE+TOTAL){
+			// 	valorUltrapassadoConfirma = confirm("Valor do limite de conta crédito ultrapassado, confirma venda?!");
+			// }
+
 			if(CLIENTE.limite_venda < TOTALEMABERTOCLIENTE+TOTAL){
-				valorUltrapassadoConfirma = confirm("Valor do limite de conta crédito ultrapassado, confirma venda?!");
-			}
-
-
-			if(valorUltrapassadoConfirma == true){
-				$.ajax
-				({
-					type: 'POST',
-					url: path + 'vendas/salvarCrediario',
-					dataType: 'json',
-					data: {
-						venda: js,
-						_token: token
-					},
-					success: function(e){
-						$('#modal-venda').modal('close')
-
-						window.open(path + 'nfce/imprimirNaoFiscalCredito/'+e.id, '_blank');
-						$('#modal-credito').modal('open');
-						$('#evento-conta-credito').html('Venda salva na conta crédito do cliente ' +
-							CLIENTE.razao_social)
-
-					}, error: function(e){
-						console.log(e)
+				swal({
+					title: "Valor do limite de conta crédito ultrapassado, confirma venda?!",
+					icon: 'warning',
+					buttons: ["Não", "Vender"],
+				}).then(sim => {
+					if (sim) {
+						salvarCredito(js, token)
+					}else{
 						$('#preloader2').css('display', 'none');
 						$('#preloader9').css('display', 'none');
 						$('#modal-venda').modal('close')
 					}
-
 				});
+
+			}else{
+				salvarCredito(js, token)
 			}
 			
 		}
@@ -948,8 +1059,37 @@ function finalizarVenda(acao) {
 
 }
 
+function salvarCredito(js, token){
+	$.ajax
+	({
+		type: 'POST',
+		url: path + 'vendas/salvarCrediario',
+		dataType: 'json',
+		data: {
+			venda: js,
+			_token: token
+		},
+		success: function(e){
+			$('#modal-venda').modal('close')
+
+			window.open(path + 'nfce/imprimirNaoFiscalCredito/'+e.id, '_blank');
+			$('#modal-credito').modal('open');
+			$('#evento-conta-credito').html('Venda salva na conta crédito do cliente ' +
+				CLIENTE.razao_social)
+
+		}, error: function(e){
+			console.log(e)
+			$('#preloader2').css('display', 'none');
+			$('#preloader9').css('display', 'none');
+			$('#modal-venda').modal('close')
+		}
+
+	});
+}
+
 function emitirNFCe(vendaId){
 	// $('#modal-venda').modal('close')
+
 	$('#preloader_'+vendaId).css('display', 'inline-block');
 
 	let token = $('#_token').val();
@@ -970,9 +1110,15 @@ function emitirNFCe(vendaId){
 			let retorno = recibo.substring(0,4);
 			let mensagem = recibo.substring(5,recibo.length);
 			if(retorno == 'Erro'){
-				let m = JSON.parse(mensagem);
-				$('#modal-alert-erro').modal('open');
-				$('#evento-erro').html("[" + m.protNFe.infProt.cStat + "] : " + m.protNFe.infProt.xMotivo)
+				console.log(e)
+				try{
+					let m = JSON.parse(mensagem);
+					$('#modal-alert-erro').modal('open');
+					$('#evento-erro').html("[" + m.protNFe.infProt.cStat + "] : " + m.protNFe.infProt.xMotivo)
+				}catch(e){
+					$('#modal-alert-erro').modal('open');
+					$('#evento-erro').html(e)
+				}
 
 			}
 			else if(retorno == 'erro'){
@@ -996,6 +1142,7 @@ function emitirNFCe(vendaId){
 			$('#preloader9').css('display', 'none');
 			$('#preloader1').css('display', 'none');
 		}, error: function(err){
+
 			console.log(err)
 			$('#preloader_'+vendaId).css('display', 'none');
 
@@ -1015,7 +1162,9 @@ function emitirNFCe(vendaId){
 				js.map((v) => {
 					err += v + "\n";
 				});
-				alert(err);
+				// alert(err);
+				swal("Erro", err, "warning")
+
 			}
 
 			$('#preloader1').css('display', 'none');
@@ -1064,7 +1213,12 @@ function cancelar(){
 		dataType: 'json',
 		success: function(e){
 			
-			alert(e.retEvento.infEvento.xMotivo)
+			// alert(e.retEvento.infEvento.xMotivo)
+			swal("Sucesso", e.retEvento.infEvento.xMotivo, "success")
+			.then((v) => {
+				location.reload()
+			})
+
 
 			$('#preloader').css('display', 'none');
 		}, error: function(e){
@@ -1072,10 +1226,14 @@ function cancelar(){
 			console.log(e)
 			let js = e.responseJSON;
 			if(e.status == 404){
-				alert(js.mensagem)
+				// alert(js.mensagem)
+				swal("Erro", js.mensagem, "warning")
+
 			}else{
-				alert(js.retEvento.infEvento.xMotivo)
-				Materialize.toast('Erro de comunicação contate o desenvolvedor', 5000)
+				// alert(js.retEvento.infEvento.xMotivo)
+				swal("Erro", js.retEvento.infEvento.xMotivo, "warning")
+
+				// Materialize.toast('Erro de comunicação contate o desenvolvedor', 5000)
 				
 			}
 		}
@@ -1174,7 +1332,7 @@ $('#acrescimo').keyup(() => {
 	let acrescimo = $('#acrescimo').val();
 	if(acrescimo > 0) $('#desconto').val('0')
 
-	let total = TOTAL+VALORBAIRRO;
+		let total = TOTAL+VALORBAIRRO;
 	
 	if(acrescimo.substring(0, 1) == "%"){
 
@@ -1193,6 +1351,92 @@ $('#acrescimo').keyup(() => {
 
 
 })
+
+function consultarNFCe(id){
+	$('#preloader_'+id).css('display', 'inline-block');
+
+	$.get(path + 'nfce/consultar/'+id)
+	.done((data) => {
+		$('#preloader_'+id).css('display', 'none');
+		console.log(data)
+		let js = JSON.parse(data)
+		console.log(js)
+		swal("Consulta", "[" + js.protNFe.infProt.cStat + "] " + js.protNFe.infProt.xMotivo ,"success");
+	})
+	.fail((err) => {
+		$('#preloader_'+id).css('display', 'none');
+		console.log(err)
+	})
+}
+
+$('#btn-plus').click((target) => {
+	let quantidade = parseInt($('#quantidade').val());
+	$('#quantidade').val(quantidade+1)
+})
+
+$('#click-multi').click(() => {
+	if(TOTAL <= 0){
+		swal("Erro", "Valor da venda deve ser maior que Zero!!", "error")
+		.then(() => {
+			$('#modal-pag-mult').modal('close')
+		})
+	}
+	$('#total-multi').html(formatReal(TOTAL))
+})
+
+$('#btn-ok-multi').click(() => {
+	$('#modal-pag-mult').modal('close')
+
+	VALORPAG1 = $('#valor_pagamento_1').val() ? parseFloat($('#valor_pagamento_1').val()) : 0;
+	VALORPAG2 = $('#valor_pagamento_2').val() ? parseFloat($('#valor_pagamento_2').val()) : 0;
+	VALORPAG3 = $('#valor_pagamento_3').val() ? parseFloat($('#valor_pagamento_3').val()) : 0;
+
+	TIPOPAG1 = $('#tipo_pagamento_1').val()
+	TIPOPAG2 = $('#tipo_pagamento_2').val()
+	TIPOPAG3 = $('#tipo_pagamento_3').val()
+
+
+	console.log(VALORPAG1, VALORPAG2, VALORPAG3)
+	console.log(TIPOPAG1, TIPOPAG2, TIPOPAG3)
+	$('#modal-venda').modal('open')
+})
+
+$('#valor_pagamento_1').keyup((target) => {
+	somaMultiplo();
+})
+$('#valor_pagamento_2').keyup((target) => {
+	somaMultiplo();
+})
+$('#valor_pagamento_3').keyup((target) => {
+	somaMultiplo();
+})
+
+function somaMultiplo(){
+	let v1 = $('#valor_pagamento_1').val() ? parseFloat($('#valor_pagamento_1').val()) : 0;
+	let v2 = $('#valor_pagamento_2').val() ? parseFloat($('#valor_pagamento_2').val()) : 0;
+	let v3 = $('#valor_pagamento_3').val() ? parseFloat($('#valor_pagamento_3').val()) : 0;
+
+	let soma = v1 + v2 + v3;
+	if(soma == TOTAL){
+		$('#btn-ok-multi').removeClass('disabled')
+	}else if(soma > TOTAL){
+		// swal("Alerta", "Valor de pagamentos ultrapassou o valor da venda", "warning")
+		$('#btn-ok-multi').addClass('disabled')
+	}else{
+		$('#btn-ok-multi').addClass('disabled')
+	}
+}
+
+$('#close-multi').click(() => {
+	$('#modal-pag-mult').modal('close')
+	VALORPAG1 = 0
+	VALORPAG2 = 0
+	VALORPAG3 = 0
+	TIPOPAG1 = ''
+	TIPOPAG2 = ''
+	TIPOPAG3 = ''
+})
+//modal-venda
 
 
 

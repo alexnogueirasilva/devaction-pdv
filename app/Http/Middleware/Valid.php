@@ -50,6 +50,12 @@ class Valid
     	if(strlen($config->cep) < 9){
     		array_push($errArr, "CEP emitente inválido");	
     	}
+        if(strlen($config->csc) < 5){
+            array_push($errArr, "Configure o CSC, caso não possua informe AAAAA");  
+        }
+        if(strlen($config->csc_id) < 6){
+            array_push($errArr, "Configure o CSCid, caso não possua informe 000001");   
+        }
     	return $errArr;
     }
 
@@ -67,12 +73,7 @@ class Valid
     	if(strlen(getenv('RESP_FONE')) < 10){
     		array_push($errArr, "Configure o telefone do responsável tecnico no arquivo .env");	
     	}
-    	if(strlen(getenv('CSC')) < 5){
-    		array_push($errArr, "Configure o CSC no arquivo .env, caso não possua informe AAAAA");	
-    	}
-    	if(strlen(getenv('CSCid')) < 6){
-    		array_push($errArr, "Configure o CSCid no arquivo .env, caso não possua informe 000001");	
-    	}
+    	
     	return $errArr;
     }
 

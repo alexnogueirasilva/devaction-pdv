@@ -231,7 +231,7 @@ class PagSeguroController extends Controller
 
 			if($data['endereco_id'] != 'balcao'){
 				$config = DeliveryConfig::first();
-				$total += $config->valor_entrega;
+				$total += $data['valor_entrega'];
 			}
 
 			$pedido->forma_pagamento = $data['forma_pagamento'];
@@ -466,8 +466,8 @@ class PagSeguroController extends Controller
 			// }
 
 			if($request->forma_entrega != 'balcao'){
-				$config = DeliveryConfig::first();
-				$total += $config->valor_entrega;
+				// $config = DeliveryConfig::first();
+				$total += $request->valor_entrega;
 			}
 
 			$cupom = null;

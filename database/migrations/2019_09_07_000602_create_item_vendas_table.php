@@ -22,7 +22,7 @@ class CreateItemVendasTable extends Migration
             $table->integer('produto_id')->unsigned();
             $table->foreign('produto_id')->references('id')->on('produtos');
 
-            $table->decimal('quantidade', 10,2);
+            $table->decimal('quantidade', 10,3);
             $table->decimal('valor', 10,2);
 
             $table->timestamps();

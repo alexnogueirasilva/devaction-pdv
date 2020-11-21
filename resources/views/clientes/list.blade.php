@@ -72,7 +72,8 @@
 								<a href="/clientes/edit/{{ $c->id }}">
 									<i class="material-icons left">edit</i>					
 								</a>
-								<a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/clientes/delete/{{ $c->id }}">
+								
+								<a onclick='swal("Atenção!", "Deseja remover este registro?", "warning").then((sim) => {if(sim){ location.href="/clientes/delete/{{ $c->id }}" }else{return false} })' href="#!">
 									<i class="material-icons left red-text">delete</i>					
 								</a>
 							</th>

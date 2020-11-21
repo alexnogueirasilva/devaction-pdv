@@ -78,7 +78,9 @@ function faturamentoDosUltimosSeteDias(){
 	})
 	.fail((err) => {
 		console.log(err)
-		alert('Erro ao buscar dados de faturamento')
+		// alert('Erro ao buscar dados de faturamento')
+		swal("Erro", 'Erro ao buscar dados de faturamento', "warning")
+
 	})
 }
 
@@ -97,7 +99,9 @@ function filtrar(){
 	})
 	.fail((err) => {
 		console.log(err)
-		alert('Erro ao buscar dados de faturamento')
+		// alert('Erro ao buscar dados de faturamento')
+		swal("Erro", 'Erro ao buscar dados de faturamento', "warning")
+		
 	})
 }
 

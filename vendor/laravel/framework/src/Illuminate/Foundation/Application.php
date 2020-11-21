@@ -29,7 +29,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
      *
      * @var string
      */
-    const VERSION = '5.7.25';
+    const VERSION = '5.7.29';
 
     /**
      * The base path for the Laravel installation.
@@ -55,28 +55,28 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
     /**
      * The array of booting callbacks.
      *
-     * @var array
+     * @var callable[]
      */
     protected $bootingCallbacks = [];
 
     /**
      * The array of booted callbacks.
      *
-     * @var array
+     * @var callable[]
      */
     protected $bootedCallbacks = [];
 
     /**
      * The array of terminating callbacks.
      *
-     * @var array
+     * @var callable[]
      */
     protected $terminatingCallbacks = [];
 
     /**
      * All of the registered service providers.
      *
-     * @var array
+     * @var \Illuminate\Support\ServiceProvider[]
      */
     protected $serviceProviders = [];
 
@@ -198,7 +198,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
     /**
      * Run the given array of bootstrap classes.
      *
-     * @param  array  $bootstrappers
+     * @param  string[]  $bootstrappers
      * @return void
      */
     public function bootstrapWith(array $bootstrappers)
@@ -823,7 +823,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
     /**
      * Register a new boot listener.
      *
-     * @param  mixed  $callback
+     * @param  callable  $callback
      * @return void
      */
     public function booting($callback)
@@ -834,7 +834,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
     /**
      * Register a new "booted" listener.
      *
-     * @param  mixed  $callback
+     * @param  callable  $callback
      * @return void
      */
     public function booted($callback)
@@ -849,7 +849,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
     /**
      * Call the booting callbacks for the application.
      *
-     * @param  array  $callbacks
+     * @param  callable[]  $callbacks
      * @return void
      */
     protected function fireAppCallbacks(array $callbacks)
@@ -1100,7 +1100,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
     public function registerCoreContainerAliases()
     {
         foreach ([
-            'app'                  => [\Illuminate\Foundation\Application::class, \Illuminate\Contracts\Container\Container::class, \Illuminate\Contracts\Foundation\Application::class,  \Psr\Container\ContainerInterface::class],
+            'app'                  => [self::class, \Illuminate\Contracts\Container\Container::class, \Illuminate\Contracts\Foundation\Application::class,  \Psr\Container\ContainerInterface::class],
             'auth'                 => [\Illuminate\Auth\AuthManager::class, \Illuminate\Contracts\Auth\Factory::class],
             'auth.driver'          => [\Illuminate\Contracts\Auth\Guard::class],
             'blade.compiler'       => [\Illuminate\View\Compilers\BladeCompiler::class],

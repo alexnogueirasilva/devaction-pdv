@@ -21,6 +21,7 @@ class CreateEnderecoDeliveriesTable extends Migration
 
             $table->string('rua', 50);
             $table->string('bairro', 30);
+            $table->integer('bairro_id');
             $table->string('numero', 10);
             $table->string('referencia', 30);
             $table->string('latitude', 10);

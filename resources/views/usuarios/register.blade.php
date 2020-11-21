@@ -84,8 +84,14 @@
 				</div>
 				<div class="col s2">
 					<p>
-						<input @if(isset($usuario) && $usuario->acesso_financeiro) checked @endisset  type="checkbox" class="check" name="acesso_financeiro" id="acesso_financeiro" />
+						<input @if(isset($usuario) && $usuario->acesso_financeiro) checked @endisset type="checkbox" class="check" name="acesso_financeiro" id="acesso_financeiro" />
 						<label for="acesso_financeiro">Acesso Financeiro</label>
+					</p>
+				</div>
+				<div class="col s2">
+					<p>
+						<input @if(isset($usuario) && $usuario->venda_nao_fiscal) checked @endisset type="checkbox" class="check" name="venda_nao_fiscal" id="venda_nao_fiscal" />
+						<label for="venda_nao_fiscal">Venda Não Fiscal</label>
 					</p>
 				</div>
 			</div>
@@ -93,28 +99,30 @@
 			<div class="row">
 				<div class="col s2">
 					<p>
-						<input @if(isset($usuario) && $usuario->acesso_caixa) checked @endisset  type="checkbox" class="check" name="acesso_caixa" id="acesso_caixa" />
+						<input @if(isset($usuario) && $usuario->acesso_caixa) checked @endisset type="checkbox" class="check" name="acesso_caixa" id="acesso_caixa" />
 						<label for="acesso_caixa">Acesso Caixa</label>
 					</p>
 				</div>
 				<div class="col s2">
 					<p>
-						<input @if(isset($usuario) && $usuario->acesso_estoque) checked @endisset  type="checkbox" class="check" name="acesso_estoque" id="acesso_estoque" />
+						<input @if(isset($usuario) && $usuario->acesso_estoque) checked @endisset type="checkbox" class="check" name="acesso_estoque" id="acesso_estoque" />
 						<label for="acesso_estoque">Acesso Estoque</label>
 					</p>
 				</div>
 				<div class="col s2">
 					<p>
-						<input @if(isset($usuario) && $usuario->acesso_compra) checked @endisset  type="checkbox" class="check" name="acesso_compra" id="acesso_compra" />
+						<input @if(isset($usuario) && $usuario->acesso_compra) checked @endisset type="checkbox" class="check" name="acesso_compra" id="acesso_compra" />
 						<label for="acesso_compra">Acesso Compra</label>
 					</p>
 				</div>
 				<div class="col s2">
 					<p>
-						<input @if(isset($usuario) && $usuario->acesso_fiscal) checked @endisset  type="checkbox" class="check" name="acesso_fiscal" id="acesso_fiscal" />
+						<input @if(isset($usuario) && $usuario->acesso_fiscal) checked @endisset type="checkbox" class="check" name="acesso_fiscal" id="acesso_fiscal" />
 						<label for="acesso_fiscal">Acesso Fiscal</label>
 					</p>
 				</div>
+
+				
 			</div>
 
 			<input type="hidden" name="_token" value="{{ csrf_token() }}">

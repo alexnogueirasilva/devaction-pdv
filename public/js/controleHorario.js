@@ -12,7 +12,9 @@ $('#fim').keyup(() => {
 	let inicio = $('#inicio').val();
 	if(inicio == null || inicio == ''){
 		$('#fim').val('');
-		alert("Informe o inicio primeiramente")
+		// alert("Informe o inicio primeiramente")
+		swal("Erro!", "Informe o inicio primeiramente", "warning")
+
 	}
 })
 
@@ -23,10 +25,14 @@ function validaInicio(){
 
 	if(hora < 0 || hora > 23){
 		$('#inicio').val('');
-		alert('Hora inválida')
+		// alert('Hora inválida')
+		swal("Erro!", "Hora inválida", "warning")
+
 	}else if(minuto < 0 || minuto > 59){
 		$('#inicio').val('');
-		alert('Hora inválida')
+		// alert('Hora inválida')
+		swal("Erro!", "Hora inválida", "warning")
+
 
 	}else{
 		INICIOOK = true;
@@ -46,13 +52,19 @@ function validaFim(){
 
 	if(horaFim < 0 || horaFim > 23){
 		$('#fim').val('');
-		alert('Hora inválida')
+		// alert('Hora inválida')
+		swal("Erro!", "Hora inválida", "warning")
+
 	}else if(minutoFim < 0 || minutoFim > 59){
 		$('#fim').val('');
-		alert('Hora inválida')
+		// alert('Hora inválida')
+		swal("Erro!", "Hora inválida", "warning")
+
 	}else if((horaFim <= horaInicio)){
 		$('#fim').val('');
-		alert('Hora Fim deve ser maior que a de fim')
+		// alert('Hora Fim deve ser maior que a de fim')
+		swal("Erro!", "Hora Fim deve ser maior que a de fim", "warning")
+		
 	}else{
 		FIMOK = true;
 		habilitaBtnSalvar();

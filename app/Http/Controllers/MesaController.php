@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Mesa;
+use LaravelQRCode\Facades\QRCode;
+use Dompdf\Dompdf;
+
 class MesaController extends Controller
 {
 	public function __construct(){
@@ -113,4 +116,34 @@ class MesaController extends Controller
 		];
 		$this->validate($request, $rules, $messages);
 	}
+
+	public function gerarQrCode(){
+		$mesas = Mesa::all();
+
+		return view('mesas/qrCode')
+		->with('mesas', $mesas)
+		->with('title', 'Mesas QrCode');
+	}
+
+	public function issue($id){
+		$path = getenv('PATH_URL');
+		return QRCode::url($path . '/pedido/open/'.$id)->png();  
+	}
+
+	public function issue2($id){
+		$path = getenv('PATH_URL');
+		$src = QRCode::url($path . '/pedido/open/'.$id)
+		->setSize(getenv("TAMANHO_QRCODE"))
+		->setMargin(2)
+		->png();  
+
+		return $src;
+	}
+
+	public function imprimirQrCode($id){
+		return view('mesas/verQrCode')
+		->with('id', $id)
+		->with('title', 'QrCode');
+	}
+	
 }

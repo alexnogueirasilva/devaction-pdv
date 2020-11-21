@@ -36,7 +36,7 @@ function montaTabela(){
 	SOMAITENS = 0;
 	let t = ""; 
 	ITENS.map((v) => {
-
+		console.log(v)
 		t += "<tr>";
 		t += "<td>"+v.codigo+"</td>";
 		t += "<td class='cod'>"+v.xProd+"</td>";
@@ -47,7 +47,7 @@ function montaTabela(){
 		t += "<td>"+v.vUnCom+"</td>";
 		t += "<td>"+v.qCom+"</td>";
 		t += "<td>"+formatReal(v.vUnCom*v.qCom)+"</td>";
-		t += "<td><a href='#tbl tbody' onclick='deleteItem("+v.codigo+")'>"
+		t += "<td><a href='#tbl tbody' onclick='deleteItem(\""+v.codigo+"\")'>"
 		t += "<i class=' material-icons red-text'>delete</i></a></td>";
 		t += "<td><a href='#tbl tbody' onclick='editItem("+v.codigo+")'>"
 		t += "<i class=' material-icons blue-text'>edit</i></a></td>";
@@ -65,8 +65,9 @@ function formatReal(v)
 }
 
 function deleteItem(item){
-	if (confirm('Deseja excluir este item, se confirmar sua NF ficará informal?')) { 
-
+	console.log(item)
+	swal("Atenção", "Deseja excluir este item, se confirmar sua NF ficará informal?", "warning")
+	.then(() => {
 		percorreDelete(item, (res) => {
 			let t = montaTabela();
 			$('#tbl tbody').html(t);
@@ -74,7 +75,7 @@ function deleteItem(item){
 
 		})
 		return false;
-	}
+	})
 }
 
 function percorreDelete(id, call){

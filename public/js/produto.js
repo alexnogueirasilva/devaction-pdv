@@ -4,6 +4,7 @@ var TAMANHOPIZZASELECIONADO = 0;
 var SABORESESCOLHIDOS = [];
 
 $(function () {
+
   verificaUnidadeCompra();
   
   validaAtribuiDelivery();
@@ -30,13 +31,26 @@ $(function () {
           getProduto(v[0], (data) => {
 
             let uri = window.location.pathname;
-            console.log()
             if(!data.delivery || uri.split('/')[1] == 'estoque' || uri.split('/')[1] == 'produtos'){
               $('#valor').val(data.valor_venda)
 
-              console.log(data)
+
               if(data.delivery && data.delivery.pizza.length > 0){
                 setaTamanhosPizza(data.delivery)
+              }
+
+              if(uri.split('/')[1] == 'estoque'){
+                let conversao = data.conversao_unitaria;
+                if(conversao > 1){
+
+                  $('#convert').css('display', 'block')
+                  $('#convert-html').html(conversao)
+
+                  
+                }else{
+                  $('#convert').css('display', 'none')
+
+                }
               }
 
               Materialize.updateTextFields();

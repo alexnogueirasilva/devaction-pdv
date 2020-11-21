@@ -12,6 +12,7 @@ use App\Helpers\StockMove;
 use App\Cidade;
 use App\ConfigNota;
 use App\ManifestaDfe;
+use App\NaturezaOperacao;
 use App\Services\DFeService;
 
 class CompraFiscalController extends Controller
@@ -35,17 +36,17 @@ class CompraFiscalController extends Controller
 	public function index(){
 		$natureza = Produto::firstNatureza();
 		if($natureza == null){
-            session()->flash('color', 'red');
-            session()->flash('message', 'Cadastre uma natureza de operação!');
-            return redirect('/naturezaOperacao');
-        }
+			session()->flash('color', 'red');
+			session()->flash('message', 'Cadastre uma natureza de operação!');
+			return redirect('/naturezaOperacao');
+		}
 
-        $categoria = Categoria::first();
-        if($categoria == null){
-        	session()->flash('color', 'red');
-            session()->flash('message', 'Cadastre uma categoria de produto!');
-            return redirect('/categorias');
-        }
+		$categoria = Categoria::first();
+		if($categoria == null){
+			session()->flash('color', 'red');
+			session()->flash('message', 'Cadastre uma categoria de produto!');
+			return redirect('/categorias');
+		}
 		return view('compraFiscal/new')
 		->with('title', 'Compra Fiscal');
 	}
@@ -118,27 +119,40 @@ class CompraFiscalController extends Controller
 				foreach($xml->NFe->infNFe->det as $item) {
 
 					$produto = Produto::verificaCadastrado($item->prod->cEAN,
-						$item->prod->xProd);
+						$item->prod->xProd, $item->prod->cProd);
 
 					$produtoNovo = !$produto ? true : false;
-
-					if($produtoNovo) $contSemRegistro++;
+					$codSiad = 0;
+					if($produtoNovo){ 
+						$contSemRegistro++;
+					}
+					else{
+						$i = ItemCompra::
+						where('produto_id', $produto->id)
+						->first();
+						if($i != null){
+							$codSiad = $i->codigo_siad ?? 0;
+						}
+					}
 
 					$item = [
 						'codigo' => $item->prod->cProd,
 						'xProd' => $item->prod->xProd,
 						'NCM' => $item->prod->NCM,
 						'CFOP' => $item->prod->CFOP,
+						'CFOP_entrada' => $this->getCfopEntrada($item->prod->CFOP),
 						'uCom' => $item->prod->uCom,
 						'vUnCom' => $item->prod->vUnCom,
 						'qCom' => $item->prod->qCom,
 						'codBarras' => $item->prod->cEAN,
 						'produtoNovo' => $produtoNovo,
+						'codSiad' => $codSiad,
 						'produtoId' => $produtoNovo ? '0' : $produto->id,
 						'conversao_unitaria' => $produtoNovo ? '' : $produto->conversao_unitaria
 					];
 					array_push($itens, $item);
 				}
+				
 				$chave = substr($xml->NFe->infNFe->attributes()->Id, 3, 44);
 				$dadosNf = [
 					'chave' => $chave,
@@ -221,6 +235,32 @@ class CompraFiscalController extends Controller
 	public function teste(){
 		$itens = ItemCompra::all();
 		echo json_encode($itens);
+	}
+
+	private function getCfopEntrada($cfop){
+		$natureza = NaturezaOperacao::
+		where('CFOP_saida_estadual', $cfop)
+		->first();
+
+		if($natureza != null){
+			return $natureza->CFOP_entrada_inter_estadual;
+		}
+
+		$natureza = NaturezaOperacao::
+		where('CFOP_saida_inter_estadual', $cfop)
+		->first();
+
+		if($natureza != null){
+			return $natureza->CFOP_entrada_inter_estadual;
+		}
+
+		$digito = substr($cfop, 0, 1);
+		if($digito == '5'){
+			return '1'. substr($cfop, 1, 4);
+
+		}else{
+			return '2'. substr($cfop, 1, 4);
+		}
 	}
 
 	private function verificaFornecedor($cnpj){
@@ -351,6 +391,8 @@ class CompraFiscalController extends Controller
 			'quantidade' =>  str_replace(",", ".", $prod['quantidade']),
 			'valor_unitario' => str_replace(",", ".", $prod['valor']),
 			'unidade_compra' => $prod['unidade'],
+			'cfop_entrada' => $prod['cfop_entrada'],
+			'codigo_siad' => $prod['said']
 		]);
 
 		$valor = $produtoBD->valor_venda > 0 ? $produtoBD->valor_venda : $prod['valor'];

@@ -25,7 +25,8 @@ class UsuarioSeed extends Seeder
         	'acesso_caixa' => 1,
         	'acesso_estoque' => 1,
         	'acesso_compra' => 1,
-        	'acesso_fiscal' => 1
+        	'acesso_fiscal' => 1,
+            'venda_nao_fiscal' => 1
         ]);
     }
 }

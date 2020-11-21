@@ -45,7 +45,7 @@
 								<a href="/bairrosDelivery/edit/{{ $b->id }}">
 	      							<i class="material-icons left">edit</i>					
 								</a>
-								<a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/bairrosDelivery/delete/{{ $b->id }}">
+								<a onclick='swal("Atenção!", "Deseja remover o bairro?", "warning").then((sim) => {if(sim){ location.href="/bairrosDelivery/delete/{{ $b->id }}" }else{return false} })' href="#!">
 	      							<i class="material-icons left red-text">delete</i>					
 								</a>
 							</th>

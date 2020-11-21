@@ -10,7 +10,7 @@
 		</div>
 		
 		@endif
-		<h4>{{{ isset($config) ? "Editar": "Cadastrar" }}} Escritório</h4>
+		<h4>{{{ isset($escritorio) ? "Editar": "Cadastrar" }}} Escritório</h4>
 		<form method="post" action="/escritorio/save" enctype="multipart/form-data">
 			<input type="hidden" name="id" value="{{{ isset($escritorio->id) ? $escritorio->id : 0 }}}">
 

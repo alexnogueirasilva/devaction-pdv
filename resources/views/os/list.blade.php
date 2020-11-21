@@ -141,7 +141,7 @@
 				</tbody>
 			</table>
 		</div>
-		@if(isset($orders))
+		@if(isset($links))
 		<ul class="pagination center-align">
 			<li class="waves-effect">{{$orders->links()}}</li>
 		</ul>

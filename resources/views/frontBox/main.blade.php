@@ -2,7 +2,7 @@
 @section('content')
 <style type="text/css">
 .table{
-	height: 298px;
+	height: 344px;
 	overflow-x:auto;
 }
 table tbody{
@@ -16,6 +16,18 @@ table tbody{
 
 .money-moeda{
 	width: 80px;
+}
+
+#btn-plus{
+	margin-left: -8px;
+	padding: 3px;
+	background: #69f0ae;
+	border-radius: 10px;
+	/*border: 1px solid #444;*/
+}
+
+#btn-plus:hover{
+	cursor: pointer;
 }
 
 </style>
@@ -34,6 +46,10 @@ table tbody{
 	
 	<input type="hidden" id="codigo_comanda_hidden" @if(isset($cod_comanda)) value="{{$cod_comanda}}" @else value='0' @endif name="">
 	@endif
+
+	<input type="hidden" id="PDV_VALOR_RECEBIDO" value="{{ getenv('PDV_VALOR_RECEBIDO') }}">
+
+
 	<div class="col s5">
 		<div class="card">
 			<div class="row">
@@ -54,9 +70,40 @@ table tbody{
 		</div>
 		<div class="card">
 			<div class="row">
-				
+
+				<input type="hidden" id="semCertificado" value="{{$certificado == null ? true : false}}" name="">
 				<div class="row">
-					<div class="input-field col s12" style="margin-top: 55px;">
+
+					@if(isset($listaPreco))
+
+					<div class="input-field col s12">
+						<i class="material-icons prefix">attach_money</i>
+						<select id="lista_id">
+							<option value="0">Padrão</option>
+							@foreach($listaPreco as $l)
+							<option value="{{$l->id}}">{{$l->nome}} - {{$l->percentual_alteracao}}%</option>
+							@endforeach
+						</select>
+						<label>
+							Lista de Preço
+						</label>
+					</div>
+
+					@else
+
+					<div class="input-field col s12">
+						<i class="material-icons prefix">attach_money</i>
+						<select disabled id="">
+							<option value="0">Padrão</option>
+							
+						</select>
+						<label>
+							Lista de Preço
+						</label>
+					</div>
+
+					@endif
+					<div class="input-field col s12" style="margin-top: 15px;">
 						<i class="material-icons prefix">inbox</i>
 						<input autofocus="true" autocomplete="off" type="text" name="produto" id="autocomplete-produto" class="autocomplete-produto">
 						<label for="autocomplete-produto green-text">Produto</label>
@@ -67,7 +114,7 @@ table tbody{
 
 				<div class="row">
 					<div class="input-field col s6">
-						<i class="material-icons prefix">exposure_plus_1</i>
+						<i id="btn-plus" class="material-icons prefix">exposure_plus_1</i>
 						<input type="text" id="quantidade" value="1">
 						<label for="quantidade">Quantidade</label>
 
@@ -130,7 +177,7 @@ table tbody{
 		<div class="card">
 			<div class="row">
 				<div class="row">
-					<div class="col s12 green accent-4">
+					<div class="col s12 green accent-3" id="prod-nome">
 						<h5 id="nome-produto" class="center-align white-text">--</h5>
 					</div>
 				</div>
@@ -201,6 +248,12 @@ table tbody{
 								@endforeach
 							</select>
 							<label>Forma de Pagamento</label>
+						</div>
+
+						<div class="input-field col s2">
+							<a id="click-multi" class="btn-large green lighten-2 modal-trigger" href="#modal-pag-mult">
+								<i class="material-icons">list</i>
+							</a>
 						</div>
 					</div>
 
@@ -503,14 +556,20 @@ table tbody{
 		<div class="modal-content">
 
 			<div class="row">
-				<div class="col s4">
-					<a class="btn-large blue modal-trigger" style="width: 100%" onclick="verificaCliente()" class="btn-large green">Cupom Fiscal</a>
-				</div>
-				<div class="col s4">
-					<button onclick="finalizarVenda('nao_fiscal')" style="width: 100%" class="btn-large red">Cupom Não Fiscal</button>
+
+				
+				<div class="col @if($usuario->venda_nao_fiscal == 1) s4 @else s6 @endif">
+					<a class="btn-large blue modal-trigger @if($certificado == null) disabled @endif" style="width: 100%" onclick="verificaCliente()">Cupom Fiscal</a>
 				</div>
 
+
+				@if($usuario->venda_nao_fiscal == 1)
 				<div class="col s4">
+					<button id="btn_nao_fiscal" onclick="finalizarVenda('nao_fiscal')" style="width: 100%" class="btn-large red">Cupom Não Fiscal</button>
+				</div>
+				@endif
+
+				<div class="col @if($usuario->venda_nao_fiscal == 1) s4 @else s6 @endif">
 					<button id="conta_credito-btn" onclick="finalizarVenda('credito')" style="width: 100%" class="btn-large orange disabled">Conta Crédito</button>
 				</div>
 
@@ -533,6 +592,8 @@ table tbody{
 			</div>
 		</div>
 	</div>
+
+
 
 	<div id="modal-cpf-nota" class="modal">
 		<div class="modal-content">
@@ -597,6 +658,80 @@ table tbody{
 		</div>
 		<div class="modal-footer">
 			<a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Fechar</a>
+		</div>
+	</div>
+
+	<div id="modal-pag-mult" class="modal">
+
+		<div class="modal-content">
+			<div class="row">
+
+				<div class="col s3">
+					<a href="#!" id="close-multi" class="btn red">Fechar</a>
+
+				</div>
+				<div class="col s9">
+
+					<h4 class="">PAGAMENTO MULTIPLO</h4>
+				</div>
+			</div>
+
+			<h5 class="center-align">Valor: R$ <strong id="total-multi"></strong></h5>
+			<div class="row">
+				<div class="col s4 input-field">
+					<select id="tipo_pagamento_1">
+						@foreach($tiposPagamentoMulti as $t)
+						<option value="{{$t}}">{{$t}}</option>
+						@endforeach
+					</select>
+					<label>Tipo pagamento 1</label>
+				</div>
+
+				<div class="col s4 input-field">
+					<input type="text" class="money" id="valor_pagamento_1" name="">
+					<label>Valor pagamento 1</label>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col s4 input-field">
+					<select id="tipo_pagamento_2">
+						@foreach($tiposPagamentoMulti as $t)
+						<option value="{{$t}}">{{$t}}</option>
+						@endforeach
+					</select>
+					<label>Tipo pagamento 2</label>
+				</div>
+
+				<div class="col s4 input-field">
+					<input type="text" class="money" id="valor_pagamento_2" name="">
+					<label>Valor pagamento 2</label>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col s4 input-field">
+					<select id="tipo_pagamento_3">
+						@foreach($tiposPagamentoMulti as $t)
+						<option value="{{$t}}">{{$t}}</option>
+						@endforeach
+					</select>
+					<label>Tipo pagamento 3</label>
+				</div>
+
+				<div class="col s4 input-field">
+					<input type="text" class="money" id="valor_pagamento_3" name="">
+					<label>Valor pagamento 3</label>
+				</div>
+			</div>
+
+			
+			<div class="col s6 ofsset-s3">
+				<button id="btn-ok-multi" style="width: 100%" class="btn-large blue lighten-2 disabled">OK</button>
+				
+				<!-- <button onclick="teste()" style="width: 100%" class="btn-large green">OK</button> -->
+			</div>
+
 		</div>
 	</div>
 

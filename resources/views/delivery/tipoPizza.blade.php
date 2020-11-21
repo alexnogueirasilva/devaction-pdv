@@ -66,7 +66,7 @@
 
 									<input class="form-check-input" type="radio" name="tipo" id="credito" value="{{$t->nome}}-{{$aux}}">
 									<label class="form-check-label" for="credito">
-										{{$t->nome}}({{$t->pedacos}} pedaços) - {{$aux}} {{$aux == 1 ? 'sabor' : 'sabores'}}
+										{{$t->nome()}} ({{$t->pedacos}} pedaços) - {{$aux}} {{$aux == 1 ? 'sabor' : 'sabores'}}
 									</label>
 
 

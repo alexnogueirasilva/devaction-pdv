@@ -75,6 +75,34 @@ class PedidoDelivery extends Model
 		}
 	}
 
+	public function somaItensSemFrete(){
+		$total = 0;
+		foreach($this->itens as $i){
+
+			if(count($i->sabores) > 0){
+				$maiorValor = 0;
+				$somaValores = 0;
+				foreach($i->sabores as $sb){
+					$v = $sb->maiorValor($sb->sabor_id, $i->tamanho_id);
+					$somaValores += $v;
+					if($v > $maiorValor) $maiorValor = $v;
+				}
+				if(getenv("DIVISAO_VALOR_PIZZA") == 1){
+					$maiorValor = number_format(($somaValores/sizeof($i->sabores)),2);
+				}
+				$total += $i->quantidade * $maiorValor;
+			}else{
+				$total += $i->quantidade * $i->produto->valor;
+			}
+
+			foreach($i->itensAdicionais as $a){
+				$total += $a->quantidade * $a->adicional->valor;
+			}
+
+		}
+		return $total;
+	}
+
 	public function somaCarrinho(){
 		$config = DeliveryConfig::first();
 		$total = 0;
@@ -99,5 +127,25 @@ class PedidoDelivery extends Model
 		}
 
 		return $total;
+	}
+
+	public function calculaFrete(){
+		return $this->valor_total - $this->somaItensSemFrete();
+	}
+
+	public function itensOrdenadosPorPizza(){
+		$temp = [];
+		foreach($this->itens as $i){
+			if(count($i->sabores) > 0){
+				array_push($temp, $i);
+			}
+		}
+
+		foreach($this->itens as $i){
+			if(count($i->sabores) == 0){
+				array_push($temp, $i);
+			}
+		}
+		return $temp;
 	}
 }

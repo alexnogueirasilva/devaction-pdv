@@ -29,7 +29,7 @@
         <!-- Team Classic-->
         <article class="team-classic">
           <a class="" href="/delivery/produtos/{{$c->id}}">
-            <img class="img-categoria" src="/imagens_categorias/{{$c->path}}" alt="" width="370" height="406"/>
+            <img loading="lazy" class="img-categoria" src="/imagens_categorias/{{$c->path}}" alt="" width="370" height="406"/>
           </a>
           <div class="team-classic-caption">
             <h5 class="team-classic-name"><a href="#">{{$c->nome}}</a></h5>

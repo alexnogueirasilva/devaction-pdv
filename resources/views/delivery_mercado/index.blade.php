@@ -26,7 +26,7 @@
         <!-- Team Classic-->
         <article class="team-classic">
           <a class="" href="/delivery/produtos/{{$c->id}}">
-            <img class="img-categoria" src="/imagens_categorias/{{$c->path}}" alt="" width="370" height="406"/>
+            <img loading="lazy" class="img-categoria" src="/imagens_categorias/{{$c->path}}" alt="" width="370" height="406"/>
           </a>
           <div class="team-classic-caption">
             <h5 class="team-classic-name"><a href="#">{{$c->nome}}</a></h5>
@@ -46,7 +46,7 @@
       @if($BannerMaisVendido != null)
       <div class="col-sm-8 col-md-7 col-lg-6 wow fadeInLeft" data-wow-delay="0s">
         <div class="product-banner">
-          <img src="/banner_mais_vendido/{{$BannerMaisVendido->path}}" alt="" width="570" height="715"/>
+          <img loading="lazy" src="/banner_mais_vendido/{{$BannerMaisVendido->path}}" alt="" width="570" height="715"/>
           <div class="product-banner-content">
             <div class="product-banner-inner" style="background-image: url(images/bg-brush.png)">
               <h3 class="text-secondary-1">{{$BannerMaisVendido->texto_primario}}</h3>
@@ -75,7 +75,7 @@
                   <div class="unit-left">
                     <div class="product-figure">
                       @if(sizeof($i->produto->galeria) > 0)
-                      <img src="/imagens_produtos/{{$i->produto->galeria[0]->path}}" alt="" width="270" height="280"/>
+                      <img loading="lazy" src="/imagens_produtos/{{$i->produto->galeria[0]->path}}" alt="" width="270" height="280"/>
                       @else
                       <img src="/imgs/no_image.png" alt="" width="270" height="280"/>
                       @endif
@@ -109,7 +109,7 @@
                   <div class="unit-left">
                     <div class="product-figure">
                       @if(sizeof($p->galeria) > 0)
-                      <img src="/imagens_produtos/{{$p->galeria[0]->path}}" alt="" width="270" height="280"/> 
+                      <img loading="lazy" src="/imagens_produtos/{{$p->galeria[0]->path}}" alt="" width="270" height="280"/> 
                       @else
                       <img src="/imgs/no_image.png" alt="" width="270" height="280"/>
                       @endif
@@ -124,7 +124,7 @@
                       <div class="product-price product-price-old">R$ {{$p->valor_anterior}}</div>
 
                       <div class="product-price">R$ {{$p->valor}}</div>
-                    </div><a class="button button-sm button-{{getenv('COLOR_BUTTON')}} button-ujarak" href="/delivery/produto/{{$p->id}}">Add to cart</a>
+                    </div><a class="button button-sm button-{{getenv('COLOR_BUTTON')}} button-ujarak" href="/delivery/produto/{{$p->id}}">Adicionar ao carrinho</a>
                   </div>
                 </div>
               </article>
@@ -156,7 +156,7 @@
         <!-- Team Classic-->
         <article class="team-classic">
           <a class="" href="#">
-            <img class="img-categoria" src="/imagens_categorias/{{$c->path}}" alt="" width="370" height="406"/>
+            <img loading="lazy" class="img-categoria" src="/imagens_categorias/{{$c->path}}" alt="" width="370" height="406"/>
           </a>
           <div class="team-classic-caption">
             <h5 class="team-classic-name"><a href="#">{{$c->nome}}</a></h5>
@@ -172,7 +172,7 @@
 
 <!-- About us-->
 <section class="section">
-  <div class="parallax-container" data-parallax-img="images/bg-parallax-2.jpg">
+  <div class="parallax-container" loading="lazy" data-parallax-img="images/bg-parallax-2.jpg">
     <div class="parallax-content section-xl context-dark bg-overlay-68">
       <div class="container">
         <div class="row row-lg row-50 justify-content-center border-classic border-classic-big">
@@ -208,7 +208,7 @@
 <section class="section section-md bg-default section-top-image">
   <div class="container">
     <div class="oh h2-title">
-      <h2 class="wow slideInUp" data-wow-delay="0s">TUDO PARA SEU PET</h2>
+      <h2 class="wow slideInUp" data-wow-delay="0s"></h2>
     </div>
     <div class="row row-30" data-lightgallery="group">
 

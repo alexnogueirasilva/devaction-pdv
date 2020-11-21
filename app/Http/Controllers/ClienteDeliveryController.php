@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\ClienteDelivery;
 use App\EnderecoDelivery;
+use App\BairroDelivery;
 use App\Rules\CelularDup;
 use App\DeliveryConfig;
 use App\ProdutoFavoritoDelivery;
@@ -73,6 +74,14 @@ class ClienteDeliveryController extends Controller
 		];
 		return $messages[rand(0,2)];
 	}
+
+	public function pesquisa(Request $request){
+        $pesquisa = $request->input('pesquisa');
+        $clientes = ClienteDelivery::where('nome', 'LIKE', "%$pesquisa%")->get();
+        return view('clienteDelivery/list')
+        ->with('clientes', $clientes)
+        ->with('title', 'Filtro Clientes');
+    }
 
 	public function edit($id){
 		$cliente = ClienteDelivery::
@@ -145,8 +154,12 @@ class ClienteDeliveryController extends Controller
 		where('id', $id)
 		->first();
 
+		$bairros = BairroDelivery::orderBy('nome')->get();
+		$config = DeliveryConfig::first();
 		return view('clienteDelivery/enderecoEdit')
 		->with('title', 'Editar endereço')
+		->with('bairros', $bairros)
+		->with('config', $config)
 		->with('endereco', $endereco);
 	}
 
@@ -171,8 +184,9 @@ class ClienteDeliveryController extends Controller
 		$this->_validateEnd($request);
 		$end->rua = $request->rua;
 		$end->numero = $request->numero;
-		$end->bairro = $request->bairro;
+		$end->bairro = $request->bairro ?? '';
 		$end->referencia = $request->referencia;
+		$end->bairro_id = $request->bairro_id;
 		$end->latitude = $request->latitude ?? '';
 		$end->latitude = $request->latitude ?? '';
 
@@ -218,7 +232,7 @@ class ClienteDeliveryController extends Controller
 		$rules = [
 			'rua' => 'required|max:50',
 			'numero' => 'required|max:10',
-			'bairro' => 'required|max:30',
+			'bairro' => $request->bairro ? 'required|max:30' : '',
 			'referencia' => 'required|max:30',
 		];
 

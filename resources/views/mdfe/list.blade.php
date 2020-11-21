@@ -29,7 +29,7 @@
 
 					<div class="col s2 input-field">
 						<select name="estado">
-							<option @if(isset($estado) && $estado == 'DISPONIVEL') selected @endif value="DISPONIVEL">DISPONIVEIS</option>
+							<option @if(isset($estado) && $estado == 'NOVO') selected @endif value="NOVO">NOVO</option>
 							<option @if(isset($estado) && $estado == 'REJEITADO') selected @endif value="REJEITADO">REJEITADAS</option>
 							<option @if(isset($estado) && $estado == 'CANCELADO') selected @endif value="CANCELADO">CANCELADAS</option>
 							<option @if(isset($estado) && $estado == 'APROVADO') selected @endif value="APROVADO">APROVADAS</option>
@@ -97,17 +97,19 @@
 						<th>{{ \Carbon\Carbon::parse($m->data_inicio_viagem)->format('d/m/Y')}}</th>
 						<td>{{$m->cnpj_contratante}}</td>
 						<td>{{$m->estado}}</td>
+						<td id="estado_{{$m->id}}">{{$m->estado}}</td>
+
 						<td>{{$m->veiculoTracao->marca}} {{$m->veiculoTracao->placa}}</td>
 						<td>{{$m->veiculoReboque->marca}} {{$m->veiculoReboque->placa}}</td>
 						<td>{{$m->quantidade_carga}}</td>
 						<td>{{$m->valor_carga}}</td>
 						<td>
 							@if($m->estado == 'NOVO' || $m->estado == 'REJEITADO')
-							<a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/mdfe/delete/{{ $m->id }}">
+							<a onclick='swal("Atenção!", "Deseja remover este registro?", "warning").then((sim) => {if(sim){ location.href="/mdfe/delete/{{ $m->id }}" }else{return false} })' href="#!">
 								<i class="material-icons left red-text">delete</i>	
 							</a>
 
-							<a onclick = "if (! confirm('Deseja editar este registro?')) { return false; }" href="/mdfe/edit/{{ $m->id }}">
+							<a onclick='swal("Atenção!", "Deseja editar este registro?", "warning").then((sim) => {if(sim){ location.href="/mdfe/edit/{{ $m->id }}" }else{return false} })' href="#!">
 								<i class="material-icons left blue-text">edit</i>	
 							</a>
 							@endif

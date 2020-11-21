@@ -9,14 +9,34 @@ var latPadrao = 0;
 var lngPadrao = 0;
 var BANDEIRA = "";
 var INSTALLMENTS = [];
+var ENTREGADISTANTE = false;
 
 let LAT = latPadrao;
 let LNG = lngPadrao;
-
+var USARBAIRROS = 0;
 var HASHCLIENTE = '';
 var TOKENCARTAO = '';
+var DADOSCALCULOENTREGA = null;
+DISTANCIA = 0;
 
 $(function(){
+	getDadosCalculoEntrega((res) => {
+
+		DADOSCALCULOENTREGA = res;
+
+		getCurrentLocation((crd) => {
+
+			if(crd){
+				initMap(crd.latitude, crd.longitude);
+				// getDistancia(crd.latitude, crd.longitude)
+			}else{
+				swal("Atenção!", 'Não foi possivel recuperar sua localização, ative e recarregue a pagina!', "warning")
+
+				initMap(latPadrao, lngPadrao);
+			}
+		});
+	})
+	USARBAIRROS = $('#usar_bairros').val();
 
 	MAXIMOPARCELAMENTO = $('#maximo_parcelamento').val();
 
@@ -37,16 +57,6 @@ $(function(){
 		}
 	}
 
-	getCurrentLocation((crd) => {
-
-		if(crd){
-			initMap(crd.latitude, crd.longitude);
-		}else{
-			alert('Não foi possivel recuperar sua localização, ative e recarregue a pagina!');
-			initMap(latPadrao, lngPadrao);
-		}
-	});
-
 	$.get(path + 'pagseguro/getSessao')
 	.done((success) => {
 		let token = success.id
@@ -57,6 +67,7 @@ $(function(){
 	.fail((err) => {
 		console.log(err)
 	})
+
 
 })
 
@@ -88,11 +99,23 @@ $("#cvc").keyup(function(){
 			error: function(response){ 
 				console.log(response); 
 				// alert("Data de validade incorreta")
+
 			}
 		});
 	}
 
 });
+
+function getDadosCalculoEntrega(call){
+	$.get(path+'carrinho/getDadosCalculoEntrega')
+	.done(function(data){
+		call(data)
+	})
+	.fail(function(err){
+		console.log(err)
+		call(err)
+	})
+}
 
 function getTokenCartao(){
 	if($("#cvc").val().length > 2){
@@ -237,11 +260,14 @@ $('#pagseguro').click(() => {
 	}else{
 		
 		if(!enderecoSelecionado){
-			alert("Por favor selecione a forma de entrega")
+
+			swal("Atenção!", "Por favor selecione a forma de entrega!", "warning")
 
 		}
 		else if(telefone.length < 12){
-			alert("Por favor informe um telefone de contato (11) 99999-9999")
+
+			swal("Atenção!", "Por favor informe um telefone de contato (11) 99999-9999", "warning")
+
 		}
 	}
 });
@@ -279,7 +305,6 @@ $('#salvar_endereco').click(() => {
 		longitude: LNG
 	}
 
-
 	$.post(path+'enderecoDelivery/save', {_token : tk, data: js})
 	.done(function(data){
 		data = JSON.parse(data)
@@ -291,7 +316,7 @@ $('#salvar_endereco').click(() => {
 		'<h5 class="blog-title card-title m-0">'+
 		rua + ', ' + numero+
 		'</h5>'+
-		'<h5>'+bairro+'</h5>'+
+		// '<h5>'+bairro+'</h5>'+
 		'<p>Referencia: '+ referencia +'</p>'+
 		'</div>'+
 		'</div>'+
@@ -307,32 +332,115 @@ $('#salvar_endereco').click(() => {
 })
 
 function set_endereco(id){
-
+	TOTAL -= parseFloat(VALORENTREGA)
 	$('#endereco_select_'+enderecoSelecionado).css('background', '#fff')
-
+	$('#entrega-distante').css('display', 'none')
+	$('#frete-gratuito').css('display', 'none')
+	let adicionou = false;
+	
 	if(id == 'balcao'){
 		$('#endereco_select_balcao').css('background', '#81c784')
 		$('#acrescimo-entrega').css('display', 'none')
 		if(ENTREGA == true){
-			TOTAL -= parseFloat(VALORENTREGA)
+			VALORENTREGA = 0;
 			$('#total').html("R$ "+parseFloat(TOTAL).toFixed(2))
 		}
-		ENTREGA = false;
+
 
 	}else{
 		getValorEntrega((d) => {
 			let j = JSON.parse(d)
-			if(ENTREGA == false){
-				VALORENTREGA = j.valor_entrega;
-				TOTAL += parseFloat(VALORENTREGA)
-				$('#acrescimo-entrega').css('display', 'block')
-				$('#valor-entrega').html(VALORENTREGA)
-				$('#total').html("R$ "+parseFloat(TOTAL).toFixed(2))
-			}
+			console.log(j)
+
+			getEndereco(id, (enderecoData) => {
+
+				if(USARBAIRROS == 1){
+
+					getValorBairro(id, (valor) => {
+
+						if(valor == false){
+							VALORENTREGA = j.valor_entrega;
+						}else{
+
+							VALORENTREGA = parseFloat(valor)
+						}
+
+						TOTAL += parseFloat(VALORENTREGA)
+
+						$('#acrescimo-entrega').css('display', 'block')
+
+
+						if(VALORENTREGA > 0){ 
+							$('#valor-entrega').html(parseFloat(VALORENTREGA).toFixed(2))
+						}
+						else{ 
+							$('#valor-entrega').html('0.00') 
+						}
+
+						$('#total').html("R$ "+parseFloat(TOTAL).toFixed(2))
+					})
+				}else if(DADOSCALCULOENTREGA.valor_km > 0){
+
+					getDistancia(enderecoData.latitude, enderecoData.longitude, (distacia) => {
+
+						if(distacia == 0 || enderecoData == false || DADOSCALCULOENTREGA.valor_km == 0){
+							VALORENTREGA = j.valor_entrega;
+						}else{
+
+							if(DADOSCALCULOENTREGA.maximo_km_entrega > 0 && distacia > DADOSCALCULOENTREGA.maximo_km_entrega){
+								ENTREGADISTANTE = true;
+
+								$('#entrega-distante').css('display', 'block')
+								$('#frete-gratuito').css('display', 'none')
+								$('#acrescimo-entrega').css('display', 'none')
+
+
+							}else{
+								ENTREGADISTANTE = false;
+								distacia = parseInt(distacia);
+								if(distacia >= DADOSCALCULOENTREGA.entrega_gratis_ate){
+									VALORENTREGA = DADOSCALCULOENTREGA.valor_km * distacia;
+									$('#frete-gratuito').css('display', 'none')
+
+								}else{
+									VALORENTREGA = 0;
+									$('#frete-gratuito').css('display', 'block')
+
+
+								}
+							}
+						}
+
+						TOTAL += parseFloat(VALORENTREGA)
+						if(ENTREGADISTANTE == false){
+							$('#acrescimo-entrega').css('display', 'block')
+						}
+
+						if(VALORENTREGA > 0){ 
+							$('#valor-entrega').html(parseFloat(VALORENTREGA).toFixed(2))
+						}
+						else{ 
+							$('#valor-entrega').html('0.00') 
+						}
+						$('#total').html("R$ "+parseFloat(TOTAL).toFixed(2))
+
+					})
+				}else{
+					//valor padrao
+
+					VALORENTREGA = j.valor_entrega;
+					TOTAL += parseFloat(VALORENTREGA)
+					$('#total').html("R$ "+parseFloat(TOTAL).toFixed(2))
+					$('#valor-entrega').html(parseFloat(VALORENTREGA).toFixed(2))
+					$('#acrescimo-entrega').css('display', 'block')
+
+				}
+			})
+
 			ENTREGA = true;
 		})
-		$('#endereco_select_balcao').css('background', '#fff')
 
+		$('#endereco_select_balcao').css('background', '#fff')
 		$('#endereco_select_'+id).css('background', '#81c784')
 		
 	}
@@ -357,29 +465,37 @@ $('#finalizar-venda').click(() => {
 		pedido_id: $('#pedido_id').val(),
 		telefone: telefone,
 		desconto: DESCONTO,
+		valor_entrega: VALORENTREGA,
 		cupom: DESCONTO > 0 ? cupom : ''
 	}
 
 	if(!formaPagamento){
-		alert("Por favor selecione a forma de pagamento")
+		swal("Atenção!", "Por favor selecione a forma de pagamento!", "warning")
 	}
 	else if(!enderecoSelecionado){
-		alert("Por favor selecione a forma de entrega")
-
+		swal("Atenção!", "Por favor selecione a forma de entrega!", "warning")
 	}
 	else if(telefone.length <= 12){
-		alert("Por favor informe um telefone de contato (11) 99999-9999")
+		swal("Atenção!", "Por favor informe um telefone de contato (11) 99999-9999", "warning")
+
 	}
 
 	else if(formaPagamento == 'dinheiro' && troco.length == 0 || parseFloat(troco.replace(",", ".")) == 0){
-		alert("Por favor insira o valor de troco para")
+
+		swal("Atenção!", "Por favor insira o valor de troco para!", "warning")
 	}
 
 	else if(formaPagamento == 'dinheiro' && parseFloat(troco.replace(",", ".")) < TOTAL){
-		alert("Valor do troco deve ser maior que o valor total do pedido")
-		if(ENTREGA) alert('Total com entrega: R$' + TOTAL.toFixed(2))
-			else alert('Total: R$' + TOTAL.toFixed(2))
-		}
+		swal("Atenção!", "Valor do troco deve ser maior que o valor total do pedido!", "warning")
+
+
+		if(ENTREGA){
+			swal("Atenção!", 'Total com entrega: R$' + TOTAL.toFixed(2), "warning")
+
+		} else{
+			swal("Atenção!", 'Total: R$' + TOTAL.toFixed(2), "warning")
+		} 
+	}
 
 	else{
 
@@ -444,6 +560,7 @@ function getCurrentLocation(call){
 
 
 function initMap(lat, lng){
+
 	LAT = lat;
 	LNG = lng;
 	const position = new google.maps.LatLng(lat, lng);
@@ -463,7 +580,6 @@ function initMap(lat, lng){
 	})
 
 	getEnderecoByCoords(lat, lng, (res) => {
-
 		if(res == false){
 
 		}else{
@@ -482,6 +598,7 @@ function initMap(lat, lng){
 		LNG = lng;
 
 		getEnderecoByCoords(lat, lng, (res) => {
+
 			if(res == false){
 
 			}else{
@@ -500,11 +617,12 @@ $('#telefone').keyup(() => {
 
 function verificaBotaoFinalizarSemCartao(){
 	let telefone = $('#telefone').val();
-	if(telefone.length > 12 && $('#pagseguro').is(':checked') == false && enderecoSelecionado != null){
-		$('#finalizar-venda').removeClass('disabled')
-	}else{
-		$('#finalizar-venda').addClass('disabled')
-	}
+	if(telefone.length > 12 && $('#pagseguro').is(':checked') == false && 
+		enderecoSelecionado != null && ENTREGADISTANTE == false){
+		// $('#finalizar-venda').removeClass('disabled')
+}else{
+	// $('#finalizar-venda').addClass('disabled')
+}
 }
 
 function getEnderecoByCoords(lat, lng, call){
@@ -602,6 +720,7 @@ $('#finalizar-venda-cartao').click(() => {
 			telefone: telefone.replace(" ", "").replace("-", ""),
 			cpf: cpf,
 			email: email,
+			valor_entrega: VALORENTREGA,
 			hashCliente: HASHCLIENTE,
 			creditCardToken: TOKENCARTAO,
 			nome_cartao: nome_cartao,
@@ -617,7 +736,10 @@ $('#finalizar-venda-cartao').click(() => {
 
 			$('#icon-spin').css('display', 'none')
 			if(data.consulta.original.status == "3"){
-				alert("Pagamento Aprovado")
+
+				swal("Sucesso!", "Pagamento Aprovado!", "success")
+
+
 				location.href = path + 'carrinho/finalizado/'+data.pedido_id;
 			}
 
@@ -627,17 +749,17 @@ $('#finalizar-venda-cartao').click(() => {
 			if(err.status == 403){
 				json = err.responseJSON;
 
-				alert("403: Erro de pagamento!");
+				swal("Atenção!", "403: Erro de pagamento!", "warning")
 
 			}else if(err.status == 404){
 				json = err.responseJSON;
-
-				alert("404: Pagamento não autorizado!");
+				swal("Atenção!", "404: Pagamento não autorizado!", "warning")
 			}
 			else if(err.status == 402){
 				json = err.responseJSON;
 				console.log(json)
-				alert("402: Pagamento ainda não aprovado pelo getway!");
+				swal("Atenção!", "402: Pagamento ainda não aprovado pelo getway!", "warning")
+
 			}
 			console.log(err)
 		});
@@ -702,3 +824,58 @@ $('#voltar').click(() => {
 	$('#div-pagar').css('display', 'none');
 
 })
+
+function getDistancia(latitude, longitude, call){
+	call(false)
+
+	var myLatLng = {lat: latitude, lng: longitude};
+	var cliLatLng = {lat: DADOSCALCULOENTREGA.latitude_local, lng: DADOSCALCULOENTREGA.longitude_local};
+
+	var directionsService = new google.maps.DirectionsService();
+	var directionsRequest = {
+		origin: new google.maps.LatLng(myLatLng.lat, myLatLng.lng),
+		destination: new google.maps.LatLng(cliLatLng.lat, cliLatLng.lng),
+
+		travelMode: google.maps.DirectionsTravelMode.DRIVING,
+		unitSystem: google.maps.UnitSystem.METRIC
+	};
+
+	directionsService.route(
+		directionsRequest,
+		function(response, status)
+		{	
+
+			if (status == google.maps.DirectionsStatus.OK) {
+				let route = response.routes[0].legs[0];
+				let distancia = route.distance.value;
+				let duracao = route.duration.text;
+
+				DISTANCIA = distancia/1000; 
+
+				call(DISTANCIA);
+			}else{
+				call(false);
+			}
+		});
+}
+
+function getValorBairro(endereco_id, call){
+	$.get(path + 'enderecoDelivery/getValorBairro', {endereco_id: endereco_id})
+	.done((res) => {
+		call(res)
+	})
+	.fail((err) => {
+		console.log(err)
+		call(false)
+	})
+}
+
+function getEndereco(endereco_id, call){
+	$.get(path + 'enderecoDelivery', {endereco_id: endereco_id})
+	.done((res) => {
+		call(res)
+	})
+	.fail((err) => {
+		call(false)
+	})
+}

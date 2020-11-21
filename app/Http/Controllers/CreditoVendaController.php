@@ -47,22 +47,27 @@ class CreditoVendaController extends Controller
 			where('venda_id', (int)$a)
 			->first();
 
-			$credito['valor'] = $credito->venda->valor_total;
-			$credito['usuario'] = $credito->venda->usuario->nome;
-			$credito['data'] = $credito->venda->data_registro;
+			if($credito != null){
+				$credito['valor'] = $credito->venda->valor_total;
+				$credito['usuario'] = $credito->venda->usuario->nome;
+				$credito['data'] = $credito->venda->data_registro;
 
 
-			array_push($temp, $credito);
-			if($cliente == ''){
-				$cliente = $credito->cliente->razao_social;
-			}else{
-				if($cliente != $credito->cliente->razao_social){
-					$clienteDiferente = true;
+				array_push($temp, $credito);
+				if($cliente == ''){
+					$cliente = $credito->cliente->razao_social;
+				}else{
+					if($cliente != $credito->cliente->razao_social){
+						$clienteDiferente = true;
+					}
 				}
 			}
 
 		}
 		
+		if(sizeof($temp) == 0){
+			return redirect()->back();
+		}
 		return view("creditosEmVenda/finalizar")
 		->with('vendas', $temp)
 		->with('arr', $vArr)

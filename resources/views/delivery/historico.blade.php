@@ -61,7 +61,7 @@
 								<?php  $total += $a->adicional->valor * $i->quantidade?>
 								@endforeach
 								@else
-								<label>Nenum adicional</label>
+								<label>Nenhum adicional</label>
 
 								@endif
 
@@ -139,7 +139,7 @@
 							<h4>Retirar no Balcao</h4>
 							@endif
 
-							<h4>Forma de pagmaento: <strong>
+							<h4>Forma de pagamento: <strong>
 								
 								@if($p->forma_pagamento == 'credito')
 								Cartão de crédito

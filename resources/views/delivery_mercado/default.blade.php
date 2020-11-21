@@ -18,7 +18,97 @@
     width: 108px; height: 100px;
   }
 
+  body{
+    font-family: sans-serif;
+  }
+  @media only screen and (min-width: 200px) and (max-width: 1000px){
+    .fab{
+      position: fixed;
+      bottom:60px;
+      right:10px;
+    }
+  }
+
+  /*@media only screen and (min-width: 1300px){
+    .fab{
+      position: fixed;
+      bottom:90px;
+      right:30px;
+    }
+  }*/
+
+
+  .fab a{
+    cursor: pointer;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    background-color: #6576AD;
+    border: none;
+    box-shadow: 0 1px 5px rgba(0,0,0,.1);
+    font-size: 24px;
+    color: white;
+  }
+
+  .fab a:focus{
+    outline: none;
+  }
+
+  .fab a.main{
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #6576AD;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+  }
+
 </style>
+
+<!-- Colar OneSignal -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+<script>
+  window.OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+    OneSignal.init({
+      appId: "<?php echo getenv('ONE_SIGNAL_APP_ID'); ?>",
+    });
+
+  });
+</script>
+
+<!-- Fim Colar OneSignal -->
+
+
+<script type="text/javascript">
+
+  window.OneSignal = window.OneSignal || [];
+  OneSignal.push(function() {
+    let path = window.location.protocol + '//' + window.location.host
+    let user = $('#user').val() ? $('#user').val() : 0;
+
+    OneSignal.getUserId().then(function(userId) {
+      let js = {
+        user: user,
+        token: userId
+      }
+      console.log(js)
+      console.log("OneSignal User ID:", userId);
+      $.get(path + '/autenticar/saveTokenWeb', js)
+      .done((res) => {
+        console.log(res)
+      })  
+      .fail((err) => {
+        console.log(err)
+      })    
+    });
+  });
+</script>
+
+
 </head>
 <body>
   <div class="preloader">
@@ -65,6 +155,10 @@
                       </div>
                     </div>
                   </div>
+
+                  @if(session('cliente_log')['id'])
+                  <input type="hidden" value="{{session('cliente_log')['id']}}" id="user">
+                  @endif
 
                   <a class="rd-navbar-basket rd-navbar-basket-mobile fl-bigmug-line-shopping198" href="/delivery/carrinho"><span></span></a>
                   <!-- Fim carrinho -->
@@ -117,10 +211,10 @@
                 </div>
                 <div class="rd-navbar-project-content rd-navbar-modern-project-content">
                   <div>
-                    <p>Estamos sempre prontos para fornecer os melhores produtos para sua casa ou escritório. Entre em contato conosco para descobrir como podemos ajudá-lo.</p>
+                    <p>Estamos sempre prontos para fornecer os melhores produtos e o melhor atendimento.</p>
                     <div class="heading-6 subtitle">Nossos Contatos</div>
                     <div class="row row-10 gutters-10">
-                      
+
                     </div>
                     <ul class="rd-navbar-modern-contacts">
                       <li>
@@ -228,134 +322,142 @@
 
     @yield('content')
 
-    <!-- Page Footer-->
-    <footer class="section footer-variant-2 footer-modern context-dark section-top-image section-top-image-dark">
-      <div class="footer-variant-2-content">
-        <div class="container">
-          <div class="row row-40 justify-content-between">
-            <div class="col-sm-9 col-lg-9 col-xl-9">
-              <div class="oh-desktop">
-                <div class="wow slideInRight" data-wow-delay="0s">
-                  <div class="footer-brand"><a href="index.html"></a></div>
-                  <p>{{$mercadoConfig->descricao}}.</p>
-                  <ul class="footer-contacts d-inline-block d-md-block">
-                    <li>
-                      <div class="unit unit-spacing-xs">
-                        <div class="unit-left"><span class="icon fa fa-phone"></span></div>
-                        <div class="unit-body"><a class="link-phone" href="tel:#">{{$config->telefone}}</a></div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="unit unit-spacing-xs">
-                        <div class="unit-left"><span class="icon fa fa-clock-o"></span></div>
-                        <div class="unit-body">
-                          <p>{{$mercadoConfig->funcionamento}}</p>
+    <div class="fab">
+      <a class="main" href="/delivery/carrinho">
+        <span style="color: #fff; font-size: 35px; margin-left: 5px; margin-top: 7px;" class="fa fa-shopping-cart mr-2">
+        </span><strong style="margin-left: -7px; font-size: 17px;" id="qtd-itens"></strong>
+        </a>
+      </div>
+
+      <!-- Page Footer-->
+      <footer class="section footer-variant-2 footer-modern context-dark section-top-image section-top-image-dark">
+        <div class="footer-variant-2-content">
+          <div class="container">
+            <div class="row row-40 justify-content-between">
+              <div class="col-sm-9 col-lg-9 col-xl-9">
+                <div class="oh-desktop">
+                  <div class="wow slideInRight" data-wow-delay="0s">
+                    <div class="footer-brand"><a href="index.html"></a></div>
+                    <p>{{$mercadoConfig->descricao}}.</p>
+                    <ul class="footer-contacts d-inline-block d-md-block">
+                      <li>
+                        <div class="unit unit-spacing-xs">
+                          <div class="unit-left"><span class="icon fa fa-phone"></span></div>
+                          <div class="unit-body"><a class="link-phone" href="tel:#">{{$config->telefone}}</a></div>
                         </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="unit unit-spacing-xs">
-                        <div class="unit-left"><span class="icon fa fa-location-arrow"></span></div>
-                        <div class="unit-body"><a class="link-location" href="#">{{$config->endereco}}</a></div>
-                      </div>
-                    </li>
-                  </ul>
+                      </li>
+                      <li>
+                        <div class="unit unit-spacing-xs">
+                          <div class="unit-left"><span class="icon fa fa-clock-o"></span></div>
+                          <div class="unit-body">
+                            <p>{{$mercadoConfig->funcionamento}}</p>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="unit unit-spacing-xs">
+                          <div class="unit-left"><span class="icon fa fa-location-arrow"></span></div>
+                          <div class="unit-body"><a class="link-location" href="#">{{$config->endereco}}</a></div>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="col-lg-3 col-xl-3">
-              <div class="oh-desktop">
-                <div class="inset-top-18 wow slideInLeft" data-wow-delay="0s">
-                  <h5></h5>
-                  <div class="row row-10 gutters-10" data-lightgallery="group">
+              <div class="col-lg-3 col-xl-3">
+                <div class="oh-desktop">
+                  <div class="inset-top-18 wow slideInLeft" data-wow-delay="0s">
+                    <h5></h5>
+                    <div class="row row-10 gutters-10" data-lightgallery="group">
 
-                    @foreach($imagens as $i)
-                    <div class="col-6 col-sm-3 col-lg-6">
-                      <!-- Thumbnail Classic-->
-                      <article class="thumbnail thumbnail-mary">
-                        <div class="thumbnail-mary-figure">
-                          <img style="width: 129px; height: 120px" src="/imagens_categorias/{{$i}}" alt="" width="129" height="120"/>
-                        </div>
-                        <div class="thumbnail-mary-caption">
-                          <a class="icon fl-bigmug-line-zoom60" href="/imagens_categorias/{{$i}}" data-lightgallery="item">
-                            <img style="width: 129px; height: 120px" src="/imagens_categorias/{{$i}}" />
-                          </a>
-                        </div>
-                      </article>
+                      @foreach($imagens as $i)
+                      <div class="col-6 col-sm-3 col-lg-6">
+                        <!-- Thumbnail Classic-->
+                        <article class="thumbnail thumbnail-mary">
+                          <div class="thumbnail-mary-figure">
+                            <img style="width: 129px; height: 120px" src="/imagens_categorias/{{$i}}" alt="" width="129" height="120"/>
+                          </div>
+                          <div class="thumbnail-mary-caption">
+                            <a class="icon fl-bigmug-line-zoom60" href="/imagens_categorias/{{$i}}" data-lightgallery="item">
+                              <img style="width: 129px; height: 120px" src="/imagens_categorias/{{$i}}" />
+                            </a>
+                          </div>
+                        </article>
+                      </div>
+                      @endforeach
+
                     </div>
-                    @endforeach
-
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="footer-variant-2-bottom-panel">
-        <div class="container">
-          <!-- Rights-->
-          <div class="group-sm group-sm-justify">
-            <p class="rights"><span>&copy;&nbsp;</span><span class="copyright-year"></span> <span>Slym</span>.
-            </p>
-            <p class="rights">Design&nbsp;by&nbsp;<a href="https://www.templatemonster.com/">Slym</a></p>
+        <div class="footer-variant-2-bottom-panel">
+          <div class="container">
+            <!-- Rights-->
+            <div class="group-sm group-sm-justify">
+              <p class="rights"><span>&copy;&nbsp;</span><span class="copyright-year"></span> <span>Slym</span>.
+              </p>
+              <p class="rights">Design&nbsp;by&nbsp;<a href="https://www.templatemonster.com/">Slym</a></p>
+            </div>
           </div>
         </div>
-      </div>
-    </footer>
-  </div>
-  <!-- Global Mailform Output-->
-  <div class="snackbars" id="form-output-global"></div>
-  <?php $path = getenv('PATH_URL')."/";?>
-  <script type="text/javascript">
-    const path = "{{$path}}";
-  </script>
-  <!-- Javascript-->
-  <script src="/delivery_mercado/js/core.min.js"></script>
-  <script src="/delivery_mercado/js/script.js"></script>
-  <script type="text/javascript" src="/js/jquery.mask.min.js"></script>
-  <script type="text/javascript" src="/js/mascaras.js"></script>
-  <script type="text/javascript" src="/jsd/mercado_produto.js"></script>
-  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+      </footer>
+    </div>
+    <!-- Global Mailform Output-->
+    <div class="snackbars" id="form-output-global"></div>
+    <?php $path = getenv('PATH_URL')."/";?>
+    <script type="text/javascript">
+      const path = "{{$path}}";
+    </script>
+    <!-- Javascript-->
+    <script src="/delivery_mercado/js/core.min.js"></script>
+    <script src="/delivery_mercado/js/script.js"></script>
+    <script type="text/javascript" src="/js/jquery.mask.min.js"></script>
+    <script type="text/javascript" src="/js/mascaras.js"></script>
+    <script type="text/javascript" src="/jsd/mercado_produto.js"></script>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 
-  @isset($cadastro_ative_mercado_js)
-  <script type="text/javascript" src="/jsd/cadastro_ative_mercado.js"></script>
-  @endisset
+    @isset($cadastro_ative_mercado_js)
+    <script type="text/javascript" src="/jsd/cadastro_ative_mercado.js"></script>
+    @endisset
 
-  @if(isset($mapaJs))
-  <script src="https://maps.googleapis.com/maps/api/js?key={{getenv('API_KEY_MAPS')}}"
-  async defer></script>
-  @endif
+    @if(isset($mapaJs))
+    <script src="https://maps.googleapis.com/maps/api/js?key={{getenv('API_KEY_MAPS')}}"
+    async defer></script>
+    @endif
 
-  @if(isset($forma_pagamento))
-  <script type="text/javascript" src="https://stc.pagseguro.uol.com.br/pagseguro/api/v2/checkout/pagseguro.directpayment.js"></script>
+    @if(isset($forma_pagamento))
+    <script type="text/javascript" src="https://stc.pagseguro.uol.com.br/pagseguro/api/v2/checkout/pagseguro.directpayment.js"></script>
 
-  <script src="/jsd/card.js" type="text/javascript"></script>
+    <script src="/jsd/card.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA==" crossorigin="anonymous"></script>
 
-  <script type="text/javascript">
+    <script type="text/javascript">
 
-    new Card({
-      form: document.querySelector('#form-pag'),
-      container: '.card-wrapper',
-      width: 300,
-      placeholders: {
-        number: '•••• •••• •••• ••••',
-        name: 'Nome Completo',
-        expiry: '••/••••',
-        cvc: 'CVC'
-      },
-      debug: true,
-      formSelectors: {
-        numberInput: 'input#number', 
-        expiryInput: 'input#validade', 
-        cvcInput: 'input#cvc', 
-        nameInput: 'input#nome' 
-      },
-    });
+      new Card({
+        form: document.querySelector('#form-pag'),
+        container: '.card-wrapper',
+        width: 300,
+        placeholders: {
+          number: '•••• •••• •••• ••••',
+          name: 'Nome Completo',
+          expiry: '••/••••',
+          cvc: 'CVC'
+        },
+        debug: true,
+        formSelectors: {
+          numberInput: 'input#number', 
+          expiryInput: 'input#validade', 
+          cvcInput: 'input#cvc', 
+          nameInput: 'input#nome' 
+        },
+      });
 
-  </script>
-  @endif
-  <!-- coded by Ragnar-->
-</body>
-</html>
+    </script>
+    @endif
+    <!-- coded by Ragnar-->
+  </body>
+  </html>

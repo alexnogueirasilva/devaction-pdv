@@ -3,13 +3,14 @@
 
 <div class="row">
 	<div class="col s12">
-		<h2>Mesa: <strong class="red-text">{{$mesa->nome}}</strong></h2>
+		<h2><strong class="red-text">{{$mesa->nome}}</strong></h2>
 
 	</div>
 
 </div>
 
-@foreach($mesa->pedidos as $p)
+@if(sizeof($pedidos) > 0)
+@foreach($pedidos as $p)
 <?php $pedido = $p; ?>
 <div class="row">
 
@@ -23,7 +24,7 @@
 		</div>
 		@endif
 
-		<h3>Comanda: <strong class="red-text">{{$pedido->comanda}}</strong></h3>
+		<h3>Comanda: <strong class="red-text">{{$pedido->comanda != '' ? $pedido->comanda : '*'}}</strong></h3>
 		
 
 		<div class="row">
@@ -34,9 +35,9 @@
 				<a href="/pedidos/imprimirPedido/{{$pedido->id}}" target="_blank" class="btn brown" style="width: 100%">Imprimir pedido</a>
 			</div>
 
-			<div class="col s3">
+			<!-- <div class="col s3">
 				<a onclick="imprimirItens()" target="_blank" class="btn red" style="width: 100%">Imprimir itens</a>
-			</div>
+			</div> -->
 
 			@endif
 
@@ -45,7 +46,7 @@
 			<table class="striped col s12">
 				<thead>
 					<tr>
-						<th>#</th>
+						<!-- <th>#</th> -->
 
 						<th>Produto</th>
 						<th>Tamanho de Pizza</th>
@@ -66,14 +67,14 @@
 					<tr>
 						<?php $temp = $i; ?>
 
-						<td id="checkbox">
+						<!-- <td id="checkbox">
 
 							<p>
 								<input type="checkbox" class="check" @if($i->impresso == 0) checked @endif id="item_{{$i->id}}" />
 								<label for="item_{{$i->id}}"></label>
 							</p>
 
-						</td>
+						</td> -->
 						<td style="display: none" id="item_id">{{$i->id}}</td>
 						<td>{{$i->produto->nome}}</td>
 
@@ -169,7 +170,12 @@
 			</div>
 			<br>
 
+			<div class="row">
+				<div class="col s12">
 
+					<a class="btn-large green accent-4" href="/pedidos/finalizar/{{$pedido->id}}">Finalizar</a>
+				</div>
+			</div>
 
 			<input type="hidden" id="_token" value="{{csrf_token()}}">
 		</div>
@@ -179,6 +185,10 @@
 <hr>
 
 @endforeach
+@else
+<hr>
+<h4 class="center-align">Nada encontrado!!</h4>
+@endif
 
 
 

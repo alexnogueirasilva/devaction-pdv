@@ -20,7 +20,7 @@
 		<table class="pure-table">
 			<thead>
 				<tr>
-					<th width="70">CÓ PRODUTO</th>
+					<th width="70">CÓD PRODUTO</th>
 					<th width="200">PRODUTO</th>
 					<th width="80">TOTAL QTD</th>
 					<th width="80">TOTAL R$</th>

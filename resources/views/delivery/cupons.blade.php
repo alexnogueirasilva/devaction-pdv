@@ -13,11 +13,19 @@
 		</div>
 		<div class="row">
 
+			@if(sizeof($cupons) == 0)
+			<div class="col-lg-4 col-md-6">
+				<p>Nenhum cupom encontrado :(</p>
+			</div>
+			@endif
+
 			@foreach($cupons as $c)
 
 			<div class="col-lg-4 col-md-6">
 				<div class="card border-0 med-blog">
 					<div class="card-header p-0">
+
+						
 
 						<a @if($c->ativo) href="/carrinho/forma_pagamento/{{$c->codigo}}" @else href="#1" @endif>
 							@if($c->tipo == 'valor')

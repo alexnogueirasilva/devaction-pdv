@@ -161,6 +161,7 @@
 				<li><a href="/deliveryProduto"><span class="left material-icons">radio_button_unchecked</span>Produtos</a></li>
 				<li><a href="/deliveryComplemento"><span class="left material-icons">radio_button_unchecked</span>Adicionais</a></li>
 				<li><a href="/pedidosDelivery"><span class="left material-icons">radio_button_unchecked</span>Pedidos de Delivery</a></li>
+				
 				<li><a href="/configDelivery"><span class="left material-icons">radio_button_unchecked</span>Configuração</a></li>
 				<li><a href="/funcionamentoDelivery"><span class="left material-icons">radio_button_unchecked</span>Funcionamento</a></li>
 				<li><a href="/push"><span class="left material-icons">radio_button_unchecked</span>Push</a></li>
@@ -372,7 +373,7 @@
 @endif
 
 @if(isset($mapJs))
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqDmzire4loEp5mlUxhz6VCdT0rzgN56U"
+<script src="https://maps.googleapis.com/maps/api/js?key={{getenv('API_KEY_MAPS')}}"
 async defer></script>
 <script type="text/javascript" src="/js/map.js"></script>
 @endif

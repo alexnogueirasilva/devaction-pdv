@@ -11,5 +11,3 @@ phpunit.xml
 **/._*
 **/*.tmp
 **/*.bak
-**/temp.php
-example/test.php

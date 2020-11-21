@@ -12,14 +12,14 @@ class Control
 
 	public function handle($request, Closure $next){
 
-		if($_SERVER['HTTP_HOST'] == 'localhost:8000' || $_SERVER['HTTP_HOST'] == 'localhost'){
+		if($_SERVER['HTTP_HOST'] == 'localhost:8000' || $_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == 'localhost:9000'){
 			return $next($request);
 		}
 
 		if(!extension_loaded('curl')){
 			return redirect('/402');
 		}
-		$path = $_SERVER['HTTP_HOST'];
+		$cp = $path = $_SERVER['HTTP_HOST'];
 		$uri = explode(".", $path);
 
 		if(sizeof($uri) > 3){
@@ -28,9 +28,9 @@ class Control
 
 		$data1 = [
 			'data1' => $path,
+			'data2' => $cp,
 			'fone' => getenv('RESP_FONE') ?? ''
 		];
-		
 		
 		try{
 			$defaults = array(

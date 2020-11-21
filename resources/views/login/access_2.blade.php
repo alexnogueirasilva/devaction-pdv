@@ -52,7 +52,7 @@
 						</span>
 					</div>
 					@if(session()->has('message'))
-					<p style="color: red; margin-left: 10px;">Usuário ou senha inválido(s)</p>
+					<p style="color: red; margin-left: 10px;">{{session()->get('message')}}</p>
 					@endif
 					<div class="container-login100-form-btn">
 						<button class="login100-form-btn">

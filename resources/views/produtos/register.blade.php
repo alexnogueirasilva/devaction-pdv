@@ -2,6 +2,7 @@
 @section('content')
 <div class="row">
 	<div class="col s12">
+
 		<h4>{{{ isset($produto) ? "Editar": "Cadastrar" }}} Produto</h4>
 		<form method="post" action="{{{ isset($produto) ? '/produtos/update': '/produtos/save' }}}" enctype="multipart/form-data">
 			<input type="hidden" name="id" value="{{{ isset($produto->id) ? $produto->id : 0 }}}">
@@ -9,7 +10,7 @@
 				<p class="red-text">Campos com (*) obrigatório</p>
 
 				<div class="row">
-					<div class="input-field col s8">
+					<div class="input-field col s7">
 						<input value="{{{ isset($produto->nome) ? $produto->nome : old('nome') }}}" id="name" name="nome" type="text" class="validate">
 						<label for="name">Nome *</label>
 
@@ -20,16 +21,40 @@
 						@endif
 
 					</div>
+
+					<div class="input-field col s2">
+						<input value="{{{ isset($produto->referencia) ? $produto->referencia : old('referencia') }}}" id="referencia" name="referencia" type="text" class="validate" data-length="25">
+						<label for="referencia">Referência</label>
+
+						@if($errors->has('referencia'))
+						<div class="center-align red lighten-2">
+							<span class="white-text">{{ $errors->first('referencia') }}</span>
+						</div>
+						@endif
+
+					</div>
 				</div>
 
 				<div class="row">
-					<div class="input-field col s3">
+					<div class="input-field col s2">
 						<input value="{{{ isset($produto->valor_venda) ? $produto->valor_venda : old('valor_venda') }}}" id="valor" name="valor_venda" type="text" class="validate">
 						<label for="value_sale">Valor de Venda *</label>
 
 						@if($errors->has('valor_venda'))
 						<div class="center-align red lighten-2">
 							<span class="white-text">{{ $errors->first('valor_venda') }}</span>
+						</div>
+						@endif
+
+					</div>
+
+					<div class="input-field col s2">
+						<input value="{{{ isset($produto->valor_compra) ? $produto->valor_compra : old('valor_compra') }}}" id="valor_compra" name="valor_compra" type="text" class="validate">
+						<label for="value_sale">Valor de Compra *</label>
+
+						@if($errors->has('valor_compra'))
+						<div class="center-align red lighten-2">
+							<span class="white-text">{{ $errors->first('valor_compra') }}</span>
 						</div>
 						@endif
 
@@ -90,6 +115,23 @@
 							<label for="value_sale">Alerta de Venc. (Dias)</label>
 							
 						</div>
+						<div class="input-field col s2">
+							<input value="{{{ isset($produto->estoque_minimo) ? $produto->estoque_minimo : old('estoque_minimo') }}}" id="estoque_minimo" name="estoque_minimo" type="text" class="validate">
+							<label for="estoque_minimo">Estoque mínimo</label>
+						</div>
+
+						<div class="col s2">
+							<label>Gerenciar Estoque</label>
+
+							<div class="switch">
+								<label class="">
+									Não
+									<input @if(isset($produto->gerenciar_estoque) && $produto->gerenciar_estoque) checked @endisset value="true" name="gerenciar_estoque" class="red-text" type="checkbox">
+									<span class="lever"></span>
+									Sim
+								</label>
+							</div>
+						</div>
 					</div>
 
 					<input type="hidden" name="_token" value="{{ csrf_token() }}">
@@ -146,7 +188,7 @@
 
 					<div class="row">
 						<div class="input-field col s2">
-							<input value="{{{ isset($produto->NCM) ? $produto->NCM : old('NCM') }}}" id="ncm" name="NCM" type="text" class="validate">
+							<input value="{{{ isset($produto->NCM) ? $produto->NCM : $tributacao->ncm_padrao}}}" id="ncm" name="NCM" type="text" class="validate">
 							<label for="NCM">NCM *</label>
 
 							@if($errors->has('NCM'))
@@ -180,14 +222,14 @@
 								@foreach($listaCSTCSOSN as $key => $c)
 								<option value="{{$key}}"
 								@if($config != null)
-									@if(isset($produto))
-										@if($key == $produto->CST_CSOSN)
-										selected
-										@endif
-									@else
-									@if($key == $config->CST_CSOSN_padrao)
-									selected
-									@endif
+								@if(isset($produto))
+								@if($key == $produto->CST_CSOSN)
+								selected
+								@endif
+								@else
+								@if($key == $config->CST_CSOSN_padrao)
+								selected
+								@endif
 								@endif
 
 								@endif

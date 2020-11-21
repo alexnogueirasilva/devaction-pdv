@@ -41,32 +41,38 @@ class EAN13 implements Rule
         return 'Código de barras inválido';
     }
 
-    private function validate_EAN13Barcode($barcode)
+    private function validate_EAN13Barcode($ean)
     {
 
-        if (!preg_match("/^[0-9]{13}$/", $barcode)) {
+        $sumEvenIndexes = 0;
+        $sumOddIndexes  = 0;
+
+        $eanAsArray = array_map('intval', str_split($ean));
+
+        if (!$this->has13Numbers($eanAsArray)) {
             return false;
+        };
+
+        for ($i = 0; $i < count($eanAsArray)-1; $i++) {
+            if ($i % 2 === 0) {
+                $sumOddIndexes  += $eanAsArray[$i];
+            } else {
+                $sumEvenIndexes += $eanAsArray[$i];
+            }
         }
 
-        $digits = $barcode;
+        $rest = ($sumOddIndexes + (3 * $sumEvenIndexes)) % 10;
 
-        $even_sum = $digits[1] + $digits[3] + $digits[5] +
-        $digits[7] + $digits[9] + $digits[11];
-
-        $even_sum_three = $even_sum * 3;
-
-        $odd_sum = $digits[0] + $digits[2] + $digits[4] +
-        $digits[6] + $digits[8] + $digits[10];
-
-        $total_sum = $even_sum_three + $odd_sum;
-
-        $next_ten = (ceil($total_sum / 10)) * 10;
-        $check_digit = $next_ten - $total_sum;
-
-        if ($check_digit == $digits[12]) {
-            return true;
+        if ($rest !== 0) {
+            $rest = 10 - $rest;
         }
 
-        return false;
+        return $rest === $eanAsArray[12];
     }
+
+    private function has13Numbers(array $ean)
+    {
+        return count($ean) === 13;
+    }
+    
 }

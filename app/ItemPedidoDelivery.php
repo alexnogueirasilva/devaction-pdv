@@ -31,6 +31,7 @@ public function sabores(){
 }
 
 public function valorProduto(){
+
     if(sizeof($this->sabores) == 0){
         $valor = $this->produto->valor;
         foreach($this->itensAdicionais as $ad){
@@ -56,6 +57,7 @@ public function valorProduto(){
         if(getenv("DIVISAO_VALOR_PIZZA") == 1){
 
             $maiorValor = $somaValores/sizeof($this->sabores);
+
         }
 
         foreach($this->itensAdicionais as $ad){
@@ -70,18 +72,28 @@ public function nomeDoProduto(){
     if(sizeof($this->sabores) == 0){
         $nome = $this->produto->produto->nome;
         if($this->observacao != '') $nome .= " | OBS: " . $this->observacao;
-        return $nome;
+        
     }else{
+        $nome = "Tamanho: " . $this->tamanho->nome();
         $cont = 1;
-        $nome = "";
+        $nome .= " | ";
         foreach($this->sabores as $s){
-            $nome .= $cont."/".count($this->sabores) . " " . $s->produto->produto->nome;
+            $nome .= "\n".$cont."/".count($this->sabores) . " " . $s->produto->produto->nome;
         }
-        $nome .= " | Tamanho: " . $this->tamanho->nome;
-
+        
         if($this->observacao != '') $nome .= " | OBS: " . $this->observacao;
-        return $nome;
     }
+
+    if(sizeof($this->itensAdicionais) > 0){
+        $nome .= " | Adicional: ";
+
+        foreach($this->itensAdicionais as $s){
+            $nome .= " " . $s->adicional->nome();
+        }
+    }
+
+
+    return $nome;
 }
 
 public static function maisVendidosDaSemana(){

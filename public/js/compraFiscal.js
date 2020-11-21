@@ -6,6 +6,7 @@ var unidade = "";
 var valor = "";
 var quantidade = "";
 var codBarras = "";
+var cfopEntrda = "";
 
 var semRegitro;
 $(function () {
@@ -26,7 +27,8 @@ function verificaProdutoSemRegistro(){
 	}
 }
 
-function _construct(codigo, nome, codBarras, ncm, cfop, unidade, valor, quantidade){
+function _construct(codigo, nome, codBarras, ncm, cfop, unidade, valor, quantidade, cfop_entrada){
+
 	this.codigo = codigo;
 	this.nome = nome;
 	this.ncm = ncm;
@@ -35,10 +37,12 @@ function _construct(codigo, nome, codBarras, ncm, cfop, unidade, valor, quantida
 	this.valor = valor;
 	this.quantidade = quantidade;
 	this.codBarras = codBarras;
+	this.cfopEntrda = cfop_entrada;
 }
 
-function cadProd(codigo, nome, codBarras, ncm, cfop, unidade, valor, quantidade){
-	_construct(codigo, nome, codBarras, ncm, cfop, unidade, valor, quantidade);
+function cadProd(codigo, nome, codBarras, ncm, cfop, unidade, valor, quantidade, cfop_entrada){
+
+	_construct(codigo, nome, codBarras, ncm, cfop, unidade, valor, quantidade, cfop_entrada);
 	$('#nome').val(nome);
 	$("#nome").focus();
 
@@ -51,28 +55,36 @@ function cadProd(codigo, nome, codBarras, ncm, cfop, unidade, valor, quantidade)
 		})
 
 		if(!achouUnidade){
-			alert("Unidade de compra deste produto não corresponde a nenhuma pré-determinada\n"+
-				"Unidade: " + unidade);
-			if(unidade == 'M3C'){
-				unidade = 'M3';
-				alert('M3C alterado para ' + unidade);
-			}
-			else if(unidade == 'M2C'){
-				unidade = 'M2';
-				alert('M2C alterado para ' + unidade);
-			}
-			else if(unidade == 'MC'){
-				unidade = 'M';
-				alert('MC alterado para ' + unidade);
-			}
-			else if(unidade == 'UN'){
-				unidade = 'UNID';
-				alert('UN alterado para ' + unidade);
-			}else{
-				unidade = 'UNID';
-				alert('Unidade de compra alterado para ' + unidade);
 
-			}
+			swal('', "Unidade de compra deste produto não corresponde a nenhuma pré-determinada\n"+
+				"Unidade: " + unidade, 'warning')
+			.then(s => {
+
+
+				if(unidade == 'M3C'){
+					unidade = 'M3';
+					swal('', 'M3C alterado para ' + unidade, 'warning')
+
+				}
+				else if(unidade == 'M2C'){
+					unidade = 'M2';
+					swal('', 'M2C alterado para ' + unidade, 'warning')
+
+				}
+				else if(unidade == 'MC'){
+					unidade = 'M';
+					swal('', 'MC alterado para ' + unidade, 'warning')
+				}
+				else if(unidade == 'UN'){
+					unidade = 'UNID';
+					swal('', 'UN alterado para ' + unidade, 'warning')
+
+				}else{
+					unidade = 'UNID';
+					swal('', 'UN alterado para ' + unidade, 'warning')
+
+				}
+			})
 
 		}
 
@@ -85,14 +97,16 @@ function cadProd(codigo, nome, codBarras, ncm, cfop, unidade, valor, quantidade)
 		$('#un_compra').val(unidade);
 		$('#unidade_venda option[value="'+unidade+'"]').prop("selected", true);
 
-		$('#valor').val(valor);
+		$('#valor_compra').val(valor);
 
 		$('#quantidade').val(quantidade);
 		$('#conv_estoque').val('1');
 		$('#valor_venda').val('0');
+		$('#cfop_entrada').val(cfop_entrada);
 		$("#quantidade").trigger("click");
 		Materialize.updateTextFields();
 		$('#modal1').modal('open');
+
 	})
 
 }
@@ -148,10 +162,12 @@ $('#salvar').click(() => {
 	$("#th_"+this.codigo).removeClass("red-text");
 	$("#th_"+this.codigo).html($('#nome').val());
 	let valorVenda = $('#valor_venda').val();
+	let valor_compra = $('#valor_compra').val();
 	let unidadeVenda = $('#unidade_venda').val();
 	let conversaoEstoque =$('#conv_estoque').val();
 	let categoria_id =$('#categoria_id').val();
 	let cor = $('#cor').val();
+	let cfop = $('#cfop').val();
 
 	let CST_CSOSN =$('#CST_CSOSN').val();
 	let CST_PIS =$('#CST_PIS').val();
@@ -164,9 +180,11 @@ $('#salvar').click(() => {
 		conversao_unitaria: conversaoEstoque,
 		categoria_id: categoria_id,
 		cor: cor,
+		valorCompra: valor_compra,
 		nome: $('#nome').val(),
 		ncm: this.ncm,
-		cfop: this.cfop,
+		cfop: cfop,
+		referencia: this.codigo,
 		unidadeCompra: this.unidade,
 		valor: this.valor,
 		quantidade: this.quantidade,
@@ -193,12 +211,15 @@ $('#salvar').click(() => {
 		url: path + 'produtos/salvarProdutoDaNota',
 		dataType: 'json',
 		success: function(e){
+			let cfop_entrada = $('#cfop_entrada').val()
 			$("#th_prod_id_"+codigo).html(e.id);
+			$("#cfop_entrada_"+codigo).html(cfop_entrada);
 			$("#th_acao1_"+codigo).css('display', 'none');
 			$("#th_acao2_"+codigo).css('display', 'block');
 			$('#preloader').css('display', 'none');
 			$('#modal1').modal('close');
 
+			swal('Sucesso', 'Item salvo', 'success')
 		}, error: function(e){
 			console.log(e)
 			$('#preloader').css('display', 'none');
@@ -328,6 +349,7 @@ function getUnidadeMedida(call){
 }
 
 function salvarItens(id, call){
+
 	let token = $('#_token').val();
 	$('table tbody tr').each(function(){
 		let js = {
@@ -337,7 +359,9 @@ function salvarItens(id, call){
 			compra_id : id,
 			unidade : $(this).find('.unidade').html(),
 			quantidade : $(this).find('.quantidade').html(),
-			valor : $(this).find('.valor').html()
+			valor : $(this).find('.valor').html(),
+			cfop_entrada : $(this).find('#cfop_entrada_input').val(),
+			said : $(this).find('#codigo_siad_input').val(),
 		}
 
 		console.log(js)

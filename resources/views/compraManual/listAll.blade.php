@@ -14,7 +14,7 @@
 		</div>
 		@endif
 
-		<nav class="cyan">
+		<nav class="black">
 			<div class="nav-wrapper">
 				<form method="get" action="/compras/pesquisa">
 					<div class="input-field">
@@ -52,7 +52,7 @@
 					</div>
 				</div>
 			</form>
-			<label><i class="material-icons left green-text">nfc</i>Emitir Entrada</label><br><br>
+			<label><i class="material-icons left green-text">nfc</i>Emitir NF-e Entrada</label><br><br>
 			<div class="row">
 				<div class="col s12">
 					<label>Numero de registros: {{count($compras)}} 
@@ -83,7 +83,7 @@
 						<tr>
 							<th>{{ $c->id }}</th>
 							<th>{{ $c->fornecedor->razao_social }}</th>
-							<th>{{ \Carbon\Carbon::parse($c->date_register)->format('d/m/Y H:i:s')}}</th>
+							<th>{{ \Carbon\Carbon::parse($c->created_at)->format('d/m/Y H:i:s')}}</th>
 							<th>
 								<a class="btn brown lighten-2 tooltipped" data-position="bottom" data-delay="50" data-tooltip="{{$c->observacao}}"
 									@if(empty($c->observacao))
@@ -104,9 +104,13 @@
 								<a title="Detalhes" href="/compras/detalhes/{{ $c->id }}">
 									<i class="material-icons left">list</i>					
 								</a>
-								<a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/compras/delete/{{ $c->id }}">
+								<a onclick='swal("Atenção!", "Deseja remover este registro?", "warning").then((sim) => {if(sim){ location.href="/compras/delete/{{ $c->id }}" }else{return false} })' href="#!">
 									<i class="material-icons left red-text">delete</i>					
 								</a>
+
+								<!-- a onclick = "if (! confirm('Deseja excluir este registro?')) { return false; }" href="/compras/delete/{{ $c->id }}">
+									<i class="material-icons left red-text">delete</i>					
+								</a> -->
 
 								<a title="Detalhes" href="/compras/emitirEntrada/{{ $c->id }}">
 									<i class="material-icons left green-text">nfc</i>					

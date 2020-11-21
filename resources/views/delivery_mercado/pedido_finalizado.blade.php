@@ -32,7 +32,7 @@
         @endif
 
         @if($config)
-        <h4 data-wow-delay="0.4s" class="text-success wow slideInLeft">Tempo médio de entrega: <strong>{{$config->tempo_medio_entrega}}</strong></h4><br>
+        <h4 data-wow-delay="0.4s" class="text-success wow slideInLeft">Tempo médio de entrega: <strong>{{$config->tempo_medio_entrega}} minutos</strong></h4><br>
         @endif
 
       </div>
@@ -79,11 +79,11 @@
                   <span>Adicionais: 
                     @if(count($i->itensAdicionais)>0)
                     @foreach($i->itensAdicionais as $a)
-                    <strong>{{$a->adicional->nome}}</strong>
+                    <strong>{{$a->adicional->nome()}}</strong>
                     <?php  $total += $a->quantidade * $a->adicional->valor * $i->quantidade?>
                     @endforeach
                     @else
-                    <label>Nenum adicional</label>
+                    <label>Nenhum adicional</label>
                     @endif
                   </span>
 
@@ -148,7 +148,7 @@
         </tbody>
         <tfoot data-wow-delay="0.3s" class="text-success wow slideInLeft">
           <tr class="visible-xs">
-            <td class="text-center">Total do pedido: <strong style="color: red">R$ {{number_format($pedido->valor_total, 2, ',', '.')}}</strong>
+            <td class="text-center">Total do pedido: <strong style="color: red">R$ {{number_format($geral, 2, ',', '.')}}</strong>
             </td>
 
           </tr>
@@ -192,7 +192,7 @@
         @if($pedido->endereco_id != null)
         <tr class="visible-xs">
 
-          <td class="text-center"><strong>Taxa de entrega = R${{number_format($config->valor_entrega, 2, ',', '.')}}</strong></td>
+          <td class="text-center"><strong>Taxa de entrega = R${{number_format($pedido->valor_total - $geral, 2, ',', '.')}}</strong></td>
 
         </tr>
 
@@ -201,7 +201,7 @@
       </tr>
 
       <tr class="visible-xs">
-        <td class="text-center"><strong>Total pedido + Taxa de entrega = <span style="color: red">R$ {{number_format($config->valor_entrega+$geral-$valorDesconto, 2, ',', '.')}}</span></strong></td>
+        <td class="text-center"><strong>Total pedido + Taxa de entrega = <span style="color: red">R$ {{number_format($pedido->valor_total-$valorDesconto, 2, ',', '.')}}</span></strong></td>
       </tr>
       @else
       <tr class="visible-xs">

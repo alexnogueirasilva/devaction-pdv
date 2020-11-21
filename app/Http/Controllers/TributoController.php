@@ -40,7 +40,8 @@ class TributoController extends Controller
 				'pis' => $request->pis,
 				'cofins' => $request->cofins,
 				'ipi' => $request->ipi,
-				'regime' => $request->regime
+				'regime' => $request->regime,
+				'ncm_padrao' => $request->ncm_padrao
 			]);
 		}else{
 			$trib = Tributacao::
@@ -71,7 +72,8 @@ class TributoController extends Controller
 			'icms' => 'required',
 			'pis' => 'required',
 			'cofins' => 'required',
-			'ipi' => 'required'
+			'ipi' => 'required',
+			'ncm_padrao' => 'required'
 			
 		];
 
@@ -79,7 +81,8 @@ class TributoController extends Controller
 			'icms.required' => 'O campo ICMS é obrigatório.',
 			'pis.required' => 'O campo PIS é obrigatório.',
 			'cofins.required' => 'O campo COFINS é obrigatório.',
-			'ipi.required' => 'O campo IPI é obrigatório.'
+			'ipi.required' => 'O campo IPI é obrigatório.',
+			'ncm_padrao.required' => 'O campo NCM é obrigatório.'
 
 		];
 		$this->validate($request, $rules, $messages);

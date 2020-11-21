@@ -1,8 +1,14 @@
-
-
+$(function () {
+	let semCertificado = $('#semCertificado').val() ? $('#semCertificado').val() : false;
+	if(semCertificado){
+		swal("Aviso", "Os botões inferiores seram mostrados após o upload de certificado", "warning")
+	}
+})
 function enviar(){
 	$('#preloader1').css('display', 'block');
-	let id = 0
+	$('#btn-enviar').addClass('disabled');
+
+	let id = 0;
 	$('#body tr').each(function(){
 		if($(this).find('#checkbox input').is(':checked'))
 			id = $(this).find('#id').html();
@@ -34,7 +40,8 @@ function enviar(){
 
 			}
 			else if(e == 'Apro'){
-				alert("Esta NF já esta aprovada, não é possível enviar novamente!");
+				swal("Cuidado!", "Esta NF já esta aprovada, não é possível enviar novamente!", "warning")
+
 			}
 			else{
 				$('#modal-alert').modal('open');
@@ -43,6 +50,8 @@ function enviar(){
 			}
 
 			$('#preloader1').css('display', 'none');
+			$('#btn-enviar').removeClass('disabled');
+
 		}, error: function(e){
 
 			let js = e.responseJSON;
@@ -54,9 +63,12 @@ function enviar(){
 				js.map((v) => {
 					err += v + "\n";
 				});
-				alert(err);
+				// alert(err);
+				swal("Erro!", err, "warning")
+
 			}
 
+			$('#btn-enviar').removeClass('disabled');
 			$('#preloader1').css('display', 'none');
 		}
 	});
@@ -81,6 +93,23 @@ function imprimir(){
 		Materialize.toast('Selecione apenas um documento para impressão!', 5000)
 	}else{
 		window.open(path+"/nf/imprimir/"+id, "_blank");
+	}
+}
+
+function baixarXml(){
+	let id = 0;
+	let cont = 0;
+	$('#body tr').each(function(){
+		if($(this).find('#checkbox input').is(':checked')){
+			id = $(this).find('#id').html();
+			cont++
+		}
+	})
+
+	if(cont > 1){
+		Materialize.toast('Selecione apenas um documento para impressão!', 5000)
+	}else{
+		window.open(path+"/vendas/baixarXml/"+id, "_blank");
 	}
 }
 
@@ -119,6 +148,7 @@ function imprimirCancela(){
 }
 
 function consultar(){
+
 	let id = 0;
 	let cont = 0;
 	$('#body tr').each(function(){
@@ -151,7 +181,9 @@ function consultar(){
 					$('#modal2').modal('open');
 					$('#preloader1').css('display', 'none');
 				}else{
-					alert('Consumo indevido!')
+					// alert('Consumo indevido!')
+					swal("Cuiadado!", 'Consumo indevido!', "warning")
+
 				}
 			}, error: function(e){
 				console.log(e)
@@ -250,13 +282,22 @@ function cancelar(){
 				console.log(e)
 				let js = JSON.parse(e);
 				console.log(js)
-				alert(js.retEvento.infEvento.xMotivo)
-
+				// alert(js.retEvento.infEvento.xMotivo)
 				$('#preloader5').css('display', 'none');
-				location.reload();
+				swal("Sucesso!", js.retEvento.infEvento.xMotivo, "success")
+				.then((value) => {
+					location.reload();
+
+				})
+
 			}, error: function(e){
 				console.log(e)
-				Materialize.toast('Erro de comunicação contate o desenvolvedor', 5000)
+				let js = e.responseJSON
+				// let js = JSON.parse(e);
+				// console.log(js)
+
+				swal("Erro!", js.retEvento.infEvento.xMotivo, "warning")
+
 				$('#preloader5').css('display', 'none');
 			}
 		});
@@ -294,7 +335,9 @@ function cartaCorrecao(){
 				console.log(e)
 				let js = JSON.parse(e);
 				console.log(js)
-				alert(js.retEvento.infEvento.xMotivo)
+				// alert(js.retEvento.infEvento.xMotivo)
+				swal("Sucesso!", js.retEvento.infEvento.xMotivo, "success")
+
 
 				$('#preloader4').css('display', 'none');
 			}, error: function(e){
@@ -329,7 +372,9 @@ function inutilizar(){
 		success: function(e){
 			console.log(e)
 			if(e.infInut){
-				alert("cStat:" + e.infInut.cStat + "\n" + e.infInut.xMotivo);
+				// alert("cStat:" + e.infInut.cStat + "\n" + e.infInut.xMotivo);
+				swal("Sucesso!", "cStat:" + e.infInut.cStat + "\n" + e.infInut.xMotivo, "success")
+
 			}
 
 			$('#preloader3').css('display', 'none');
@@ -361,10 +406,16 @@ function validaBtns(){
 		}
 	})
 
+
 	if(cont > 1 || cont == 0){
 		desabilitaBotoes();
+		if(cont == 0){
+			$('#btn-inutilizar').removeClass("disabled");
+		}
+
 	}else{
 		habilitaBotoes();
+
 		if(estado == 'DISPONIVEL'){
 			$('#btn-enviar').removeClass("disabled");
 			$('#btn-imprimir').addClass("disabled");
@@ -377,6 +428,7 @@ function validaBtns(){
 			$('#btn-danfe').removeClass("disabled");
 			$('#btn-imprimir-cce').addClass("disabled");
 			$('#btn-imprimir-cancelar').addClass("disabled");
+			$('#btn-baixar-xml').addClass("disabled");
 
 
 		} else if(estado == 'REJEITADO'){
@@ -392,6 +444,7 @@ function validaBtns(){
 			$('#btn-danfe').removeClass("disabled");
 			$('#btn-imprimir-cce').addClass("disabled");
 			$('#btn-imprimir-cancelar').addClass("disabled");
+			$('#btn-baixar-xml').addClass("disabled");
 
 
 		} else if(estado == 'CANCELADO'){
@@ -406,6 +459,8 @@ function validaBtns(){
 			$('#btn-danfe').removeClass("disabled");
 			$('#btn-imprimir-cce').addClass("disabled");
 			$('#btn-imprimir-cancelar').removeClass("disabled");
+			$('#btn-baixar-xml').addClass("disabled");
+
 
 
 		} else if(estado == 'APROVADO'){
@@ -416,6 +471,8 @@ function validaBtns(){
 			$('#btn-cancelar').removeClass("disabled");
 			$('#btn-correcao').removeClass("disabled");
 			$('#btn-xml').removeClass("disabled");
+			$('#btn-baixar-xml').removeClass("disabled");
+			
 
 			$('#btn-danfe').addClass("disabled");
 			$('#btn-imprimir-cce').removeClass("disabled");
@@ -436,7 +493,8 @@ function desabilitaBotoes(){
 	$('#btn-danfe').addClass("disabled");
 	$('#btn-imprimir-cce').addClass("disabled");
 	$('#btn-imprimir-cancelar').addClass("disabled");
-
+	$('#btn-baixar-xml').addClass("disabled");
+	
 }
 
 
@@ -448,7 +506,8 @@ function habilitaBotoes(){
 	$('#btn-correcao').removeClass("disabled");
 	$('#btn-inutilizar').removeClass("disabled");
 	$('#btn-xml').removeClass("disabled");
-
+	$('#btn-baixar-xml').removeClass("disabled");
+	
 }
 
 function enviarEmailXMl(){
@@ -461,12 +520,17 @@ function enviarEmailXMl(){
 	.done(function(data){
 		console.log(data)
 		$('#preloader6').css('display', 'none');
-		alert('Email enviado com sucesso!');
+		// alert('Email enviado com sucesso!');
+		swal("Sucesso!", 'Email enviado com sucesso!', "success")
+
+
 	})
 	.fail(function(err){
 		console.log(err)
 		$('#preloader6').css('display', 'none');
-		alert('Erro ao enviar email!')
+		// alert('Erro ao enviar email!')
+		swal("Erro!", 'Erro ao enviar email!', "warning")
+
 	})
 }
 

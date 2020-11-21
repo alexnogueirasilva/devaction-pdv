@@ -7,6 +7,7 @@ use App\Helpers\StockMove;
 use App\Estoque;
 use App\Produto;
 use App\Apontamento;
+use App\AlteracaoEstoque;
 
 class StockController extends Controller
 {
@@ -133,11 +134,27 @@ public function saveApontamentoManual(Request $request){
     where('id', $produto)
     ->first();
 
+    $dataAlteracao = [
+        'produto_id' => $produto,
+        'usuario_id' => get_id_user(),
+        'quantidade' => $request->quantidade,
+        'tipo' => $request->tipo,
+        'observacao' => $request->observacao ?? ''
+    ];
+
+    AlteracaoEstoque::create($dataAlteracao);
 
     $stockMove = new StockMove();
-    $result = $stockMove->pluStock((int) $produto, 
-        str_replace(",", ".", $request->quantidade),
-        str_replace(",", ".", $prod->valor_venda));
+    $result = null;
+    if($request->tipo == 'incremento'){
+        $result = $stockMove->pluStock((int) $produto, 
+            $request->quantidade,
+            str_replace(",", ".", $prod->valor_venda));
+    }else{
+        // echo $produto;
+        $result = $stockMove->downStock((int)$produto, $request->quantidade);
+
+    }
 
     if($result){
         session()->flash('color', 'blue');
@@ -184,6 +201,33 @@ private function _validateApontamento(Request $request){
     ];
 
     $this->validate($request, $rules, $messages);
+
+}
+
+public function listApontamentos(){
+    $apontamentos = AlteracaoEstoque::orderBy('id', 'desc')->get();
+
+    return view('stock/listaAlteracao')
+    ->with('title', 'Lista de Alterações')
+    ->with('apontamentos', $apontamentos);
+}
+
+public function listApontamentosDelte($id){
+    $alteracao = AlteracaoEstoque::find($id);
+
+    $stockMove = new StockMove();
+
+    if($alteracao->tipo != 'incremento'){
+        $result = $stockMove->pluStock($alteracao->produto_id, $alteracao->quantidade);
+    }else{
+        $result = $stockMove->downStock($alteracao->produto_id, $alteracao->quantidade);
+    }
+
+    $alteracao->delete();
+    session()->flash('color', 'green');
+    session()->flash('message', 'Registro removido!');
+
+    return redirect("/estoque/listApontamentos");
 
 }
 

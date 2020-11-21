@@ -127,7 +127,6 @@ class PushController extends Controller
 
 				if(!in_array($t->user_id, $tkTemp)){
 
-
 					array_push($tkTemp, $t->user_id);
 				}
 			}

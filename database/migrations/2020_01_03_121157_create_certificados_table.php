@@ -15,7 +15,7 @@ class CreateCertificadosTable extends Migration
     {
         Schema::create('certificados', function (Blueprint $table) {
             $table->binary('arquivo');
-            $table->string('senha', 10);
+            $table->string('senha', 15);
             $table->timestamps();
         });
     }

@@ -15,8 +15,6 @@
 
 namespace Test\Linear;
 
-use PHPUnit\Framework\TestCase;
-
 /**
  * Barcode class test
  *
@@ -28,7 +26,7 @@ use PHPUnit\Framework\TestCase;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-barcode
  */
-class InterleavedTwoOfFiveCheckTest extends TestCase
+class InterleavedTwoOfFiveCheckTest extends \PHPUnit_Framework_TestCase
 {
     protected $obj = null;
 
@@ -49,11 +47,9 @@ class InterleavedTwoOfFiveCheckTest extends TestCase
         $this->assertEquals($expected, $grid);
     }
 
-    /**
-     * @expectedException \Com\Tecnick\Barcode\Exception
-     */
     public function testInvalidInput()
     {
+        $this->setExpectedException('\Com\Tecnick\Barcode\Exception');
         $this->obj->getBarcodeObj('I25+', 'GHI');
     }
 }

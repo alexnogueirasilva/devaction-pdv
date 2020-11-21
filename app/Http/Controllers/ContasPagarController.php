@@ -27,6 +27,7 @@ class ContasPagarController extends Controller
 		$contas = ContaPagar::
 		whereBetween('data_vencimento', [date("Y-m-d"), 
 			date('Y-m-d', strtotime('+1 month'))])
+		->orderBy('data_vencimento', 'asc')
 		->get();
 		$somaContas = $this->somaCategoriaDeContas($contas);
 		return view('contaPagar/list')

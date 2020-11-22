@@ -19,7 +19,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => '651db63c26c597c886ddb2222fd05b2770da591e',
+    'reference' => '4452f246b36d16ec5626d08f47d75919a52c8658',
     'name' => 'laravel/laravel',
   ),
   'versions' => 
@@ -491,7 +491,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '651db63c26c597c886ddb2222fd05b2770da591e',
+      'reference' => '4452f246b36d16ec5626d08f47d75919a52c8658',
     ),
     'laravel/nexmo-notification-channel' => 
     array (
@@ -971,8 +971,8 @@ private static $installed = array (
     array (
       'provided' => 
       array (
-        0 => '1.0',
-        1 => '1.0.0',
+        0 => '1.0.0',
+        1 => '1.0',
       ),
     ),
     'psr/simple-cache' => 

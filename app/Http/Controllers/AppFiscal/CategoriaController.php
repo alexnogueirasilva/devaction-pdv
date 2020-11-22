@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Http\Controllers\AppFiscal;
+
+use Illuminate\Http\Request;
+use App\Categoria;
+use App\Produto;
+
+class CategoriaController extends Controller
+{
+	public function all(){
+		$categorias = Categoria::all();
+		foreach($categorias as $c){
+			$prods = Produto::where('categoria_id', $c->id)->get();
+			$c->total_de_produtos = sizeof($prods);
+		}
+		return response()->json($categorias, 200);
+	}
+
+	public function isDelivery(){
+		$deivery = getenv("DELIVERY");
+		return response()->json($deivery, 200);
+	}
+
+	public function salvar(Request $request){
+		
+		if($request->id > 0){
+			$categoria = Categoria::find($request->id);
+			$categoria->nome = $request->nome;
+			$res = $categoria->save();
+		}else{
+			$data = [
+				'nome' => $request->nome
+			];
+			$res = Categoria::create($data);
+		}
+
+		return response()->json($res, 200);
+	}
+
+	public function delete(Request $request){
+		$categoria = Categoria::find($request->id);
+		$delete = $categoria->delete();
+		return response()->json($delete, 200);
+	}
+}

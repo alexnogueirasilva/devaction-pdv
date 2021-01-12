@@ -9,7 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^7.4",
-        "php": "soap";
+        "php": "soap",
         "barryvdh/laravel-cors": "0.11.4",
         "comtele/comtele_sdk": "^1.1.6",
         "dompdf/dompdf": "^0.8.3",

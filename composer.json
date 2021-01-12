@@ -9,6 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^7.4",
+        "ext-soap": "*",
         "barryvdh/laravel-cors": "0.11.4",
         "comtele/comtele_sdk": "^1.1.6",
         "dompdf/dompdf": "^0.8.3",
@@ -24,8 +25,6 @@
         "simplesoftwareio/simple-qrcode": "^2.0.0",
         "spatie/laravel-cors": "^1.3.3",
         "werneckbh/laravel-qr-code": "^0.1.3",
-        "soap/soap": "7.4",
-    },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.2.2",
         "filp/whoops": "^2.3.1",
